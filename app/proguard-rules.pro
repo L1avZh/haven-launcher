@@ -1,0 +1,1 @@
+-keep class dev.l1avzh.haven.** { *; }

@@ -1,0 +1,26 @@
+# Build output
+build/
+*.apk
+*.aab
+*.ap_
+*.dex
+.gradle/
+.kotlin/
+
+# Local configuration and credentials (never commit these)
+local.properties
+*.jks
+*.keystore
+*.pem
+.env
+.env.*
+
+# IDE and OS
+.idea/
+*.iml
+.DS_Store
+captures/
+
+# Generated reports and logs
+*.log
+lint-results*
