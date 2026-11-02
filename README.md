@@ -9,6 +9,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/L1avZh/haven-launcher/actions/workflows/build.yml"><img alt="Build" src="https://github.com/L1avZh/haven-launcher/actions/workflows/build.yml/badge.svg"></a>
   <img alt="Android 8.0+" src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white">
   <img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-2.2-7F52FF?logo=kotlin&logoColor=white">
   <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-blue">
