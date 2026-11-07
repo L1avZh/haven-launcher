@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <string name="app_name" translatable="false">Haven</string>
     <string name="search">Search</string>
     <string name="settings">Settings</string>
@@ -24,39 +24,6 @@
     <string name="system_settings">System settings</string>
     <string name="on">On</string>
     <string name="off">Off</string>
-    <string name="w_weather" tools:ignore="MissingTranslation">Weather</string>
-    <string name="weather_city" tools:ignore="MissingTranslation">Weather city</string>
-    <string name="weather_city_d" tools:ignore="MissingTranslation">Turns the weather widget on. Only this city\'s coordinates are sent, to open-meteo.com.</string>
-    <string name="weather_unit" tools:ignore="MissingTranslation">Temperature unit</string>
-    <string name="weather_unset" tools:ignore="MissingTranslation">Not set</string>
-    <string name="weather_pick" tools:ignore="MissingTranslation">Choose a city in Settings</string>
-    <string name="celsius" tools:ignore="MissingTranslation">Celsius</string>
-    <string name="fahrenheit" tools:ignore="MissingTranslation">Fahrenheit</string>
-    <string name="wx_clear" tools:ignore="MissingTranslation">Clear</string>
-    <string name="wx_partly" tools:ignore="MissingTranslation">Partly cloudy</string>
-    <string name="wx_cloudy" tools:ignore="MissingTranslation">Cloudy</string>
-    <string name="wx_fog" tools:ignore="MissingTranslation">Fog</string>
-    <string name="wx_rain" tools:ignore="MissingTranslation">Rain</string>
-    <string name="wx_snow" tools:ignore="MissingTranslation">Snow</string>
-    <string name="wx_storm" tools:ignore="MissingTranslation">Storm</string>
-    <string name="cat_widgets" tools:ignore="MissingTranslation">Widgets</string>
-    <string name="d_widgets" tools:ignore="MissingTranslation">Glanceable info for the home screen and the screensaver</string>
-    <string name="widgets_home" tools:ignore="MissingTranslation">On the home screen (up to 3)</string>
-    <string name="widgets_saver" tools:ignore="MissingTranslation">On the screensaver (up to 4)</string>
-    <string name="w_greeting" tools:ignore="MissingTranslation">Greeting</string>
-    <string name="w_day" tools:ignore="MissingTranslation">Today</string>
-    <string name="w_year" tools:ignore="MissingTranslation">This year</string>
-    <string name="w_moon" tools:ignore="MissingTranslation">Moon</string>
-    <string name="w_storage" tools:ignore="MissingTranslation">Free storage</string>
-    <string name="w_memory" tools:ignore="MissingTranslation">Free memory</string>
-    <string name="w_uptime" tools:ignore="MissingTranslation">Uptime</string>
-    <string name="greet_morning" tools:ignore="MissingTranslation">Good morning</string>
-    <string name="greet_afternoon" tools:ignore="MissingTranslation">Good afternoon</string>
-    <string name="greet_evening" tools:ignore="MissingTranslation">Good evening</string>
-    <string name="greet_night" tools:ignore="MissingTranslation">Good night</string>
-    <string name="screensaver" tools:ignore="MissingTranslation">Screensaver</string>
-    <string name="screensaver_d" tools:ignore="MissingTranslation">Starts after a while without input. Any button wakes it.</string>
-    <string name="minutes_fmt" tools:ignore="MissingTranslation">%d min</string>
     <string name="language">Language</string>
     <string name="system_default">System default</string>
     <string name="no_hidden">No hidden apps</string>
@@ -191,8 +158,6 @@
     <string name="priv_permissions">Permissions requested</string>
     <string name="priv_diag">Diagnostics and tracking</string>
     <string name="none">None</string>
-    <string name="priv_net_weather" tools:ignore="MissingTranslation">Weather widget only (open-meteo.com)</string>
-    <string name="priv_perm_internet" tools:ignore="MissingTranslation">Internet, for the optional weather widget</string>
     <string name="priv_note">Everything stays on this TV. Haven has no accounts, ads or analytics.</string>
     <string name="ver_build">Version %1$s, build %2$s</string>
     <string name="developer">Developer</string>
@@ -207,6 +172,41 @@
     <string name="learn_hold_hint">Tip: hold a button for a second to bind a long press. This also works for Back.</string>
     <string name="recent">Recent</string>
     <string name="no_recent">Apps you open from Haven will appear here.</string>
+    <string name="cat_widgets">Widgets</string>
+    <string name="d_widgets">Glanceable info for the home screen and the screensaver</string>
+    <string name="widgets_home">On the home screen (up to 3)</string>
+    <string name="widgets_saver">On the screensaver (up to 4)</string>
+    <string name="w_greeting">Greeting</string>
+    <string name="w_day">Today</string>
+    <string name="w_year">This year</string>
+    <string name="w_moon">Moon</string>
+    <string name="w_storage">Free storage</string>
+    <string name="w_memory">Free memory</string>
+    <string name="w_uptime">Uptime</string>
+    <string name="greet_morning">Good morning</string>
+    <string name="greet_afternoon">Good afternoon</string>
+    <string name="greet_evening">Good evening</string>
+    <string name="greet_night">Good night</string>
+    <string name="screensaver">Screensaver</string>
+    <string name="screensaver_d">Starts after a while without input. Any button wakes it.</string>
+    <string name="minutes_fmt">%d min</string>
+    <string name="w_weather">Weather</string>
+    <string name="weather_city">Weather city</string>
+    <string name="weather_city_d">Turns the weather widget on. Only this city\'s coordinates are sent, to open-meteo.com.</string>
+    <string name="weather_unit">Temperature unit</string>
+    <string name="weather_unset">Not set</string>
+    <string name="weather_pick">Choose a city in Settings</string>
+    <string name="celsius">Celsius</string>
+    <string name="fahrenheit">Fahrenheit</string>
+    <string name="wx_clear">Clear</string>
+    <string name="wx_partly">Partly cloudy</string>
+    <string name="wx_cloudy">Cloudy</string>
+    <string name="wx_fog">Fog</string>
+    <string name="wx_rain">Rain</string>
+    <string name="wx_snow">Snow</string>
+    <string name="wx_storm">Storm</string>
+    <string name="priv_net_weather">Weather widget only (open-meteo.com)</string>
+    <string name="priv_perm_internet">Internet, for the optional weather widget</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="other">%d apps</item>

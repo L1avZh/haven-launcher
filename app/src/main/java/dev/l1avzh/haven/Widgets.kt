@@ -36,7 +36,7 @@ object Widgets {
                 val w = Weather.cached(p)
                 Weather.refresh(c) { WidgetStrip.refreshAll() }
                 val h = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
-                Reading(if (w == null) "…" else "${Weather.format(p, w.first)} ${Weather.describe(c, w.second)}", null, true, city.name,
+                Reading(if (w == null) "…" else "${Weather.format(p, w.first)} ${Weather.describe(c, w.second)}", null, true, Weather.displayName(c, p, p.weatherCity - 1),
                     if (w == null) null else Triple(skyFor(w.second), h in 6..18, w.first >= 28))
             }
         },

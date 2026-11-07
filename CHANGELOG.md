@@ -1,5 +1,6 @@
 ## 1.6
 
+- All widget, screensaver and weather strings translated into the 50 languages; the weather widget shows the city name in the app's language.
 - Weather widget (opt-in, Settings → Widgets → Weather city): animated icon, plus rain, snow and storm falling across the background. Adds the `INTERNET` permission; requests go only to open-meteo.com and only carry the chosen city's coordinates.
 - Widgets for the home screen and the screensaver, chosen in Settings → Widgets.
 - Scope hero (animated scope name) when a tab has focus instead of an app.

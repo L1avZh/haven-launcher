@@ -136,6 +136,9 @@ class Prefs(ctx: Context) {
         get() = sp.getInt("weather_unit", if (java.util.Locale.getDefault().country == "US") 1 else 0)
         set(v) { sp.edit().putInt("weather_unit", v).apply() }
 
+    fun str(key: String): String = sp.getString(key, "") ?: ""
+    fun putStr(key: String, v: String) { sp.edit().putString(key, v).apply() }
+
     var weatherCache: String
         get() = sp.getString("weather_cache", "") ?: ""
         set(v) { sp.edit().putString("weather_cache", v).apply() }

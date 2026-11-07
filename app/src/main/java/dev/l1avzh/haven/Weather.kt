@@ -31,6 +31,37 @@ object Weather {
     private val ui = Handler(Looper.getMainLooper())
     @Volatile private var fetching = false
 
+    /** Language code the geocoding service understands, from the app's current locale. */
+    private fun langCode(ctx: Context): String = when (val l = Lang.locale(ctx).language) { "iw" -> "he"; "in" -> "id"; "ji" -> "yi"; else -> l }
+
+    private fun nameKey(ctx: Context, idx: Int) = "wname_${idx}_${langCode(ctx)}"
+
+    /** The city's name in the app's language once fetched, otherwise the English name. */
+    fun displayName(ctx: Context, p: Prefs, idx: Int): String {
+        val city = CITIES.getOrNull(idx) ?: return ""
+        return p.str(nameKey(ctx, idx)).ifEmpty { city.name }
+    }
+
+    /** One lookup per city and language, cached forever; asks only open-meteo's geocoding service for the city name. */
+    private fun fetchName(ctx: Context, p: Prefs, idx: Int): Boolean {
+        val city = CITIES[idx]; val lang = langCode(ctx)
+        if (lang == "en" || p.str(nameKey(ctx, idx)).isNotEmpty()) return false
+        val url = URL("https://geocoding-api.open-meteo.com/v1/search?name=" + java.net.URLEncoder.encode(city.name, "UTF-8") + "&count=5&format=json&language=" + lang)
+        val conn = url.openConnection() as HttpURLConnection
+        conn.connectTimeout = 8000; conn.readTimeout = 8000
+        try {
+            if (conn.responseCode != 200) return false
+            val arr = JSONObject(conn.inputStream.bufferedReader().use { it.readText() }).optJSONArray("results") ?: return false
+            for (i in 0 until arr.length()) {
+                val r = arr.getJSONObject(i)
+                if (Math.abs(r.optDouble("latitude") - city.lat) < 0.6 && Math.abs(r.optDouble("longitude") - city.lon) < 0.6) {
+                    val n = r.optString("name"); if (n.isNotEmpty()) { p.putStr(nameKey(ctx, idx), n); return true }
+                }
+            }
+        } finally { conn.disconnect() }
+        return false
+    }
+
     /** "temp|code|timestamp|cityIndex" last good reading. */
     fun cached(p: Prefs): Triple<Double, Int, Long>? {
         val parts = p.weatherCache.split('|')
@@ -44,10 +75,13 @@ object Weather {
         val idx = p.weatherCity - 1
         val city = CITIES.getOrNull(idx) ?: return
         val c = cached(p)
-        if (fetching || (c != null && System.currentTimeMillis() - c.third < 30 * 60_000)) return
+        val needName = langCode(ctx) != "en" && p.str(nameKey(ctx, idx)).isEmpty()
+        if (fetching || (c != null && !needName && System.currentTimeMillis() - c.third < 30 * 60_000)) return
         fetching = true
         thread(isDaemon = true) {
             try {
+                if (needName) try { if (fetchName(ctx, p, idx)) ui.post(done) } catch (_: Exception) { }
+                if (c != null && System.currentTimeMillis() - c.third < 30 * 60_000) return@thread
                 val url = URL(String.format(Locale.US, "https://api.open-meteo.com/v1/forecast?latitude=%.2f&longitude=%.2f&current=temperature_2m,weather_code", city.lat, city.lon))
                 val conn = url.openConnection() as HttpURLConnection
                 conn.connectTimeout = 8000; conn.readTimeout = 8000; conn.requestMethod = "GET"
@@ -58,8 +92,7 @@ object Weather {
                         ui.post(done)
                     }
                 } finally { conn.disconnect() }
-            } catch (_: Exception) { /* offline or blocked: keep showing the last reading */ }
-            fetching = false
+            } catch (_: Exception) { /* offline or blocked: keep showing the last reading */ } finally { fetching = false }
         }
     }
 

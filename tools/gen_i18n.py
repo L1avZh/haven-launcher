@@ -3,7 +3,7 @@
 Run from the project root:  python3 tools/gen_i18n.py"""
 import os, re, sys
 sys.path.insert(0, os.path.dirname(__file__))
-import i18n_data_a as A, i18n_data_b as B, i18n_data_c1 as C1, i18n_data_c2 as C2, i18n_data_d1 as D1, i18n_data_d2 as D2, i18n_data_d3 as D3, i18n_data_d4 as D4, i18n_data_e as E1, i18n_data_f as F1
+import i18n_data_a as A, i18n_data_b as B, i18n_data_c1 as C1, i18n_data_c2 as C2, i18n_data_d1 as D1, i18n_data_d2 as D2, i18n_data_d3 as D3, i18n_data_d4 as D4, i18n_data_e as E1, i18n_data_f as F1, i18n_data_g1 as G1m, i18n_data_g2 as G2m, i18n_data_g3 as G3m
 
 KEYS_C = "remote_control input_devices button_test button_test_hint tester_note test_key test_code test_device test_usable yes no custom_mappings add_mapping choose_action action_open_app action_search action_settings action_start press_button mapping_saved no_mappings remove reset_mappings reset_done numbers_open_favs back_to_start".split()
 KEYS = """search settings favorites library tag_favorite hold_ok open add_fav remove_fav move_earlier move_later hide app_info
@@ -35,6 +35,8 @@ KEYS_E = 'action_home long_press learn_hold_hint'.split()
 dataE = E1.Ee
 KEYS_F = 'recent no_recent'.split()
 dataF = F1.Ff
+KEYS_G = 'cat_widgets d_widgets widgets_home widgets_saver w_greeting w_day w_year w_moon w_storage w_memory w_uptime greet_morning greet_afternoon greet_evening greet_night screensaver screensaver_d minutes_fmt w_weather weather_city weather_city_d weather_unit weather_unset weather_pick celsius fahrenheit wx_clear wx_partly wx_cloudy wx_fog wx_rain wx_snow wx_storm priv_net_weather priv_perm_internet'.split()
+dataG = {**G1m.G1, **G2m.G2, **G3m.G3}
 data = {**A.D, **B.D}; plurals = {**A.P, **B.P}
 
 def esc(s):
@@ -59,6 +61,9 @@ def xml(lang):
     assert len(linesE) == len(KEYS_E), f'{lang}: {len(linesE)} home strings, expected {len(KEYS_E)}'
     linesF = dataF[lang].split('\n')
     assert len(linesF) == len(KEYS_F), f'{lang}: {len(linesF)} rail strings, expected {len(KEYS_F)}'
+    linesG = dataG[lang].split('\n')
+    assert len(linesG) == len(KEYS_G), f'{lang}: {len(linesG)} widget strings, expected {len(KEYS_G)}'
+    assert '%d' in linesG[KEYS_G.index('minutes_fmt')], f'{lang}: minutes_fmt lacks %d'
     out = ['<?xml version="1.0" encoding="utf-8"?>', '<resources>']
     if lang == 'en': out.append('    <string name="app_name" translatable="false">Haven</string>')
     for k, v in zip(KEYS, lines): out.append(f'    <string name="{k}">{esc(v)}</string>')
@@ -66,6 +71,7 @@ def xml(lang):
     for k, v in zip(KEYS_D, linesD): out.append(f'    <string name="{k}">{esc(v)}</string>')
     for k, v in zip(KEYS_E, linesE): out.append(f'    <string name="{k}">{esc(v)}</string>')
     for k, v in zip(KEYS_F, linesF): out.append(f'    <string name="{k}">{esc(v)}</string>')
+    for k, v in zip(KEYS_G, linesG): out.append(f'    <string name="{k}">{esc(v)}</string>')
     out.append('    <plurals name="apps_count">')
     for q, v in plurals[lang].items():
         assert '%d' in v or q in ('one','two','zero'), f'{lang} plural {q}'
@@ -91,11 +97,11 @@ for tag, _, name, _ in LANGS:
 kt += [')', '']
 open('app/src/main/java/dev/l1avzh/haven/Langs.kt','w',encoding='utf-8').write('\n'.join(kt))
 
-rep = ['# Translation status', '', f'{len(KEYS)+len(KEYS_C)+len(KEYS_D)+len(KEYS_E)+len(KEYS_F)} strings + 1 plural per language. Source of truth: `tools/i18n_data_*.py` (run `python3 tools/gen_i18n.py`).',
+rep = ['# Translation status', '', f'{len(KEYS)+len(KEYS_C)+len(KEYS_D)+len(KEYS_E)+len(KEYS_F)+len(KEYS_G)} strings + 1 plural per language. Source of truth: `tools/i18n_data_*.py` (run `python3 tools/gen_i18n.py`).',
        '', '**No translation has been reviewed by a native speaker.** They are machine-assisted drafts and should be treated as such.',
        'Tier A: common vocabulary, drafted with reasonable confidence. Tier B: lower confidence (smaller corpus / complex morphology); review before public release.', '',
        '| Tag | Language | Direction | Tier | Strings |', '|---|---|---|---|---|']
 for tag, _, name, tier in LANGS:
-    rep.append(f'| {"id" if tag=="in" else tag} | {name} | {"RTL" if tag in RTL else "LTR"} | {tier} | {len(KEYS)+len(KEYS_C)+len(KEYS_D)+len(KEYS_E)+len(KEYS_F)}/{len(KEYS)+len(KEYS_C)+len(KEYS_D)+len(KEYS_E)+len(KEYS_F)} |')
+    rep.append(f'| {"id" if tag=="in" else tag} | {name} | {"RTL" if tag in RTL else "LTR"} | {tier} | {len(KEYS)+len(KEYS_C)+len(KEYS_D)+len(KEYS_E)+len(KEYS_F)+len(KEYS_G)}/{len(KEYS)+len(KEYS_C)+len(KEYS_D)+len(KEYS_E)+len(KEYS_F)+len(KEYS_G)} |')
 open('TRANSLATIONS.md','w',encoding='utf-8').write('\n'.join(rep) + '\n')
 print('languages:', len(LANGS), 'strings each:', len(KEYS))
