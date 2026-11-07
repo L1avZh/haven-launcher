@@ -6,7 +6,7 @@
 - The APK from the [Releases](../../../releases) page.
 - A way to install it: wireless ADB from a computer (below), or any file-based sideloading method you already use.
 
-Haven requests no runtime permissions.
+Haven requests no runtime permissions. It declares the normal `INTERNET` permission, used only by the optional weather widget once a city is chosen in Settings.
 
 ## Install with wireless ADB
 

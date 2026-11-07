@@ -39,6 +39,16 @@ class LiveBackground(ctx: Context) : View(ctx), Choreographer.FrameCallback {
     private var last = 0L
     private var running = false
     private var static = false
+    companion object {
+        /** Weather mood shared by all backgrounds: rain, snow and storms fall across the whole screen. */
+        @Volatile var ambient: Sky? = null
+        fun ambientFor(ctx: Context, ids: List<String>): Sky? {
+            if ("weather" !in ids) return null
+            val c = Weather.cached(Prefs(ctx)) ?: return null
+            return skyFor(c.second).takeIf { it == Sky.RAIN || it == Sky.SNOW || it == Sky.STORM }
+        }
+    }
+    private val fall = Paint(Paint.ANTI_ALIAS_FLAG).apply { strokeCap = Paint.Cap.ROUND }
     private val hsv = FloatArray(3)
     private val LW = 192
     private val LH = 108
@@ -115,6 +125,25 @@ class LiveBackground(ctx: Context) : View(ctx), Choreographer.FrameCallback {
             c.drawCircle(x, y, motes[i + 3] * resources.displayMetrics.density * 0.9f, mote)
         }
         c.drawRect(0f, 0f, w, h, shade)
+        ambient?.let { sky -> weatherFall(c, w, h, sky) }
+    }
+
+    private fun weatherFall(c: Canvas, w: Float, h: Float, sky: Sky) {
+        val snow = sky == Sky.SNOW
+        val d = resources.displayMetrics.density
+        fall.color = if (snow) 0xFFFFFFFF.toInt() else 0xFFBFD8FF.toInt()
+        fall.strokeWidth = (if (snow) 3.2f else 1.6f) * d
+        val n = if (snow) 46 else 70
+        for (i in 0 until n) {
+            val a = ((i * 7919) % 1000) / 1000f; val b = ((i * 104729) % 1000) / 1000f
+            val speed = if (snow) 0.05f + 0.07f * b else 0.55f + 0.5f * b
+            val ph = (a + t * speed) % 1f
+            val x = w * (a + (if (snow) 0.02f * sin(t * 0.8f + i) else -0.04f * ph)) % w
+            val y = h * ph
+            fall.alpha = ((if (snow) 150 else 90) * (0.4f + 0.6f * b)).toInt()
+            if (snow) c.drawCircle(x, y, 1.5f * d * (0.6f + b), fall) else c.drawLine(x, y, x - 6f * d, y + 26f * d * (0.5f + b), fall)
+        }
+        if (sky == Sky.STORM && sin(t * 0.9f) > 0.985f) { fall.alpha = 40; c.drawRect(0f, 0f, w, h, fall) }
     }
 
     private fun ensureRunning() {

@@ -154,6 +154,7 @@ class MainActivity : Activity() {
     private fun applyWidgets() {
         widgetHost.removeAllViews()
         val ids = Widgets.parse(prefs.homeWidgets).take(3)
+        LiveBackground.ambient = LiveBackground.ambientFor(this, ids)
         if (ids.isNotEmpty()) widgetHost.addView(WidgetStrip(this, s, ids, false), FrameLayout.LayoutParams(-2, -2, Gravity.CENTER_VERTICAL or Gravity.START))
     }
 
@@ -170,10 +171,10 @@ class MainActivity : Activity() {
     private fun startSaver() {
         if (saverView != null || overlay != null) return
         val v = SaverView(this, s, timeClock.format12Hour, timeClock.format24Hour, DateFormat.getBestDateTimePattern(Lang.locale(this), "EEEdMMM"), Widgets.parse(prefs.saverWidgets))
-        saverView = v; frame.addView(v, -1, -1)
+        saverView = v; LiveBackground.ambient = LiveBackground.ambientFor(this, Widgets.parse(prefs.saverWidgets).take(4)); frame.addView(v, -1, -1)
     }
 
-    private fun stopSaver() { saverView?.let { frame.removeView(it) }; saverView = null }
+    private fun stopSaver() { saverView?.let { frame.removeView(it) }; saverView = null; LiveBackground.ambient = LiveBackground.ambientFor(this, Widgets.parse(prefs.homeWidgets).take(3)) }
 
     override fun dispatchKeyEvent(e: KeyEvent): Boolean {
         if (saverView != null) { if (e.action == KeyEvent.ACTION_DOWN && e.repeatCount == 0) { stopSaver(); armSaver() }; return true }
@@ -819,8 +820,8 @@ class MainActivity : Activity() {
         ) }
         val privacy = Category(R.drawable.ic_cat_privacy, g(R.string.cat_privacy), g(R.string.d_privacy)) { listOf(
             Info(g(R.string.priv_stored), getString(R.string.priv_counts, nf.format(prefs.favorites.size), nf.format(prefs.hidden.size), nf.format(prefs.bindings.size))),
-            Info(g(R.string.priv_network), null, g(R.string.none)),
-            Info(g(R.string.priv_permissions), null, g(R.string.none)),
+            Info(g(R.string.priv_network), null, if (prefs.weatherCity > 0) g(R.string.priv_net_weather) else g(R.string.none)),
+            Info(g(R.string.priv_permissions), null, g(R.string.priv_perm_internet)),
             Info(g(R.string.priv_diag), null, g(R.string.none)),
             Info(g(R.string.priv_note), null),
             Action(g(R.string.reset_all), null) { confirmRestore() },
@@ -829,6 +830,11 @@ class MainActivity : Activity() {
             val homeOn = Widgets.parse(prefs.homeWidgets); val saverOn = Widgets.parse(prefs.saverWidgets)
             listOf<Item>(Info(g(R.string.widgets_home), null)) +
                 Widgets.ALL.map { d -> Toggle(g(d.nameRes), null, { d.id in Widgets.parse(prefs.homeWidgets) }, { prefs.homeWidgets = Widgets.toggle(prefs.homeWidgets, d.id, it); applyWidgets() }) } +
+                listOf<Item>(
+                    Choice(g(R.string.weather_city), g(R.string.weather_city_d), listOf(g(R.string.weather_unset)) + Weather.CITIES.map { it.name },
+                        { prefs.weatherCity }, { prefs.weatherCity = it; prefs.weatherCache = ""; if (it > 0) { prefs.homeWidgets = Widgets.toggle(prefs.homeWidgets, "weather", true); applyWidgets() } }),
+                    Choice(g(R.string.weather_unit), null, listOf(g(R.string.celsius), g(R.string.fahrenheit)), { prefs.weatherUnit }, { prefs.weatherUnit = it; WidgetStrip.refreshAll() }),
+                ) +
                 Info(g(R.string.widgets_saver), null) +
                 Widgets.ALL.map { d -> Toggle(g(d.nameRes), null, { d.id in Widgets.parse(prefs.saverWidgets) }, { prefs.saverWidgets = Widgets.toggle(prefs.saverWidgets, d.id, it) }) }
         }

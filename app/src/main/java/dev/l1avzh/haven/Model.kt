@@ -126,6 +126,20 @@ class Prefs(ctx: Context) {
         get() = sp.getString("widgets_saver", "greet,moon,day") ?: ""
         set(v) { sp.edit().putString("widgets_saver", v).apply() }
 
+    /** 0 = not set, otherwise 1 + index into Weather.CITIES. */
+    var weatherCity: Int
+        get() = sp.getInt("weather_city", 0)
+        set(v) { sp.edit().putInt("weather_city", v).apply() }
+
+    /** 0 = Celsius, 1 = Fahrenheit. */
+    var weatherUnit: Int
+        get() = sp.getInt("weather_unit", if (java.util.Locale.getDefault().country == "US") 1 else 0)
+        set(v) { sp.edit().putInt("weather_unit", v).apply() }
+
+    var weatherCache: String
+        get() = sp.getString("weather_cache", "") ?: ""
+        set(v) { sp.edit().putString("weather_cache", v).apply() }
+
     var showSystemApps: Boolean
         get() = sp.getBoolean("show_system_apps", true)
         set(v) { sp.edit().putBoolean("show_system_apps", v).apply() }

@@ -24,6 +24,21 @@
     <string name="system_settings">System settings</string>
     <string name="on">On</string>
     <string name="off">Off</string>
+    <string name="w_weather" tools:ignore="MissingTranslation">Weather</string>
+    <string name="weather_city" tools:ignore="MissingTranslation">Weather city</string>
+    <string name="weather_city_d" tools:ignore="MissingTranslation">Turns the weather widget on. Only this city\'s coordinates are sent, to open-meteo.com.</string>
+    <string name="weather_unit" tools:ignore="MissingTranslation">Temperature unit</string>
+    <string name="weather_unset" tools:ignore="MissingTranslation">Not set</string>
+    <string name="weather_pick" tools:ignore="MissingTranslation">Choose a city in Settings</string>
+    <string name="celsius" tools:ignore="MissingTranslation">Celsius</string>
+    <string name="fahrenheit" tools:ignore="MissingTranslation">Fahrenheit</string>
+    <string name="wx_clear" tools:ignore="MissingTranslation">Clear</string>
+    <string name="wx_partly" tools:ignore="MissingTranslation">Partly cloudy</string>
+    <string name="wx_cloudy" tools:ignore="MissingTranslation">Cloudy</string>
+    <string name="wx_fog" tools:ignore="MissingTranslation">Fog</string>
+    <string name="wx_rain" tools:ignore="MissingTranslation">Rain</string>
+    <string name="wx_snow" tools:ignore="MissingTranslation">Snow</string>
+    <string name="wx_storm" tools:ignore="MissingTranslation">Storm</string>
     <string name="cat_widgets" tools:ignore="MissingTranslation">Widgets</string>
     <string name="d_widgets" tools:ignore="MissingTranslation">Glanceable info for the home screen and the screensaver</string>
     <string name="widgets_home" tools:ignore="MissingTranslation">On the home screen (up to 3)</string>
@@ -176,6 +191,8 @@
     <string name="priv_permissions">Permissions requested</string>
     <string name="priv_diag">Diagnostics and tracking</string>
     <string name="none">None</string>
+    <string name="priv_net_weather" tools:ignore="MissingTranslation">Weather widget only (open-meteo.com)</string>
+    <string name="priv_perm_internet" tools:ignore="MissingTranslation">Internet, for the optional weather widget</string>
     <string name="priv_note">Everything stays on this TV. Haven has no accounts, ads or analytics.</string>
     <string name="ver_build">Version %1$s, build %2$s</string>
     <string name="developer">Developer</string>

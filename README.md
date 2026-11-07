@@ -5,7 +5,7 @@
 <h1 align="center">Haven</h1>
 
 <p align="center">
-  A fast, ad-free launcher for Android TV. No accounts, no tracking, no network access.
+  A fast, ad-free launcher for Android TV. No accounts, no tracking. The network is used only by an optional weather widget.
 </p>
 
 <p align="center">
@@ -16,7 +16,7 @@
   <img alt="Languages" src="https://img.shields.io/badge/Languages-50-orange">
 </p>
 
-Haven replaces the usual Android TV home screen with something quieter: a typographic list of your apps on the left, and a stage on the right with big artwork and the name of whatever is focused. Behind it, a live background drifts in the colors of the focused app's own artwork. It is written in plain Kotlin views with a single dependency (`androidx.recyclerview`), asks for no permissions, and never touches the network.
+Haven replaces the usual Android TV home screen with something quieter: a typographic list of your apps on the left, and a stage on the right with big artwork and the name of whatever is focused. Behind it, a live background drifts in the colors of the focused app's own artwork. It is written in plain Kotlin views with a single dependency (`androidx.recyclerview`), has one permission (internet, for the optional weather widget), and makes no network request unless you choose a weather city.
 
 I built and tested it on a Xiaomi TV Box S (3rd Gen) running Android 14. Other Android TV devices should work, but I haven't tried them (see [Known limitations](#known-limitations)).
 
@@ -50,7 +50,7 @@ All screenshots were captured on the TV itself.
 
 - **Home screen ("Stage & Rail")**: three scopes, Favorites, Recent and Library, as a list of app names. Each app name uses one of five typefaces, so the list has character. The stage shows large artwork and actions for the focused app. When a scope tab has focus instead of an app, the stage shows the scope's name with a moving light sweep.
 - **Live background**: soft color fields and drifting motes that take their palette from the focused app and speed up briefly when focus changes. Rendered at low resolution at 30 fps and paused when not visible; static in performance mode.
-- **Widgets**: choose what appears on the home screen (up to 3) and on the screensaver (up to 4): greeting, share of the day, share of the year, moon illumination, free storage, free memory, uptime. All computed on the device, no permissions, no network (so no weather).
+- **Widgets**: choose what appears on the home screen (up to 3) and on the screensaver (up to 4): greeting, weather, share of the day, share of the year, moon illumination, free storage, free memory, uptime. Everything except weather is computed on the device. Weather is opt-in: pick a city in Settings and Haven fetches the current temperature and sky from open-meteo.com over HTTPS every 30 minutes. Only that city's coordinates are sent (no key, no account, no device identifier, no location access). The icon is animated, and rain, snow and storms also fall across the whole background.
 - **Screensaver**: after 2 to 20 minutes without input (or off), a black screen with the live background, a drifting clock and your screensaver widgets. The clock moves every 25 seconds to spare OLED panels. Any button wakes it. It lives inside Haven and changes no system setting.
 - **Typefaces**: Outfit for the interface, Unbounded for the clock and big titles, Space Grotesk, Manrope, Sora and Urbanist for app names. All bundled, all SIL Open Font License (see `docs/OFL-*.txt`).
 - **App management**: favorites, hide apps without uninstalling them, reorder favorites, show or hide system apps, sort A to Z or newest first, refresh the list. New and removed apps are picked up automatically.
@@ -60,7 +60,7 @@ All screenshots were captured on the TV itself.
 - **50 languages** with native names in the picker and a System default option. Hebrew, Arabic, Persian and Urdu are laid out right-to-left. See [docs/localization.md](docs/localization.md) for what is and isn't verified.
 - **Remote control tools**: a button tester that shows what Android actually receives (key, code, device, source, long press), custom button mappings, number keys that open favorites, and an input device list. Details in [docs/remote-control.md](docs/remote-control.md).
 - **AdGuard shortcut**: if the official AdGuard app is installed, it shows up like any other app. If not, a tile points to AdGuard's official page. Haven never installs it, never changes VPN or DNS settings, and can't tell whether AdGuard's protection is on.
-- **Privacy**: no permissions, no network calls, no analytics, no ads. Preferences live in app-private storage.
+- **Privacy**: one permission (internet), used only by the optional weather widget and only after you pick a city. No analytics, no ads, no accounts. Preferences live in app-private storage.
 - **A hidden signature**: there is an Easter egg. One way to find it is in About & credits.
 
 ## Requirements

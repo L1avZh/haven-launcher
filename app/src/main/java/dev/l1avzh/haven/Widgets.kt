@@ -20,13 +20,25 @@ import kotlin.math.cos
 
 /** A glanceable readout. Everything is computed on the device: no permissions, no network. */
 class WidgetDef(val id: String, val nameRes: Int, val read: (Context) -> Reading)
-class Reading(val value: String, val fraction: Float? = null, val showLabel: Boolean = true)
+class Reading(val value: String, val fraction: Float? = null, val showLabel: Boolean = true, val label: String? = null, val sky: Triple<Sky, Boolean, Boolean>? = null)
 
 object Widgets {
     val ALL = listOf(
         WidgetDef("greet", R.string.w_greeting) { c ->
             val h = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
             Reading(c.getString(when { h in 5..11 -> R.string.greet_morning; h in 12..17 -> R.string.greet_afternoon; h in 18..22 -> R.string.greet_evening; else -> R.string.greet_night }), null, false)
+        },
+        WidgetDef("weather", R.string.w_weather) { c ->
+            val p = Prefs(c)
+            val city = Weather.CITIES.getOrNull(p.weatherCity - 1)
+            if (city == null) Reading(c.getString(R.string.weather_pick), null, true, c.getString(R.string.w_weather))
+            else {
+                val w = Weather.cached(p)
+                Weather.refresh(c) { WidgetStrip.refreshAll() }
+                val h = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+                Reading(if (w == null) "…" else "${Weather.format(p, w.first)} ${Weather.describe(c, w.second)}", null, true, city.name,
+                    if (w == null) null else Triple(skyFor(w.second), h in 6..18, w.first >= 28))
+            }
         },
         WidgetDef("day", R.string.w_day) { _ ->
             val n = Calendar.getInstance()
@@ -79,7 +91,11 @@ private class Bar(ctx: Context, private val w: Int, private val h: Int) : View(c
 /** A row of widgets. Refreshes itself every 30 s while on screen. */
 class WidgetStrip(ctx: Context, s: Scale, ids: List<String>, large: Boolean) : LinearLayout(ctx) {
     private val handler = Handler(Looper.getMainLooper())
-    private class Tile(val def: WidgetDef, val value: TextView, val bar: Bar)
+    private class Tile(val def: WidgetDef, val label: TextView, val value: TextView, val bar: Bar, val icon: WeatherIcon?)
+    companion object {
+        private val live = java.util.WeakHashMap<WidgetStrip, Unit>()
+        fun refreshAll() { live.keys.toList().forEach { it.refresh() } }
+    }
     private val tiles = ArrayList<Tile>()
     private val tick = object : Runnable { override fun run() { refresh(); handler.postDelayed(this, 30_000) } }
 
@@ -87,11 +103,12 @@ class WidgetStrip(ctx: Context, s: Scale, ids: List<String>, large: Boolean) : L
         orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
         ids.mapNotNull { id -> Widgets.ALL.firstOrNull { it.id == id } }.forEachIndexed { i, d ->
             val label = TextView(ctx).apply {
-                Caps.set(this, ctx.getString(d.nameRes), 0.14f); sizePx(s.px(if (large) 17f else 14f)); setTextColor(T.TEXT_DIM); typeface = Fonts.medium
+                Caps.set(this, d.read(ctx).label ?: ctx.getString(d.nameRes), 0.14f); sizePx(s.px(if (large) 17f else 14f)); setTextColor(T.TEXT_DIM); typeface = Fonts.medium
                 letterSpacing = 0.12f; includeFontPadding = false
             }
             val value = TextView(ctx).apply { sizePx(s.px(if (large) 40f else 30f)); setTextColor(T.TEXT); typeface = Fonts.light; includeFontPadding = false; maxLines = 1 }
             val bar = Bar(ctx, s.px(if (large) 150 else 104), s.px(4))
+            val icon = if (d.id == "weather") WeatherIcon(ctx, s.px(if (large) 96 else 72)) else null
             val col = LinearLayout(ctx).apply {
                 orientation = VERTICAL
                 val reading = d.read(ctx)
@@ -99,8 +116,9 @@ class WidgetStrip(ctx: Context, s: Scale, ids: List<String>, large: Boolean) : L
                 addView(value, LayoutParams(-2, -2).apply { topMargin = s.px(if (reading.showLabel) 4 else 0) })
                 if (reading.fraction != null) addView(bar, LayoutParams(-2, -2).apply { topMargin = s.px(8) })
             }
-            addView(col, LayoutParams(-2, -2).apply { if (i > 0) marginStart = s.px(if (large) 64 else 44) })
-            tiles.add(Tile(d, value, bar))
+            val cell = LinearLayout(ctx).apply { gravity = Gravity.CENTER_VERTICAL; if (icon != null) addView(icon, LayoutParams(-2, -2).apply { marginEnd = s.px(14) }); addView(col) }
+            addView(cell, LayoutParams(-2, -2).apply { if (i > 0) marginStart = s.px(if (large) 64 else 44) })
+            tiles.add(Tile(d, label, value, bar, icon))
         }
         refresh()
     }
@@ -109,10 +127,14 @@ class WidgetStrip(ctx: Context, s: Scale, ids: List<String>, large: Boolean) : L
         tiles.forEach { t ->
             val r = try { t.def.read(context) } catch (_: Exception) { return@forEach }
             t.value.text = r.value
+            r.label?.let { Caps.set(t.label, it, 0.14f) }
+            r.sky?.let { t.icon?.set(it.first, it.second, it.third) }
+            t.icon?.visibility = if (r.sky == null) View.GONE else View.VISIBLE
+            if (t.def.id == "weather") LiveBackground.ambient = r.sky?.first?.takeIf { it == Sky.RAIN || it == Sky.SNOW || it == Sky.STORM }
             r.fraction?.let { t.bar.fraction = it.coerceIn(0f, 1f); t.bar.invalidate() }
         }
     }
 
-    override fun onAttachedToWindow() { super.onAttachedToWindow(); handler.removeCallbacks(tick); handler.postDelayed(tick, 30_000); refresh() }
-    override fun onDetachedFromWindow() { handler.removeCallbacks(tick); super.onDetachedFromWindow() }
+    override fun onAttachedToWindow() { super.onAttachedToWindow(); live[this] = Unit; handler.removeCallbacks(tick); handler.postDelayed(tick, 30_000); refresh() }
+    override fun onDetachedFromWindow() { live.remove(this); handler.removeCallbacks(tick); super.onDetachedFromWindow() }
 }
