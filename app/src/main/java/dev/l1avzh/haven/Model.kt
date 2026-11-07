@@ -113,6 +113,11 @@ class Prefs(ctx: Context) {
         get() = sp.getInt("time_format", 0).coerceIn(0, 2)
         set(v) { sp.edit().putInt("time_format", v).apply() }
 
+    /** Index into SAVER_MINUTES; 0 = off. */
+    var saver: Int
+        get() = sp.getInt("saver", 2).coerceIn(0, 4)
+        set(v) { sp.edit().putInt("saver", v).apply() }
+
     var showSystemApps: Boolean
         get() = sp.getBoolean("show_system_apps", true)
         set(v) { sp.edit().putBoolean("show_system_apps", v).apply() }

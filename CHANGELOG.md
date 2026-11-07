@@ -1,5 +1,6 @@
 ## 1.6
 
+- Screensaver (Settings → Appearance): drifting clock over the live background, starts after 2–20 min idle, any button wakes it.
 - Live animated background that follows the focused app's colours.
 - Unbounded display face for the clock and stage title (SIL OFL, `docs/OFL-Unbounded.txt`).
 - New "Stage & Rail" home: typographic app rail with a stage showing artwork for the focused app, Favorites/Recent/Library scopes, Outfit typeface.

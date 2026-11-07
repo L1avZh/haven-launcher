@@ -24,6 +24,9 @@
     <string name="system_settings">System settings</string>
     <string name="on">On</string>
     <string name="off">Off</string>
+    <string name="screensaver">Screensaver</string>
+    <string name="screensaver_d">Starts after a while without input. Any button wakes it.</string>
+    <string name="minutes_fmt">%d min</string>
     <string name="language">Language</string>
     <string name="system_default">System default</string>
     <string name="no_hidden">No hidden apps</string>

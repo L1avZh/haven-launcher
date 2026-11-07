@@ -124,6 +124,7 @@ class MainActivity : Activity() {
     override fun onStop() {
         dialogs.toList().forEach { it.dismiss() }; dialogs.clear()
         egg?.let { frame.removeView(it) }; egg = null
+        main.removeCallbacks(saverRun); stopSaver()
         closeOverlay()
         settings?.let { frame.removeView(it) }; settings = null; homeContent.descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
         super.onStop()
@@ -134,6 +135,7 @@ class MainActivity : Activity() {
         T.init(this, prefs.animLevel, prefs.performance)
         if (loaded) render()
         if (currentFocus == null) restoreFocus()
+        armSaver()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -147,7 +149,27 @@ class MainActivity : Activity() {
     @Deprecated("Back never leaves the launcher; it returns to the start position.")
     override fun onBackPressed() { if (egg != null) closeEgg() else settings?.back() ?: focusStart() }
 
+    private var saverView: SaverView? = null
+    private val saverRun = Runnable { startSaver() }
+    private val SAVER_MINUTES = intArrayOf(0, 2, 5, 10, 20)
+
+    private fun armSaver() {
+        main.removeCallbacks(saverRun)
+        val m = SAVER_MINUTES[prefs.saver]
+        if (m > 0 && saverView == null) main.postDelayed(saverRun, m * 60_000L)
+    }
+
+    private fun startSaver() {
+        if (saverView != null || overlay != null) return
+        val v = SaverView(this, s, timeClock.format12Hour, timeClock.format24Hour, DateFormat.getBestDateTimePattern(Lang.locale(this), "EEEdMMM"))
+        saverView = v; frame.addView(v, -1, -1)
+    }
+
+    private fun stopSaver() { saverView?.let { frame.removeView(it) }; saverView = null }
+
     override fun dispatchKeyEvent(e: KeyEvent): Boolean {
+        if (saverView != null) { if (e.action == KeyEvent.ACTION_DOWN && e.repeatCount == 0) { stopSaver(); armSaver() }; return true }
+        armSaver()
         overlay?.let { return it.onKey(e, getString(R.string.yes), KeyOverlay.Labels(getString(R.string.test_code), getString(R.string.test_device), getString(R.string.test_usable))) }
         if (egg != null) { if (e.action == KeyEvent.ACTION_DOWN && e.repeatCount == 0) closeEgg(); return true }
         if (dialogs.isEmpty() && settings == null) {
@@ -724,6 +746,8 @@ class MainActivity : Activity() {
                 { prefs.dimming }, { prefs.dimming = it; dimView.setBackgroundColor(dimColor()) }),
             Choice(g(R.string.card_size), g(R.string.card_size_d), listOf(g(R.string.size_small), g(R.string.size_medium), g(R.string.size_large)),
                 { prefs.cardSize }, { prefs.cardSize = it; prefs.reopenSettings = true; main.postDelayed({ recreate() }, T.d(T.MED)) }),
+            Choice(g(R.string.screensaver), g(R.string.screensaver_d), SAVER_MINUTES.map { if (it == 0) g(R.string.off) else getString(R.string.minutes_fmt, it) },
+                { prefs.saver }, { prefs.saver = it; armSaver() }),
             Toggle(g(R.string.clock), null, { prefs.showClock }, { prefs.showClock = it; clockCol.visibility = if (it) View.VISIBLE else View.INVISIBLE }),
         ) }
         val apps = Category(R.drawable.ic_cat_apps, g(R.string.cat_apps), g(R.string.d_apps)) { listOf(
