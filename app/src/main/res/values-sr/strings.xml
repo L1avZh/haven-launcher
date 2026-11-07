@@ -169,6 +169,8 @@
     <string name="action_home">Иди на почетни екран</string>
     <string name="long_press">Дуги притисак</string>
     <string name="learn_hold_hint">Савет: држите тастер секунду да бисте придружили дуги притисак. Ради и за тастер Назад.</string>
+    <string name="recent">Недавно</string>
+    <string name="no_recent">Апликације које отворите из Havena појавиће се овде.</string>
     <plurals name="apps_count">
         <item quantity="one">%d апликација</item>
         <item quantity="few">%d апликације</item>

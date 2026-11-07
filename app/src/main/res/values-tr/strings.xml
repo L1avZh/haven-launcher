@@ -169,6 +169,8 @@
     <string name="action_home">Ana ekrana git</string>
     <string name="long_press">Uzun basma</string>
     <string name="learn_hold_hint">İpucu: uzun basmayı atamak için bir tuşu bir saniye basılı tutun. Bu, Geri tuşu için de geçerlidir.</string>
+    <string name="recent">Son kullanılanlar</string>
+    <string name="no_recent">Haven’dan açtığınız uygulamalar burada görünür.</string>
     <plurals name="apps_count">
         <item quantity="one">%d uygulama</item>
         <item quantity="other">%d uygulama</item>

@@ -169,6 +169,8 @@
     <string name="action_home">Gå til Hjem</string>
     <string name="long_press">Langt tryk</string>
     <string name="learn_hold_hint">Tip: hold en knap nede i et sekund for at tildele et langt tryk. Det virker også for Tilbage.</string>
+    <string name="recent">Seneste</string>
+    <string name="no_recent">Apps, du åbner fra Haven, vises her.</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="other">%d apps</item>

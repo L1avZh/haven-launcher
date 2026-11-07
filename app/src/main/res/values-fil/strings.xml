@@ -169,6 +169,8 @@
     <string name="action_home">Pumunta sa Home</string>
     <string name="long_press">Matagal na pindot</string>
     <string name="learn_hold_hint">Tip: pindutin nang isang segundo ang button para magtakda ng matagal na pindot. Gumagana rin ito para sa Back.</string>
+    <string name="recent">Kamakailan</string>
+    <string name="no_recent">Lalabas dito ang mga app na bubuksan mo mula sa Haven.</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="other">%d na app</item>

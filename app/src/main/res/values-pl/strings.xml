@@ -169,6 +169,8 @@
     <string name="action_home">Przejdź do ekranu głównego</string>
     <string name="long_press">Długie naciśnięcie</string>
     <string name="learn_hold_hint">Wskazówka: przytrzymaj przycisk przez sekundę, aby przypisać długie naciśnięcie. Działa to także dla przycisku Wstecz.</string>
+    <string name="recent">Ostatnie</string>
+    <string name="no_recent">Aplikacje otwarte z Haven pojawią się tutaj.</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplikacja</item>
         <item quantity="few">%d aplikacje</item>

@@ -102,7 +102,7 @@ class SettingsScreen(
         // Start side: title + category cards.
         val left = LinearLayout(act).apply { orientation = LinearLayout.VERTICAL; setPaddingRelative(s.px(88), s.px(52), s.px(40), s.px(28)) }
         left.addView(TextView(act).apply {
-            text = title; sizePx(s.px(46f)); setTextColor(T.TEXT); typeface = Typeface.create("sans-serif-light", Typeface.NORMAL)
+            text = title; sizePx(s.px(46f)); setTextColor(T.TEXT); typeface = Fonts.light
             textAlignment = TEXT_ALIGNMENT_VIEW_START; setPaddingRelative(s.px(8), 0, 0, s.px(14))
         })
         val catList = LinearLayout(act).apply { orientation = LinearLayout.VERTICAL }
@@ -115,7 +115,7 @@ class SettingsScreen(
 
         // End side: the focused category.
         val right = LinearLayout(act).apply { orientation = LinearLayout.VERTICAL; setPaddingRelative(s.px(64), s.px(64), s.px(88), s.px(40)) }
-        panelTitle.apply { sizePx(s.px(44f)); setTextColor(T.TEXT); typeface = Typeface.create("sans-serif-light", Typeface.NORMAL); textAlignment = TEXT_ALIGNMENT_VIEW_START }
+        panelTitle.apply { sizePx(s.px(44f)); setTextColor(T.TEXT); typeface = Fonts.light; textAlignment = TEXT_ALIGNMENT_VIEW_START }
         panelDesc.apply { sizePx(s.px(T.LABEL + 4)); setTextColor(T.TEXT_DIM); textAlignment = TEXT_ALIGNMENT_VIEW_START }
         right.addView(panelTitle); right.addView(panelDesc, LinearLayout.LayoutParams(-1, -2).apply { topMargin = s.px(6); bottomMargin = s.px(26) })
         panelScroll.apply { isVerticalScrollBarEnabled = false; overScrollMode = OVER_SCROLL_NEVER; clipChildren = false; addView(rows) }
@@ -155,7 +155,7 @@ class SettingsScreen(
         val iconBox = FrameLayout(act).apply { background = rounded(0x1AFFFFFF, s.px(26f)) }
         val icon = ImageView(act).apply { setImageResource(c.icon); setColorFilter(T.TEXT_DIM) }
         iconBox.addView(icon, FrameLayout.LayoutParams(s.px(30), s.px(30), Gravity.CENTER))
-        val tt = TextView(act).apply { text = c.title; sizePx(s.px(T.BODY + 1)); setTextColor(T.TEXT); typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL); textAlignment = TEXT_ALIGNMENT_VIEW_START; maxLines = 1 }
+        val tt = TextView(act).apply { text = c.title; sizePx(s.px(T.BODY + 1)); setTextColor(T.TEXT); typeface = Fonts.medium; textAlignment = TEXT_ALIGNMENT_VIEW_START; maxLines = 1 }
         val dd = TextView(act).apply { text = c.desc; sizePx(s.px(T.LABEL)); setTextColor(T.TEXT_DIM); textAlignment = TEXT_ALIGNMENT_VIEW_START; maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END }
         val col = LinearLayout(act).apply { orientation = LinearLayout.VERTICAL; addView(tt); addView(dd) }
         val bar = View(act).apply { background = rounded(T.ACCENT, s.px(3f)); alpha = 0f }
@@ -257,7 +257,7 @@ class SettingsScreen(
         var taps = 0; var last = 0L
         val mark = ImageView(act).apply { setImageResource(R.drawable.ic_home); setColorFilter(0x66FFFFFF); alpha = 0.55f }
         val box = FrameLayout(act).apply { background = rounded(0x0DFFFFFF, s.px(30f)); addView(mark, FrameLayout.LayoutParams(s.px(30), s.px(30), Gravity.CENTER)) }
-        val tx = TextView(act).apply { text = item.title; sizePx(s.px(T.LABEL + 2)); setTextColor(0x88A3ACBE.toInt()); textAlignment = TEXT_ALIGNMENT_VIEW_START; typeface = Typeface.create("sans-serif-light", Typeface.ITALIC) }
+        val tx = TextView(act).apply { text = item.title; sizePx(s.px(T.LABEL + 2)); setTextColor(0x88A3ACBE.toInt()); textAlignment = TEXT_ALIGNMENT_VIEW_START; typeface = Fonts.light }
         val row = LinearLayout(act).apply {
             orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; isFocusable = true; isClickable = true
             setPaddingRelative(s.px(16), s.px(18), s.px(26), s.px(18))

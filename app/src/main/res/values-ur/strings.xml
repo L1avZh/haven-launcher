@@ -169,6 +169,8 @@
     <string name="action_home">ہوم پر جائیں</string>
     <string name="long_press">لمبا دبانا</string>
     <string name="learn_hold_hint">مشورہ: لمبا دبانا تفویض کرنے کے لیے بٹن کو ایک سیکنڈ دبائے رکھیں۔ یہ واپس کے بٹن کے لیے بھی کام کرتا ہے۔</string>
+    <string name="recent">حالیہ</string>
+    <string name="no_recent">Haven سے کھولی گئی ایپس یہاں نظر آئیں گی۔</string>
     <plurals name="apps_count">
         <item quantity="one">%d ایپ</item>
         <item quantity="other">%d ایپس</item>

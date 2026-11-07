@@ -169,6 +169,8 @@
     <string name="action_home">ไปที่หน้าหลัก</string>
     <string name="long_press">กดค้าง</string>
     <string name="learn_hold_hint">เคล็ดลับ: กดปุ่มค้างไว้หนึ่งวินาทีเพื่อกำหนดการกดค้าง ใช้ได้กับปุ่มย้อนกลับด้วย</string>
+    <string name="recent">ล่าสุด</string>
+    <string name="no_recent">แอปที่คุณเปิดจาก Haven จะแสดงที่นี่</string>
     <plurals name="apps_count">
         <item quantity="other">%d แอป</item>
     </plurals>

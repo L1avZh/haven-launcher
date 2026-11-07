@@ -169,6 +169,8 @@
     <string name="action_home">Idi na početni zaslon</string>
     <string name="long_press">Dugi pritisak</string>
     <string name="learn_hold_hint">Savjet: držite tipku sekundu kako biste pridružili dugi pritisak. Radi i za tipku Natrag.</string>
+    <string name="recent">Nedavno</string>
+    <string name="no_recent">Aplikacije koje otvorite iz Havena pojavit će se ovdje.</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplikacija</item>
         <item quantity="few">%d aplikacije</item>

@@ -169,6 +169,8 @@
     <string name="action_home">হোমে যান</string>
     <string name="long_press">দীর্ঘ চাপ</string>
     <string name="learn_hold_hint">পরামর্শ: দীর্ঘ চাপ বরাদ্দ করতে একটি বোতাম এক সেকেন্ড চেপে ধরে রাখুন। ফিরে যান বোতামের জন্যও এটি কাজ করে।</string>
+    <string name="recent">সাম্প্রতিক</string>
+    <string name="no_recent">Haven থেকে খোলা অ্যাপ এখানে দেখা যাবে।</string>
     <plurals name="apps_count">
         <item quantity="one">%dটি অ্যাপ</item>
         <item quantity="other">%dটি অ্যাপ</item>

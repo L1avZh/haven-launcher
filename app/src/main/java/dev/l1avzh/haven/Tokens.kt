@@ -1,6 +1,7 @@
 package dev.l1avzh.haven
 
 import android.content.Context
+import android.graphics.Typeface
 import android.provider.Settings
 import android.view.animation.PathInterpolator
 
@@ -53,5 +54,20 @@ object T {
             level == 1 || performance -> 0.6f
             else -> 1f
         }
+    }
+}
+
+/** Outfit (SIL Open Font License 1.1, see docs/OFL-Outfit.txt) in four weights. Other scripts fall back to system fonts. */
+object Fonts {
+    var thin: Typeface = Typeface.create("sans-serif-thin", Typeface.NORMAL); private set
+    var light: Typeface = Typeface.create("sans-serif-light", Typeface.NORMAL); private set
+    var regular: Typeface = Typeface.DEFAULT; private set
+    var medium: Typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL); private set
+
+    fun init(ctx: Context) {
+        try {
+            thin = ctx.resources.getFont(R.font.outfit_thin); light = ctx.resources.getFont(R.font.outfit_light)
+            regular = ctx.resources.getFont(R.font.outfit_regular); medium = ctx.resources.getFont(R.font.outfit_medium)
+        } catch (_: Exception) { /* keep the system fonts */ }
     }
 }

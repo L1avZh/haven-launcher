@@ -169,6 +169,8 @@
     <string name="action_home">Đến Trang chủ</string>
     <string name="long_press">Nhấn giữ</string>
     <string name="learn_hold_hint">Mẹo: nhấn giữ một nút trong một giây để gán thao tác nhấn giữ. Cũng áp dụng cho nút Quay lại.</string>
+    <string name="recent">Gần đây</string>
+    <string name="no_recent">Các ứng dụng bạn mở từ Haven sẽ xuất hiện ở đây.</string>
     <plurals name="apps_count">
         <item quantity="other">%d ứng dụng</item>
     </plurals>

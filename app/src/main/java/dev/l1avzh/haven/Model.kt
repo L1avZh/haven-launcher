@@ -68,6 +68,18 @@ class Prefs(ctx: Context) {
         }
         set(v) { sp.edit().putString("bindings", v.joinToString("\n") { "${it.key}|${it.action}|${it.arg}|${if (it.long) 1 else 0}" }).apply() }
 
+    /** When each app was last opened from Haven (key to epoch millis). Local only; powers the Recent list. */
+    val launchLog: Map<String, Long>
+        get() = (sp.getString("launch_log", "") ?: "").split('\n').mapNotNull {
+            val p = it.split('|'); if (p.size == 2 && p[1].toLongOrNull() != null) p[0] to p[1].toLong() else null
+        }.toMap()
+
+    fun recordLaunch(key: String) {
+        val m = launchLog.toMutableMap(); m[key] = System.currentTimeMillis()
+        val keep = m.entries.sortedByDescending { it.value }.take(40)
+        sp.edit().putString("launch_log", keep.joinToString("\n") { "${it.key}|${it.value}" }).apply()
+    }
+
     fun resetRemote() { sp.edit().remove("bindings").remove("mappings_enabled").remove("numbers_open_favs").apply() }
 
     var glow: Boolean

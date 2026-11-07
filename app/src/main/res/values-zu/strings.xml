@@ -169,6 +169,8 @@
     <string name="action_home">Iya ekhaya</string>
     <string name="long_press">Cindezela isikhathi eside</string>
     <string name="learn_hold_hint">Iseluleko: bamba inkinobho isekhondi elilodwa ukuze wabele ukucindezela isikhathi eside. Lokhu kuyasebenza no-Emuva.</string>
+    <string name="recent">Okwakamuva</string>
+    <string name="no_recent">Izinhlelo zokusebenza ozivula ku-Haven zizovela lapha.</string>
     <plurals name="apps_count">
         <item quantity="one">Uhlelo lokusebenza olu-%d</item>
         <item quantity="other">Izinhlelo zokusebenza ezingu-%d</item>

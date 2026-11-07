@@ -169,6 +169,8 @@
     <string name="action_home">Fara á heimaskjá</string>
     <string name="long_press">Langt ýtt</string>
     <string name="learn_hold_hint">Ábending: haltu hnappi inni í eina sekúndu til að úthluta löngu ýti. Þetta virkar líka fyrir Til baka.</string>
+    <string name="recent">Nýlegt</string>
+    <string name="no_recent">Forrit sem þú opnar úr Haven birtast hér.</string>
     <plurals name="apps_count">
         <item quantity="one">%d forrit</item>
         <item quantity="other">%d forrit</item>

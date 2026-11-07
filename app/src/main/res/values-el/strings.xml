@@ -169,6 +169,8 @@
     <string name="action_home">Μετάβαση στην αρχική</string>
     <string name="long_press">Παρατεταμένο πάτημα</string>
     <string name="learn_hold_hint">Συμβουλή: κρατήστε πατημένο ένα κουμπί για ένα δευτερόλεπτο για να αντιστοιχίσετε παρατεταμένο πάτημα. Λειτουργεί και για το Πίσω.</string>
+    <string name="recent">Πρόσφατες</string>
+    <string name="no_recent">Οι εφαρμογές που ανοίγετε από το Haven θα εμφανίζονται εδώ.</string>
     <plurals name="apps_count">
         <item quantity="one">%d εφαρμογή</item>
         <item quantity="other">%d εφαρμογές</item>

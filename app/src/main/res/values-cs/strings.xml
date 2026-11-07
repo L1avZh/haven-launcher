@@ -169,6 +169,8 @@
     <string name="action_home">Přejít na domovskou obrazovku</string>
     <string name="long_press">Dlouhé stisknutí</string>
     <string name="learn_hold_hint">Tip: podržte tlačítko jednu sekundu a přiřaďte dlouhé stisknutí. Funguje to i u tlačítka Zpět.</string>
+    <string name="recent">Nedávné</string>
+    <string name="no_recent">Aplikace otevřené z Havenu se zobrazí zde.</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplikace</item>
         <item quantity="few">%d aplikace</item>

@@ -169,6 +169,8 @@
     <string name="action_home">홈으로 이동</string>
     <string name="long_press">길게 누르기</string>
     <string name="learn_hold_hint">팁: 버튼을 1초간 누르고 있으면 길게 누르기를 지정할 수 있습니다. 뒤로 버튼에도 사용할 수 있습니다.</string>
+    <string name="recent">최근</string>
+    <string name="no_recent">Haven에서 연 앱이 여기에 표시됩니다.</string>
     <plurals name="apps_count">
         <item quantity="other">앱 %d개</item>
     </plurals>

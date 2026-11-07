@@ -169,6 +169,8 @@
     <string name="action_home">ወደ መነሻ ሂድ</string>
     <string name="long_press">ረጅም ጭመራ</string>
     <string name="learn_hold_hint">ጠቃሚ ምክር፦ ረጅም ጭመራ ለመመደብ አንድን አዝራር ለአንድ ሰከንድ ተጭነው ይያዙ። ይህ ለተመለስ አዝራርም ይሰራል።</string>
+    <string name="recent">የቅርብ ጊዜ</string>
+    <string name="no_recent">ከHaven የሚከፍቷቸው መተግበሪያዎች እዚህ ይታያሉ።</string>
     <plurals name="apps_count">
         <item quantity="one">%d መተግበሪያ</item>
         <item quantity="other">%d መተግበሪያዎች</item>

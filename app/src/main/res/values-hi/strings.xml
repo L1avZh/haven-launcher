@@ -169,6 +169,8 @@
     <string name="action_home">होम पर जाएं</string>
     <string name="long_press">देर तक दबाएं</string>
     <string name="learn_hold_hint">सुझाव: लंबा दबाना असाइन करने के लिए किसी बटन को एक सेकंड तक दबाए रखें। यह वापस बटन के लिए भी काम करता है।</string>
+    <string name="recent">हाल के</string>
+    <string name="no_recent">Haven से खोले गए ऐप यहां दिखाई देंगे।</string>
     <plurals name="apps_count">
         <item quantity="one">%d ऐप</item>
         <item quantity="other">%d ऐप</item>

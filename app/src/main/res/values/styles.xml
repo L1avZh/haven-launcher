@@ -2,5 +2,6 @@
     <style name="Theme.Haven" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">@android:color/black</item>
         <item name="android:windowAnimationStyle">@null</item>
+        <item name="android:fontFamily">@font/outfit_regular</item>
     </style>
 </resources>

@@ -169,6 +169,8 @@
     <string name="action_home">Gå till Hem</string>
     <string name="long_press">Långt tryck</string>
     <string name="learn_hold_hint">Tips: håll in en knapp i en sekund för att tilldela ett långt tryck. Det fungerar även för Tillbaka.</string>
+    <string name="recent">Senaste</string>
+    <string name="no_recent">Appar du öppnar från Haven visas här.</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="other">%d appar</item>

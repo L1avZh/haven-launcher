@@ -169,6 +169,8 @@
     <string name="action_home">Buka Beranda</string>
     <string name="long_press">Tekan lama</string>
     <string name="learn_hold_hint">Tips: tahan tombol selama satu detik untuk menetapkan tekan lama. Ini juga berlaku untuk Kembali.</string>
+    <string name="recent">Terbaru</string>
+    <string name="no_recent">Aplikasi yang Anda buka dari Haven akan muncul di sini.</string>
     <plurals name="apps_count">
         <item quantity="other">%d aplikasi</item>
     </plurals>

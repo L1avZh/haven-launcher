@@ -170,6 +170,8 @@
     <string name="action_home">Go to Home</string>
     <string name="long_press">Long press</string>
     <string name="learn_hold_hint">Tip: hold a button for a second to bind a long press. This also works for Back.</string>
+    <string name="recent">Recent</string>
+    <string name="no_recent">Apps you open from Haven will appear here.</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="other">%d apps</item>

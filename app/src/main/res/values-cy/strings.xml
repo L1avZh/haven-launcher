@@ -169,6 +169,8 @@
     <string name="action_home">Mynd i’r Cartref</string>
     <string name="long_press">Gwasg hir</string>
     <string name="learn_hold_hint">Awgrym: daliwch fotwm am eiliad i neilltuo gwasg hir. Mae hyn yn gweithio ar gyfer Yn ôl hefyd.</string>
+    <string name="recent">Diweddar</string>
+    <string name="no_recent">Bydd yr apiau rydych yn eu hagor o Haven yn ymddangos yma.</string>
     <plurals name="apps_count">
         <item quantity="zero">%d ap</item>
         <item quantity="one">%d ap</item>

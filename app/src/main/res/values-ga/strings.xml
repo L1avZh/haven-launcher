@@ -169,6 +169,8 @@
     <string name="action_home">Téigh go dtí an Baile</string>
     <string name="long_press">Brú fhada</string>
     <string name="learn_hold_hint">Leid: coinnigh cnaipe síos ar feadh soicind chun brú fhada a shannadh. Oibríonn sé seo le Ar ais freisin.</string>
+    <string name="recent">Le déanaí</string>
+    <string name="no_recent">Beidh na haipeanna a osclaíonn tú ó Haven le feiceáil anseo.</string>
     <plurals name="apps_count">
         <item quantity="one">%d aip</item>
         <item quantity="two">%d aip</item>

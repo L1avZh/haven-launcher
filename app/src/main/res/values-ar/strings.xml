@@ -169,6 +169,8 @@
     <string name="action_home">الانتقال إلى الرئيسية</string>
     <string name="long_press">ضغطة مطوّلة</string>
     <string name="learn_hold_hint">نصيحة: اضغط على زر لمدة ثانية لتعيين ضغطة مطوّلة. يعمل هذا أيضًا مع زر الرجوع.</string>
+    <string name="recent">الأخيرة</string>
+    <string name="no_recent">ستظهر هنا التطبيقات التي تفتحها من Haven.</string>
     <plurals name="apps_count">
         <item quantity="zero">لا تطبيقات</item>
         <item quantity="one">تطبيق واحد</item>

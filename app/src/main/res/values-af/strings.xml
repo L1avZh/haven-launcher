@@ -169,6 +169,8 @@
     <string name="action_home">Gaan na Tuis</string>
     <string name="long_press">Lang druk</string>
     <string name="learn_hold_hint">Wenk: hou ’n knoppie ’n sekonde lank ingedruk om ’n lang druk toe te wys. Dit werk ook vir Terug.</string>
+    <string name="recent">Onlangs</string>
+    <string name="no_recent">Toepassings wat jy vanaf Haven oopmaak, verskyn hier.</string>
     <plurals name="apps_count">
         <item quantity="one">%d toepassing</item>
         <item quantity="other">%d toepassings</item>

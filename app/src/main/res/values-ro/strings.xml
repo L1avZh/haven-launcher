@@ -169,6 +169,8 @@
     <string name="action_home">Mergi la Acasă</string>
     <string name="long_press">Apăsare lungă</string>
     <string name="learn_hold_hint">Sfat: ține apăsat un buton o secundă pentru a asocia o apăsare lungă. Funcționează și pentru Înapoi.</string>
+    <string name="recent">Recente</string>
+    <string name="no_recent">Aplicațiile deschise din Haven vor apărea aici.</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplicație</item>
         <item quantity="few">%d aplicații</item>

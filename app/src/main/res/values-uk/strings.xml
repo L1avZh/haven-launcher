@@ -169,6 +169,8 @@
     <string name="action_home">На головний екран</string>
     <string name="long_press">Довге натискання</string>
     <string name="learn_hold_hint">Порада: утримуйте кнопку секунду, щоб призначити довге натискання. Це працює й для кнопки «Назад».</string>
+    <string name="recent">Нещодавні</string>
+    <string name="no_recent">Застосунки, відкриті з Haven, з’являться тут.</string>
     <plurals name="apps_count">
         <item quantity="one">%d застосунок</item>
         <item quantity="few">%d застосунки</item>

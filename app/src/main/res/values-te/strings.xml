@@ -169,6 +169,8 @@
     <string name="action_home">హోమ్‌కు వెళ్లండి</string>
     <string name="long_press">దీర్ఘ నొక్కు</string>
     <string name="learn_hold_hint">సూచన: దీర్ఘ నొక్కును కేటాయించడానికి బటన్‌ను ఒక సెకను నొక్కి ఉంచండి. ఇది వెనుక బటన్‌కు కూడా పనిచేస్తుంది.</string>
+    <string name="recent">ఇటీవలివి</string>
+    <string name="no_recent">Haven నుండి మీరు తెరిచే యాప్‌లు ఇక్కడ కనిపిస్తాయి.</string>
     <plurals name="apps_count">
         <item quantity="one">%d యాప్</item>
         <item quantity="other">%d యాప్‌లు</item>

@@ -169,6 +169,8 @@
     <string name="action_home">转到主页</string>
     <string name="long_press">长按</string>
     <string name="learn_hold_hint">提示：按住按键一秒即可绑定长按。“返回”键同样适用。</string>
+    <string name="recent">最近</string>
+    <string name="no_recent">从 Haven 打开的应用会显示在这里。</string>
     <plurals name="apps_count">
         <item quantity="other">%d 个应用</item>
     </plurals>

@@ -169,6 +169,8 @@
     <string name="action_home">Siirry Kotiin</string>
     <string name="long_press">Pitkä painallus</string>
     <string name="learn_hold_hint">Vinkki: pidä painiketta painettuna sekunnin ajan määrittääksesi pitkän painalluksen. Tämä toimii myös Takaisin-painikkeella.</string>
+    <string name="recent">Viimeisimmät</string>
+    <string name="no_recent">Havenista avaamasi sovellukset näkyvät tässä.</string>
     <plurals name="apps_count">
         <item quantity="one">%d sovellus</item>
         <item quantity="other">%d sovellusta</item>

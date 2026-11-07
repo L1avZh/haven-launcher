@@ -169,6 +169,8 @@
     <string name="action_home">Joan hasierara</string>
     <string name="long_press">Sakatze luzea</string>
     <string name="learn_hold_hint">Aholkua: eduki botoi bat segundo batez sakatuta sakatze luze bat esleitzeko. Atzera botoiarekin ere balio du.</string>
+    <string name="recent">Azkenak</string>
+    <string name="no_recent">Havenetik irekitzen dituzun aplikazioak hemen agertuko dira.</string>
     <plurals name="apps_count">
         <item quantity="one">Aplikazio %d</item>
         <item quantity="other">%d aplikazio</item>

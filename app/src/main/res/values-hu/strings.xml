@@ -169,6 +169,8 @@
     <string name="action_home">Ugrás a kezdőlapra</string>
     <string name="long_press">Hosszú megnyomás</string>
     <string name="learn_hold_hint">Tipp: tartson lenyomva egy gombot egy másodpercig a hosszú megnyomás hozzárendeléséhez. A Vissza gombbal is működik.</string>
+    <string name="recent">Legutóbbiak</string>
+    <string name="no_recent">A Havenből megnyitott alkalmazások itt jelennek meg.</string>
     <plurals name="apps_count">
         <item quantity="one">%d alkalmazás</item>
         <item quantity="other">%d alkalmazás</item>

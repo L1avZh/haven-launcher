@@ -292,7 +292,7 @@ fun Activity.showMenu(s: Scale, title: String, items: List<MenuItem>, focus: Int
         setPadding(s.px(36), s.px(30), s.px(36), s.px(30))
     }
     box.addView(TextView(this).apply {
-        textAlignment = View.TEXT_ALIGNMENT_VIEW_START; text = title; sizePx(s.px(T.TITLE)); setTextColor(T.TEXT); typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+        textAlignment = View.TEXT_ALIGNMENT_VIEW_START; text = title; sizePx(s.px(T.TITLE)); setTextColor(T.TEXT); typeface = Fonts.medium
         setPaddingRelative(s.px(8), 0, 0, s.px(16))
     })
     extra?.invoke(box, d)

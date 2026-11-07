@@ -169,6 +169,8 @@
     <string name="action_home">Pojdi na domači zaslon</string>
     <string name="long_press">Dolg pritisk</string>
     <string name="learn_hold_hint">Namig: držite tipko eno sekundo, da dodelite dolg pritisk. Deluje tudi za tipko Nazaj.</string>
+    <string name="recent">Nedavno</string>
+    <string name="no_recent">Aplikacije, ki jih odprete iz Havna, se prikažejo tukaj.</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplikacija</item>
         <item quantity="two">%d aplikaciji</item>

@@ -71,12 +71,12 @@ class KeyOverlay(
         val col = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL }
         fun tv(t: String, size: Float, color: Int, bold: Boolean = false) = TextView(ctx).apply {
             text = t; sizePx(s.px(size)); setTextColor(color); gravity = Gravity.CENTER; textAlignment = View.TEXT_ALIGNMENT_CENTER
-            if (bold) typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+            if (bold) typeface = Fonts.medium
         }
         col.addView(tv(title, T.TITLE, T.TEXT, true))
         col.addView(tv(hint, T.BODY - 4, T.TEXT_DIM), LinearLayout.LayoutParams(s.px(1200), -2).apply { topMargin = s.px(14) })
         note?.let { col.addView(tv(it, T.LABEL + 2, T.TEXT_DIM), LinearLayout.LayoutParams(s.px(1200), -2).apply { topMargin = s.px(10) }) }
-        big.apply { sizePx(s.px(96f)); setTextColor(Color.WHITE); gravity = Gravity.CENTER; typeface = Typeface.create("sans-serif-light", Typeface.NORMAL); text = "—" }
+        big.apply { sizePx(s.px(96f)); setTextColor(Color.WHITE); gravity = Gravity.CENTER; typeface = Fonts.light; text = "—" }
         col.addView(big, LinearLayout.LayoutParams(-2, -2).apply { topMargin = s.px(46) })
         details.apply { sizePx(s.px(T.BODY - 2)); setTextColor(T.TEXT); gravity = Gravity.CENTER; textAlignment = View.TEXT_ALIGNMENT_CENTER; setLineSpacing(0f, 1.3f) }
         col.addView(details, LinearLayout.LayoutParams(s.px(1300), -2).apply { topMargin = s.px(24) })

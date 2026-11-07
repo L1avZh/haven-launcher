@@ -169,6 +169,8 @@
     <string name="action_home">Pergi ke Utama</string>
     <string name="long_press">Tekan lama</string>
     <string name="learn_hold_hint">Petua: tahan butang selama satu saat untuk menetapkan tekanan lama. Ini juga berfungsi untuk Kembali.</string>
+    <string name="recent">Terkini</string>
+    <string name="no_recent">Apl yang anda buka daripada Haven akan muncul di sini.</string>
     <plurals name="apps_count">
         <item quantity="other">%d apl</item>
     </plurals>

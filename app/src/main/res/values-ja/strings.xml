@@ -169,6 +169,8 @@
     <string name="action_home">ホームへ移動</string>
     <string name="long_press">長押し</string>
     <string name="learn_hold_hint">ヒント：ボタンを1秒間押し続けると長押しを割り当てられます。「戻る」にも使えます。</string>
+    <string name="recent">最近</string>
+    <string name="no_recent">Haven から開いたアプリがここに表示されます。</string>
     <plurals name="apps_count">
         <item quantity="other">%d 個のアプリ</item>
     </plurals>

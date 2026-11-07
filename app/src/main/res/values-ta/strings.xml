@@ -169,6 +169,8 @@
     <string name="action_home">முகப்புக்குச் செல்</string>
     <string name="long_press">நீண்ட அழுத்தம்</string>
     <string name="learn_hold_hint">குறிப்பு: நீண்ட அழுத்தத்தை இணைக்க ஒரு பொத்தானை ஒரு விநாடி அழுத்திப் பிடிக்கவும். இது பின் பொத்தானுக்கும் வேலை செய்யும்.</string>
+    <string name="recent">சமீபத்தியவை</string>
+    <string name="no_recent">Haven இலிருந்து நீங்கள் திறக்கும் பயன்பாடுகள் இங்கே தோன்றும்.</string>
     <plurals name="apps_count">
         <item quantity="one">%d பயன்பாடு</item>
         <item quantity="other">%d பயன்பாடுகள்</item>

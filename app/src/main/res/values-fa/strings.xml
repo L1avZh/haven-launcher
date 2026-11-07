@@ -169,6 +169,8 @@
     <string name="action_home">رفتن به صفحه اصلی</string>
     <string name="long_press">فشار طولانی</string>
     <string name="learn_hold_hint">نکته: یک دکمه را یک ثانیه نگه دارید تا فشار طولانی نگاشت شود. این برای دکمه بازگشت هم کار می‌کند.</string>
+    <string name="recent">اخیر</string>
+    <string name="no_recent">برنامه‌هایی که از Haven باز می‌کنید اینجا نمایش داده می‌شوند.</string>
     <plurals name="apps_count">
         <item quantity="one">%d برنامه</item>
         <item quantity="other">%d برنامه</item>

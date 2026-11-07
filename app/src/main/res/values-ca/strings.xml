@@ -169,6 +169,8 @@
     <string name="action_home">Ves a l’inici</string>
     <string name="long_press">Pulsació llarga</string>
     <string name="learn_hold_hint">Consell: mantén premut un botó un segon per assignar una pulsació llarga. També funciona amb Enrere.</string>
+    <string name="recent">Recents</string>
+    <string name="no_recent">Les aplicacions que obris des d’Haven apareixeran aquí.</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplicació</item>
         <item quantity="many">%d d’aplicacions</item>

@@ -169,6 +169,8 @@
     <string name="action_home">Към началния екран</string>
     <string name="long_press">Дълго натискане</string>
     <string name="learn_hold_hint">Съвет: задръжте бутон за секунда, за да зададете дълго натискане. Работи и за бутона Назад.</string>
+    <string name="recent">Скорошни</string>
+    <string name="no_recent">Приложенията, отворени от Haven, ще се показват тук.</string>
     <plurals name="apps_count">
         <item quantity="one">%d приложение</item>
         <item quantity="other">%d приложения</item>

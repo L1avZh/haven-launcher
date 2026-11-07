@@ -169,6 +169,8 @@
     <string name="action_home">Zum Startbildschirm</string>
     <string name="long_press">Langer Druck</string>
     <string name="learn_hold_hint">Tipp: Halte eine Taste eine Sekunde gedrückt, um einen langen Druck zuzuordnen. Das geht auch bei Zurück.</string>
+    <string name="recent">Zuletzt</string>
+    <string name="no_recent">Apps, die du über Haven öffnest, erscheinen hier.</string>
     <plurals name="apps_count">
         <item quantity="one">%d App</item>
         <item quantity="other">%d Apps</item>

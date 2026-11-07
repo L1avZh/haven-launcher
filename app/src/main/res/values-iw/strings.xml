@@ -169,6 +169,8 @@
     <string name="action_home">חזרה למסך הבית</string>
     <string name="long_press">לחיצה ארוכה</string>
     <string name="learn_hold_hint">טיפ: החזק כפתור שנייה אחת כדי לשייך לחיצה ארוכה. זה עובד גם עבור חזרה.</string>
+    <string name="recent">אחרונות</string>
+    <string name="no_recent">אפליקציות שתפתח מ-Haven יופיעו כאן.</string>
     <plurals name="apps_count">
         <item quantity="one">אפליקציה אחת</item>
         <item quantity="two">שתי אפליקציות</item>

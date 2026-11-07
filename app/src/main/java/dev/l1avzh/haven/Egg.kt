@@ -37,8 +37,8 @@ class EggView(ctx: Context, private val title: String, private val credit: Strin
             px[i] = r.nextFloat(); py[i] = r.nextFloat(); ps[i] = 0.000012f + r.nextFloat() * 0.000035f
             pr[i] = 0.6f + r.nextFloat() * 2.2f; pp[i] = r.nextFloat() * 6.28f
         }
-        big.typeface = Typeface.create("sans-serif-thin", Typeface.NORMAL); big.color = Color.WHITE; big.textAlign = Paint.Align.LEFT
-        small.typeface = Typeface.create("sans-serif-light", Typeface.NORMAL); small.textAlign = Paint.Align.LEFT
+        big.typeface = Fonts.thin; big.color = Color.WHITE; big.textAlign = Paint.Align.LEFT
+        small.typeface = Fonts.light; small.textAlign = Paint.Align.LEFT
         isFocusable = false
     }
 

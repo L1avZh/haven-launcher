@@ -1,3 +1,7 @@
+## 1.6
+
+- New "Stage & Rail" home: typographic app rail with a stage showing artwork for the focused app, Favorites/Recent/Library scopes, Outfit typeface.
+
 # Changelog
 
 ## 1.5

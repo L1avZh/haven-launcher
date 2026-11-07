@@ -48,25 +48,33 @@ class MainActivity : Activity() {
     private lateinit var wallpaperView: View
     private lateinit var glowView: View
     private lateinit var header: LinearLayout
-    private lateinit var hero: View
-    private lateinit var heroCaption: TextView
-    private lateinit var heroTitle: TextView
-    private lateinit var heroHint: TextView
-    private lateinit var favBlock: View
-    private lateinit var allBlock: View
-    private lateinit var favEmpty: TextView
-    private lateinit var favRV: RecyclerView
-    private lateinit var allRV: RecyclerView
-    private lateinit var favAdapter: TileAdapter
-    private lateinit var allAdapter: TileAdapter
+    private lateinit var railBox: View
+    private lateinit var stageBody: LinearLayout
+    private lateinit var stageArt: ImageView
+    private lateinit var stageTag: TextView
+    private lateinit var stageTitle: TextView
+    private lateinit var stageMeta: TextView
+    private lateinit var stageEmpty: TextView
+    private lateinit var btnOpen: TextView
+    private lateinit var btnFav: TextView
+    private lateinit var btnMore: TextView
+    private lateinit var rail: RailView
+    private lateinit var railAdapter: RailAdapter
+    private val tabs = mutableListOf<LinearLayout>()
+    private var favList: List<AppEntry> = emptyList()
+    private var recentList: List<AppEntry> = emptyList()
+    private var allList: List<AppEntry> = emptyList()
+    private var scope = 0                       // 0 favorites, 1 recent, 2 library
+    private val lastIdx = IntArray(3)
+    private var focusedEntry: AppEntry? = null
+    private var loaded = false
+    private var artToken = 0
 
     private var all: List<AppEntry> = emptyList()
     private var rtl = false
     private val main = Handler(Looper.getMainLooper())
     private val loader = Executors.newSingleThreadExecutor()
     private val dialogs = mutableListOf<Dialog>()
-    private var lastList: RecyclerView? = null
-    private var lastPos = 0
     private var focusedKey: String? = null
     private var entered = false
 
@@ -87,8 +95,7 @@ class MainActivity : Activity() {
     private lateinit var dimView: View
     private lateinit var timeClock: TextClock
     private lateinit var clockCol: LinearLayout
-    private var favW = 400
-    private var libW = 256
+    private var artW = 960
     private val accentColors = intArrayOf(0xFF6C8CFF.toInt(), 0xFF4CD6A0.toInt(), 0xFFFF7A6B.toInt(), 0xFFF2B84B.toInt(), 0xFFA77BFF.toInt())
 
     private val pkgReceiver = object : BroadcastReceiver() {
@@ -102,8 +109,9 @@ class MainActivity : Activity() {
         super.onCreate(savedInstanceState)
         s = Scale(this); prefs = Prefs(this); icons = IconLoader(packageManager)
         rtl = Lang.isRtl(this)
+        Fonts.init(this)
         T.init(this, prefs.animLevel, prefs.performance)
-        favW = intArrayOf(352, 400, 448)[prefs.cardSize]; libW = intArrayOf(224, 256, 288)[prefs.cardSize]
+        artW = intArrayOf(800, 960, 1112)[prefs.cardSize]
         buildUi()
         registerReceiver(pkgReceiver, IntentFilter().apply {
             addAction(Intent.ACTION_PACKAGE_ADDED); addAction(Intent.ACTION_PACKAGE_REMOVED)
@@ -125,6 +133,7 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         T.init(this, prefs.animLevel, prefs.performance)
+        if (loaded) render()
         if (currentFocus == null) restoreFocus()
     }
 
@@ -162,7 +171,7 @@ class MainActivity : Activity() {
         if (prefs.mappingsEnabled) prefs.bindings.firstOrNull { !it.long && it.key == e.keyCode }?.let { runAction(it.action, it.arg); return true }
         if (prefs.numbersOpenFavs && currentFocus !is EditText && e.keyCode in KeyEvent.KEYCODE_0..KeyEvent.KEYCODE_9) {
             val n = e.keyCode - KeyEvent.KEYCODE_0
-            val fav = favAdapter.items.getOrNull(if (n == 0) 9 else n - 1) ?: return false
+            val fav = favList.getOrNull(if (n == 0) 9 else n - 1) ?: return false
             launch(fav); return true
         }
         return false
@@ -285,125 +294,146 @@ class MainActivity : Activity() {
     // ---------- UI ----------
 
     private fun buildUi() {
-        val m = s.px(T.MARGIN)
         frame = FrameLayout(this).apply { clipChildren = false; setBackgroundColor(Color.BLACK) }
 
-        // Layer 1: wallpaper. Layer 2: accent glow. (A bottom vignette was measured and dropped: it cost frame time.)
+        // Layer 1: wallpaper. Layer 2: accent glow behind the stage. Layer 3: optional dimming.
         wallpaperView = View(this).apply { background = wallpaperDrawable() }
         glowDrawable.gradientType = GradientDrawable.RADIAL_GRADIENT
-        glowDrawable.setGradientCenter(if (rtl) 0.8f else 0.2f, 0.22f)
-        glowDrawable.gradientRadius = s.px(1250f)
+        glowDrawable.setGradientCenter(if (rtl) 0.3f else 0.7f, 0.42f)
+        glowDrawable.gradientRadius = s.px(1150f)
         setGlowColor(glowColor)
         glowView = View(this).apply { background = glowDrawable; visibility = if (prefs.glow && !prefs.performance) View.VISIBLE else View.GONE }
         dimView = View(this).apply { setBackgroundColor(dimColor()) }
         frame.addView(wallpaperView, -1, -1); frame.addView(glowView, -1, -1); frame.addView(dimView, -1, -1)
 
-        val content = LinearLayout(this).apply {
-            homeContent = this
-            orientation = LinearLayout.VERTICAL; clipChildren = false; clipToPadding = false
-            setPaddingRelative(m, s.px(40), m, 0)
+        homeContent = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL; clipChildren = false; clipToPadding = false
+            setPaddingRelative(s.px(T.MARGIN), s.px(40), s.px(T.MARGIN), 0)
         }
-        frame.addView(content, -1, -1)
+        frame.addView(homeContent, -1, -1)
         setContentView(frame)
 
-        // Header: discreet clock + date at the start edge, two icon buttons at the end edge.
+        // ----- Rail: clock, scope tabs, and one typographic row per app.
         val locale = Lang.locale(this)
         val datePattern = DateFormat.getBestDateTimePattern(locale, "EEEdMMM")
         clockCol = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         timeClock = TextClock(this)
         clockCol.addView(timeClock.apply {
-            applyTimeFormat(this); sizePx(s.px(42f)); setTextColor(T.TEXT)
-            typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL); includeFontPadding = false
+            applyTimeFormat(this); sizePx(s.px(46f)); setTextColor(T.TEXT); typeface = Fonts.medium; includeFontPadding = false
         })
         clockCol.addView(TextClock(this).apply {
             format12Hour = datePattern; format24Hour = datePattern; sizePx(s.px(T.LABEL + 2)); setTextColor(T.TEXT_DIM)
         })
         clockCol.visibility = if (prefs.showClock) View.VISIBLE else View.INVISIBLE
+
+        val tabRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
+        listOf(R.string.favorites, R.string.recent, R.string.library).forEachIndexed { i, res -> tabRow.addView(tab(i, getString(res))) }
+
+        railAdapter = RailAdapter(s, ::onRailFocus, ::onTile, { if (!okHeldIsBound()) menuFor(it) }, { btnOpen.requestFocus() }, { tabs[scope].requestFocus() })
+        rail = RailView(this).apply {
+            layoutManager = RailLayoutManager(this@MainActivity, 3)
+            adapter = railAdapter; clipChildren = true; clipToPadding = false; overScrollMode = View.OVER_SCROLL_NEVER
+            setPadding(0, s.px(8), 0, s.px(560))
+            addOnLayoutChangeListener { v, l, tp, r, b, _, _, _, _ -> v.clipBounds = android.graphics.Rect(0, 0, r - l, b - tp) }
+            itemAnimator = DefaultItemAnimator().apply {
+                supportsChangeAnimations = false
+                addDuration = T.d(T.MED); removeDuration = T.d(T.FAST); moveDuration = T.d(T.MED)
+            }
+        }
+        railBox = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL; clipChildren = false
+            addView(clockCol)
+            addView(tabRow, LinearLayout.LayoutParams(-1, -2).apply { topMargin = s.px(30) })
+            addView(rail, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = s.px(10) })
+        }
+        homeContent.addView(railBox, LinearLayout.LayoutParams(s.px(560), -1))
+
+        // ----- Stage: big artwork, name, last-opened line, and the actions for the focused app.
         header = LinearLayout(this).apply {
-            gravity = Gravity.CENTER_VERTICAL
-            addView(clockCol, LinearLayout.LayoutParams(0, -2, 1f))
+            gravity = Gravity.CENTER_VERTICAL or Gravity.END
             addView(iconButton(R.drawable.ic_home, getString(R.string.back_to_start)) { focusStart() })
             addView(iconButton(R.drawable.ic_search, getString(R.string.search)) { openSearch() })
             addView(iconButton(R.drawable.ic_settings, getString(R.string.settings)) { openSettings() })
         }
-        content.addView(header, LinearLayout.LayoutParams(-1, s.px(84)))
-
-        // Hero: names whatever is focused, in the colour of its artwork. Shows a quiet loading line until apps arrive.
-        heroCaption = TextView(this).apply { textAlignment = View.TEXT_ALIGNMENT_VIEW_START; sizePx(s.px(T.LABEL)); typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL) }
-        heroTitle = TextView(this).apply {
-            textAlignment = View.TEXT_ALIGNMENT_VIEW_START; sizePx(s.px(T.HERO)); setTextColor(T.TEXT); maxLines = 1; ellipsize = TextUtils.TruncateAt.END
-            typeface = Typeface.create("sans-serif-light", Typeface.NORMAL); includeFontPadding = false
-            text = getString(R.string.loading); alpha = 0.5f
+        val artH = artW * 9 / 16
+        val radius = s.px(28f)
+        stageArt = ImageView(this).apply { scaleType = ImageView.ScaleType.FIT_XY }
+        val artCard = FrameLayout(this).apply {
+            background = rounded(T.CARD, radius)
+            clipToOutline = true
+            outlineProvider = object : android.view.ViewOutlineProvider() {
+                override fun getOutline(v: View, o: android.graphics.Outline) { o.setRoundRect(0, 0, v.width, v.height, radius) }
+            }
+            addView(stageArt, FrameLayout.LayoutParams(-1, -1))
         }
-        heroHint = TextView(this).apply { textAlignment = View.TEXT_ALIGNMENT_VIEW_START; sizePx(s.px(T.LABEL)); setTextColor(T.TEXT_DIM); alpha = 0.8f }
-        hero = Block(this).apply {
-            orientation = LinearLayout.VERTICAL; gravity = Gravity.BOTTOM
-            setPadding(0, 0, 0, s.px(28))
-            addView(heroCaption)
-            addView(heroTitle, LinearLayout.LayoutParams(-1, -2).apply { topMargin = s.px(8) })
-            addView(heroHint, LinearLayout.LayoutParams(-2, -2).apply { topMargin = s.px(10) })
+        stageTag = TextView(this).apply { textAlignment = View.TEXT_ALIGNMENT_VIEW_START; sizePx(s.px(T.LABEL)); typeface = Fonts.medium }
+        stageTitle = TextView(this).apply {
+            textAlignment = View.TEXT_ALIGNMENT_VIEW_START; sizePx(s.px(76f)); setTextColor(T.TEXT); maxLines = 1
+            ellipsize = TextUtils.TruncateAt.END; typeface = Fonts.light; includeFontPadding = false
         }
-        content.addView(hero, LinearLayout.LayoutParams(-1, s.px(250)))
-
-        // Favorites shelf (large artwork) and library shelf (compact, every app).
-        favAdapter = TileAdapter(s, icons, favW, T.FAV_GAP, 1.12f, ::onTile, { if (!okHeldIsBound()) menuFor(it, true) }, ::artReady)
-        favRV = shelf(favAdapter, favW)
-        favEmpty = TextView(this).apply {
-            textAlignment = View.TEXT_ALIGNMENT_VIEW_START
-            text = getString(R.string.no_favorites)
-            sizePx(s.px(T.BODY - 2)); setTextColor(T.TEXT_DIM); gravity = Gravity.CENTER_VERTICAL or Gravity.START; visibility = View.GONE
-        }
-        favBlock = Block(this).apply {
-            orientation = LinearLayout.VERTICAL; clipChildren = false
-            addView(shelfLabel(getString(R.string.favorites))); addView(favRV, shelfParams(favW))
-            addView(favEmpty, LinearLayout.LayoutParams(-1, s.px(favW * 9 / 16 + 52)))
-        }
-        content.addView(favBlock, LinearLayout.LayoutParams(-1, -2))
-
-        allAdapter = TileAdapter(s, icons, libW, T.LIB_GAP, 1.12f, ::onTile, { if (!okHeldIsBound()) menuFor(it, false) }, ::artReady)
-        allRV = shelf(allAdapter, libW)
-        allBlock = Block(this).apply {
-            orientation = LinearLayout.VERTICAL; clipChildren = false
-            addView(shelfLabel(getString(R.string.library))); addView(allRV, shelfParams(libW))
-        }
-        content.addView(allBlock, LinearLayout.LayoutParams(-1, -2).apply { topMargin = s.px(26) })
-
-        if (T.animated) listOf(header, hero, favBlock, allBlock).forEach { it.alpha = 0f; it.translationY = s.px(30f) }
-
-        frame.viewTreeObserver.addOnGlobalFocusChangeListener { _, new ->
-            val rv = new?.parent as? RecyclerView
-            if (rv === favRV || rv === allRV) {
-                val pos = rv.getChildAdapterPosition(new)
-                val ad = rv.adapter as TileAdapter
-                val e = ad.items.getOrNull(pos) ?: return@addOnGlobalFocusChangeListener
-                lastList = rv; lastPos = pos
-                focusedKey = e.key
-                showHero(e, rv === favRV)
-                emphasize(rv === favRV)
+        stageMeta = TextView(this).apply { textAlignment = View.TEXT_ALIGNMENT_VIEW_START; sizePx(s.px(T.LABEL + 4)); setTextColor(T.TEXT_DIM); maxLines = 1 }
+        btnOpen = stagePill(this, s, true, getString(R.string.open)) { focusedEntry?.let { onTile(it) } }
+        btnFav = stagePill(this, s, false, "") { focusedEntry?.let { toggleFavorite(it) } }
+        btnMore = stagePill(this, s, false, "\u22EF") { focusedEntry?.let { menuFor(it) } }.also { it.contentDescription = getString(R.string.app_info) }
+        val pills = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL; clipChildren = false
+            listOf(btnOpen, btnFav, btnMore).forEach { b ->
+                addView(b, LinearLayout.LayoutParams(-2, -2).apply { marginEnd = s.px(14) })
+                b.setOnKeyListener { _, code, e ->
+                    val toRail = if (rtl) KeyEvent.KEYCODE_DPAD_RIGHT else KeyEvent.KEYCODE_DPAD_LEFT
+                    if (e.action == KeyEvent.ACTION_DOWN && code == toRail && b === btnOpen) { focusRail(lastIdx[scope]); true } else false
+                }
             }
         }
-    }
-
-    private fun shelf(a: TileAdapter, w: Int) = Row(this).apply {
-        layoutManager = AnchorLayoutManager(this@MainActivity, a.cellWidth)
-        adapter = a; clipChildren = false; clipToPadding = false; overScrollMode = View.OVER_SCROLL_NEVER
-        val gapHalf = a.cellWidth - s.px(w)
-        setPaddingRelative(s.px(T.MARGIN) - gapHalf / 2, 0, 0, 0)
-        itemAnimator = DefaultItemAnimator().apply {
-            supportsChangeAnimations = false
-            addDuration = T.d(T.MED); removeDuration = T.d(T.FAST); moveDuration = T.d(T.MED)
+        stageBody = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL; clipChildren = false
+            addView(artCard, LinearLayout.LayoutParams(s.px(artW), s.px(artH)))
+            addView(stageTag, LinearLayout.LayoutParams(-1, -2).apply { topMargin = s.px(30) })
+            addView(stageTitle, LinearLayout.LayoutParams(s.px(artW), -2).apply { topMargin = s.px(6) })
+            addView(stageMeta, LinearLayout.LayoutParams(s.px(artW), -2).apply { topMargin = s.px(8) })
+            addView(pills, LinearLayout.LayoutParams(-2, -2).apply { topMargin = s.px(26) })
         }
+        stageEmpty = TextView(this).apply {
+            textAlignment = View.TEXT_ALIGNMENT_VIEW_START; sizePx(s.px(T.BODY)); setTextColor(T.TEXT_DIM); typeface = Fonts.light
+            text = getString(R.string.loading); setLineSpacing(0f, 1.2f)
+        }
+        val stageCol = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL; clipChildren = false
+            addView(header, LinearLayout.LayoutParams(-1, s.px(84)))
+            addView(stageBody, LinearLayout.LayoutParams(-2, -2).apply { topMargin = s.px(14) })
+            addView(stageEmpty, LinearLayout.LayoutParams(s.px(artW), -2).apply { topMargin = s.px(160) })
+        }
+        homeContent.addView(stageCol, LinearLayout.LayoutParams(0, -1, 1f).apply { marginStart = s.px(56) })
+        stageBody.visibility = View.INVISIBLE
+
+        if (T.animated) listOf(railBox, header, stageBody).forEach { it.alpha = 0f; it.translationY = s.px(26f) }
     }
 
-    /** Shelves bleed to both screen edges so tiles slide off-screen instead of being cut at the margin. */
-    private fun shelfParams(w: Int) = LinearLayout.LayoutParams(-1, s.px(w * 9 / 16 + 52)).apply {
-        marginStart = -s.px(T.MARGIN); marginEnd = -s.px(T.MARGIN)
+    /** Scope tab: Favorites / Recent / Library. Focusing a tab switches the list immediately. */
+    private fun tab(i: Int, label: String): LinearLayout {
+        val txt = TextView(this).apply { text = label; sizePx(s.px(28f)); typeface = Fonts.medium; setTextColor(T.TEXT_DIM); textAlignment = View.TEXT_ALIGNMENT_VIEW_START }
+        val bar = View(this).apply { background = rounded(T.ACCENT, s.px(2f)); alpha = 0f }
+        return LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL; isFocusable = true; isClickable = true
+            setPadding(0, s.px(8), s.px(34), s.px(6))
+            addView(txt, LinearLayout.LayoutParams(-2, -2)); addView(bar, LinearLayout.LayoutParams(s.px(34), s.px(3)).apply { topMargin = s.px(8) })
+            tag = Pair(txt, bar)
+            setOnFocusChangeListener { _, f -> if (f && scope != i) setScope(i); updateTabs() }
+            setOnClickListener { focusRail(lastIdx[i]) }
+            setOnKeyListener { _, code, e ->
+                if (e.action == KeyEvent.ACTION_DOWN && code == KeyEvent.KEYCODE_DPAD_DOWN) { focusRail(lastIdx[scope]); true } else false
+            }
+        }.also { tabs += it }
     }
 
-    private fun shelfLabel(t: String) = TextView(this).apply {
-        textAlignment = View.TEXT_ALIGNMENT_VIEW_START
-        sizePx(s.px(T.LABEL)); setTextColor(T.TEXT_DIM); Caps.set(this, t, 0.16f)
-        typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL)
+    @Suppress("UNCHECKED_CAST")
+    private fun updateTabs() {
+        tabs.forEachIndexed { i, t ->
+            val (txt, bar) = t.tag as Pair<TextView, View>
+            val sel = i == scope
+            txt.setTextColor(if (t.isFocused) Color.WHITE else if (sel) T.TEXT else T.TEXT_DIM)
+            bar.animate().alpha(if (sel) 1f else 0f).setDuration(T.d(T.FAST)).start()
+        }
     }
 
     private fun iconButton(res: Int, desc: String, onClick: () -> Unit): View {
@@ -457,25 +487,70 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun showHero(e: AppEntry, fav: Boolean) {
+    private fun scopeItems(): List<AppEntry> = when (scope) { 0 -> favList; 1 -> recentList; else -> allList }
+
+    private fun setScope(i: Int) {
+        scope = i
+        updateTabs()
+        railAdapter.submit(scopeItems())
+        updateStageEmpty()
+    }
+
+    private fun updateStageEmpty() {
+        val none = scopeItems().isEmpty()
+        stageBody.visibility = if (none) View.INVISIBLE else View.VISIBLE
+        stageEmpty.visibility = if (none) View.VISIBLE else View.GONE
+        if (none) stageEmpty.text = getString(when { !loaded -> R.string.loading; scope == 0 -> R.string.no_favorites; scope == 1 -> R.string.no_recent; else -> R.string.no_hidden })
+    }
+
+    private fun onRailFocus(e: AppEntry, pos: Int) { lastIdx[scope] = pos; showStage(e) }
+
+    private fun openedText(e: AppEntry): String = prefs.launchLog[e.key]?.let {
+        android.text.format.DateUtils.getRelativeTimeSpanString(it, System.currentTimeMillis(), android.text.format.DateUtils.MINUTE_IN_MILLIS).toString()
+    }.orEmpty()
+
+    /** Names the focused app and shows its artwork; the glow takes the artwork's accent colour. */
+    private fun showStage(e: AppEntry) {
+        focusedEntry = e; focusedKey = e.key
+        stageEmpty.visibility = View.GONE; stageBody.visibility = View.VISIBLE
         val accent = accentFor(e)
-        heroTitle.text = e.label; heroTitle.alpha = 1f
-        Caps.set(heroCaption, getString(if (e.virtual) R.string.not_installed else if (fav) R.string.tag_favorite else R.string.library), 0.22f)
-        heroCaption.setTextColor(accent)
-        heroHint.text = if (e.virtual) getString(R.string.adguard_open_page) else getString(R.string.hold_ok)
+        val isFav = e.key in prefs.favorites
+        Caps.set(stageTag, getString(if (e.virtual) R.string.not_installed else if (isFav) R.string.tag_favorite else R.string.library), 0.22f)
+        stageTag.setTextColor(accent)
+        stageTitle.text = e.label
+        stageMeta.text = if (e.virtual) getString(R.string.adguard_open_page) else openedText(e)
+        btnFav.text = (if (isFav) "\u2605 " else "\u2606 ") + getString(R.string.tag_favorite)
+        val real = if (e.virtual) View.GONE else View.VISIBLE
+        btnFav.visibility = real; btnMore.visibility = real
         glowTo(accent)
+        railAdapter.tint(accent)
+        val token = ++artToken
+        stageArt.animate().cancel(); stageArt.alpha = if (T.animated) 0.25f else 1f
+        icons.load(e, s.px(artW), s.px(artW) * 9 / 16) { bmp ->
+            if (token == artToken) {
+                if (bmp != null) stageArt.setImageBitmap(bmp)
+                stageArt.animate().alpha(1f).setDuration(T.d(T.MED)).start()
+                artReady(e)
+            }
+        }
         if (T.animated) {
-            heroTitle.animate().cancel()
-            heroTitle.alpha = 0f; heroTitle.translationX = if (rtl) s.px(18f) else -s.px(18f)
-            heroTitle.animate().alpha(1f).translationX(0f).setDuration(T.d(T.MED)).setInterpolator(T.OUT).start()
+            stageTitle.animate().cancel()
+            stageTitle.alpha = 0f; stageTitle.translationX = if (rtl) s.px(16f) else -s.px(16f)
+            stageTitle.animate().alpha(1f).translationX(0f).setDuration(T.d(T.MED)).setInterpolator(T.OUT).start()
         }
     }
 
-    /** The shelf holding focus is full strength; the other recedes, which shows where you are. */
-    private fun emphasize(favs: Boolean) {
-        val d = T.d(T.MED)
-        favBlock.animate().alpha(if (favs || favAdapter.itemCount == 0) 1f else 0.5f).setDuration(d).setInterpolator(T.STD).start()
-        allBlock.animate().alpha(if (favs) 0.5f else 1f).setDuration(d).setInterpolator(T.STD).start()
+    private fun toggleFavorite(e: AppEntry) {
+        val favs = prefs.favorites
+        prefs.favorites = if (e.key in favs) favs - e.key else favs + e.key
+        render()
+        if (scope == 0 && e.key !in prefs.favorites) focusRail(lastIdx[0]) else showStage(e)
+    }
+
+
+    private fun appInfo(e: AppEntry) {
+        try { startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${e.pkg}"))) }
+        catch (_: Exception) { Toast.makeText(this, getString(R.string.info_unavailable), Toast.LENGTH_SHORT).show() }
     }
 
     /** Coordinated, short entrance. Everything is already focusable while it plays. */
@@ -483,7 +558,7 @@ class MainActivity : Activity() {
         if (entered) return
         entered = true
         if (!T.animated) return
-        listOf(header to 0L, hero to 50L, favBlock to 110L, allBlock to 180L).forEach { (v, delay) ->
+        listOf(railBox to 0L, header to 60L, stageBody to 120L).forEach { (v, delay) ->
             v.animate().alpha(1f).translationY(0f).setStartDelay(T.d(delay)).setDuration(T.d(T.SLOW)).setInterpolator(T.OUT).start()
         }
     }
@@ -491,7 +566,7 @@ class MainActivity : Activity() {
     private fun artReady(e: AppEntry) {
         if (e.key != focusedKey) return
         val a = accentFor(e)
-        heroCaption.setTextColor(a); glowTo(a)
+        stageTag.setTextColor(a); railAdapter.tint(a); glowTo(a)
     }
 
     // ---------- Data ----------
@@ -502,8 +577,9 @@ class MainActivity : Activity() {
             main.post {
                 all = apps
                 if (!prefs.seeded) prefs.favorites = AppRepo.seedFavorites(apps)
+                if (!loaded) { loaded = true; scope = if (prefs.favorites.any { k -> all.any { it.key == k && k !in prefs.hidden } }) 0 else 2 }
                 render()
-                if (lastList == null || currentFocus == null) restoreFocus()
+                if (currentFocus == null) restoreFocus()
                 frame.post { playEntrance() }
                 if (prefs.reopenSettings) { prefs.reopenSettings = false; openSettings() }
             }
@@ -515,14 +591,12 @@ class MainActivity : Activity() {
     private fun render() {
         val vis = visible()
         val byKey = vis.associateBy { it.key }
-        val favs = prefs.favorites.mapNotNull { byKey[it] }
+        favList = prefs.favorites.mapNotNull { byKey[it] }
         // The AdGuard shortcut lives at the end of the library until the real app is installed (or the user hides it).
-        val lib = if (!AppRepo.hasAdGuard(all) && ADGUARD_ENTRY.key !in prefs.hidden) vis + ADGUARD_ENTRY else vis
-        favAdapter.submit(favs)
-        allAdapter.submit(lib)
-        val none = favs.isEmpty()
-        favRV.visibility = if (none) View.GONE else View.VISIBLE
-        favEmpty.visibility = if (none) View.VISIBLE else View.GONE
+        allList = if (!AppRepo.hasAdGuard(all) && ADGUARD_ENTRY.key !in prefs.hidden) vis + ADGUARD_ENTRY else vis
+        recentList = prefs.launchLog.entries.sortedByDescending { it.value }.mapNotNull { byKey[it.key] }.take(12)
+        railAdapter.submit(scopeItems())
+        updateStageEmpty()
     }
 
     // ---------- Actions ----------
@@ -530,6 +604,7 @@ class MainActivity : Activity() {
     private fun onTile(e: AppEntry) { if (e.virtual) adguardMenu() else launch(e) }
 
     private fun launch(e: AppEntry) {
+        prefs.recordLaunch(e.key)
         try {
             startActivity(Intent(Intent.ACTION_MAIN).setComponent(e.component)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED))
@@ -550,7 +625,7 @@ class MainActivity : Activity() {
                 catch (_: Exception) { Toast.makeText(this, getString(R.string.cant_open, "AdGuard"), Toast.LENGTH_LONG).show() }
             },
             MenuItem(getString(R.string.hide)) { d ->
-                prefs.hidden = prefs.hidden + ADGUARD_ENTRY.key; d.dismiss(); render(); refocus(allRV, 0, allRV, 0)
+                prefs.hidden = prefs.hidden + ADGUARD_ENTRY.key; d.dismiss(); render(); focusRail(lastIdx[scope])
             },
         )
         track(showMenu(s, "AdGuard", items) { box, _ ->
@@ -561,33 +636,25 @@ class MainActivity : Activity() {
         })
     }
 
-    private fun menuFor(e: AppEntry, inFavs: Boolean) {
+    private fun menuFor(e: AppEntry) {
         if (e.virtual) { adguardMenu(); return }
+        val inFavs = scope == 0
         val favs = prefs.favorites.toMutableList()
         val idx = favs.indexOf(e.key)
+        val at = lastIdx[scope]
         val items = mutableListOf(MenuItem(getString(R.string.open)) { it.dismiss(); launch(e) })
-        if (idx < 0) items += MenuItem(getString(R.string.add_fav)) { d ->
-            prefs.favorites = favs + e.key; d.dismiss(); render(); refocus(allRV, allAdapter.items.indexOf(e), allRV, 0)
-        } else {
-            items += MenuItem(getString(R.string.remove_fav)) { d ->
-                favs.removeAt(idx); prefs.favorites = favs; d.dismiss(); render()
-                refocus(if (inFavs) favRV else allRV, if (inFavs) idx.coerceAtMost(favAdapter.items.lastIndex) else allAdapter.items.indexOf(e), allRV, 0)
-            }
+        if (idx < 0) items += MenuItem(getString(R.string.add_fav)) { d -> prefs.favorites = favs + e.key; d.dismiss(); render(); focusRail(at) }
+        else {
+            items += MenuItem(getString(R.string.remove_fav)) { d -> favs.removeAt(idx); prefs.favorites = favs; d.dismiss(); render(); focusRail(at) }
             if (inFavs) {
-                val visFavs = favAdapter.items.map { it.key }
-                val vi = visFavs.indexOf(e.key)
-                if (vi > 0) items += MenuItem(getString(R.string.move_earlier)) { d -> swap(favs, e.key, visFavs[vi - 1]); d.dismiss(); render(); refocus(favRV, vi - 1, allRV, 0) }
-                if (vi < visFavs.lastIndex) items += MenuItem(getString(R.string.move_later)) { d -> swap(favs, e.key, visFavs[vi + 1]); d.dismiss(); render(); refocus(favRV, vi + 1, allRV, 0) }
+                val keys = favList.map { it.key }
+                val vi = keys.indexOf(e.key)
+                if (vi > 0) items += MenuItem(getString(R.string.move_earlier)) { d -> swap(favs, e.key, keys[vi - 1]); d.dismiss(); render(); focusRail(vi - 1) }
+                if (vi < keys.lastIndex) items += MenuItem(getString(R.string.move_later)) { d -> swap(favs, e.key, keys[vi + 1]); d.dismiss(); render(); focusRail(vi + 1) }
             }
         }
-        items += MenuItem(getString(R.string.hide)) { d ->
-            prefs.hidden = prefs.hidden + e.key; d.dismiss(); render(); refocus(if (inFavs) favRV else allRV, 0, allRV, 0)
-        }
-        items += MenuItem(getString(R.string.app_info)) { d ->
-            d.dismiss()
-            try { startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${e.pkg}"))) }
-            catch (_: Exception) { Toast.makeText(this, getString(R.string.info_unavailable), Toast.LENGTH_SHORT).show() }
-        }
+        items += MenuItem(getString(R.string.hide)) { d -> prefs.hidden = prefs.hidden + e.key; d.dismiss(); render(); focusRail(at) }
+        items += MenuItem(getString(R.string.app_info)) { d -> d.dismiss(); appInfo(e) }
         track(showMenu(s, e.label, items))
     }
 
@@ -617,8 +684,8 @@ class MainActivity : Activity() {
         if (prefs.accentMode > 0) accentColors[prefs.accentMode - 1] else icons.accent(e.key) ?: T.ACCENT
 
     private fun refreshAccent() {
-        val e = (favAdapter.items + allAdapter.items).firstOrNull { it.key == focusedKey } ?: return
-        val a = accentFor(e); heroCaption.setTextColor(a); glowTo(a)
+        val e = focusedEntry ?: return
+        val a = accentFor(e); stageTag.setTextColor(a); railAdapter.tint(a); glowTo(a)
     }
 
     private fun applyGlow() { glowView.visibility = if (prefs.glow && !prefs.performance) View.VISIBLE else View.GONE }
@@ -842,31 +909,23 @@ class MainActivity : Activity() {
 
     // ---------- Focus ----------
 
-    private fun focusItem(rv: RecyclerView, pos: Int) {
-        if (pos < 0 || pos >= (rv.adapter?.itemCount ?: 0)) return
-        rv.scrollToPosition(pos)
-        rv.post {
-            val v = rv.findViewHolderForAdapterPosition(pos)?.itemView
-            if (v != null) v.requestFocus() else rv.postDelayed({ rv.findViewHolderForAdapterPosition(pos)?.itemView?.requestFocus() }, 100)
+    private fun focusRail(idx: Int) {
+        val n = railAdapter.itemCount
+        if (n == 0) return
+        val i = idx.coerceIn(0, n - 1)
+        rail.scrollToPosition(i)
+        rail.post {
+            val v = rail.findViewHolderForAdapterPosition(i)?.itemView
+            if (v != null) v.requestFocus() else rail.postDelayed({ rail.findViewHolderForAdapterPosition(i)?.itemView?.requestFocus() }, 100)
         }
     }
 
-    /** Focus [pos] in [rv] if it is on screen, otherwise fall back to [alt]. */
-    private fun refocus(rv: RecyclerView, pos: Int, alt: RecyclerView, altPos: Int) {
-        main.postDelayed({
-            if (rv.visibility == View.VISIBLE && (rv.adapter?.itemCount ?: 0) > 0) focusItem(rv, pos) else focusItem(alt, altPos)
-        }, T.d(T.MED))
-    }
-
     private fun focusStart() {
-        allRV.scrollToPosition(0)
-        if (favRV.visibility == View.VISIBLE && favAdapter.itemCount > 0) focusItem(favRV, 0) else focusItem(allRV, 0)
+        setScope(if (favList.isNotEmpty()) 0 else 2)
+        lastIdx[scope] = 0
+        rail.postDelayed({ focusRail(0) }, 40)
     }
 
-    private fun restoreFocus() {
-        val rv = lastList
-        if (rv != null && rv.visibility == View.VISIBLE && lastPos < (rv.adapter?.itemCount ?: 0)) focusItem(rv, lastPos) else focusStart()
-    }
-
+    private fun restoreFocus() { if (railAdapter.itemCount > 0) focusRail(lastIdx[scope]) else focusStart() }
 
 }
