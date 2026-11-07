@@ -314,7 +314,7 @@ class MainActivity : Activity() {
         clockCol = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         timeClock = TextClock(this)
         clockCol.addView(timeClock.apply {
-            applyTimeFormat(this); sizePx(s.px(46f)); setTextColor(T.TEXT); typeface = Fonts.medium; includeFontPadding = false
+            applyTimeFormat(this); sizePx(s.px(40f)); setTextColor(T.TEXT); typeface = Fonts.displayBold; includeFontPadding = false
         })
         clockCol.addView(TextClock(this).apply {
             format12Hour = datePattern; format24Hour = datePattern; sizePx(s.px(T.LABEL + 2)); setTextColor(T.TEXT_DIM)
@@ -363,8 +363,8 @@ class MainActivity : Activity() {
         }
         stageTag = TextView(this).apply { textAlignment = View.TEXT_ALIGNMENT_VIEW_START; sizePx(s.px(T.LABEL)); typeface = Fonts.medium }
         stageTitle = TextView(this).apply {
-            textAlignment = View.TEXT_ALIGNMENT_VIEW_START; sizePx(s.px(76f)); setTextColor(T.TEXT); maxLines = 1
-            ellipsize = TextUtils.TruncateAt.END; typeface = Fonts.light; includeFontPadding = false
+            textAlignment = View.TEXT_ALIGNMENT_VIEW_START; sizePx(s.px(58f)); setTextColor(T.TEXT); maxLines = 1
+            ellipsize = TextUtils.TruncateAt.END; typeface = Fonts.display; includeFontPadding = false
         }
         stageMeta = TextView(this).apply { textAlignment = View.TEXT_ALIGNMENT_VIEW_START; sizePx(s.px(T.LABEL + 4)); setTextColor(T.TEXT_DIM); maxLines = 1 }
         btnOpen = stagePill(this, s, true, getString(R.string.open)) { focusedEntry?.let { onTile(it) } }
