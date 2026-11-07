@@ -78,9 +78,9 @@ object Fonts {
             families = listOf(
                 light to regular,
                 ctx.resources.getFont(R.font.f_spacegrotesk_l) to ctx.resources.getFont(R.font.f_spacegrotesk_r),
-                ctx.resources.getFont(R.font.f_fraunces_l) to ctx.resources.getFont(R.font.f_fraunces_r),
+                ctx.resources.getFont(R.font.f_manrope_l) to ctx.resources.getFont(R.font.f_manrope_r),
                 ctx.resources.getFont(R.font.f_sora_l) to ctx.resources.getFont(R.font.f_sora_r),
-                ctx.resources.getFont(R.font.f_syne_l) to ctx.resources.getFont(R.font.f_syne_r),
+                ctx.resources.getFont(R.font.f_urbanist_l) to ctx.resources.getFont(R.font.f_urbanist_r),
             )
             display = ctx.resources.getFont(R.font.unbounded_light); displayBold = ctx.resources.getFont(R.font.unbounded_regular)
         } catch (_: Exception) { /* keep the system fonts */ }

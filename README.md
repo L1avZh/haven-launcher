@@ -52,7 +52,7 @@ All screenshots were captured on the TV itself.
 - **Live background**: soft color fields and drifting motes that take their palette from the focused app and speed up briefly when focus changes. Rendered at low resolution at 30 fps and paused when not visible; static in performance mode.
 - **Widgets**: choose what appears on the home screen (up to 3) and on the screensaver (up to 4): greeting, share of the day, share of the year, moon illumination, free storage, free memory, uptime. All computed on the device, no permissions, no network (so no weather).
 - **Screensaver**: after 2 to 20 minutes without input (or off), a black screen with the live background, a drifting clock and your screensaver widgets. The clock moves every 25 seconds to spare OLED panels. Any button wakes it. It lives inside Haven and changes no system setting.
-- **Typefaces**: Outfit for the interface, Unbounded for the clock and big titles, Space Grotesk, Fraunces, Sora and Syne for app names. All bundled, all SIL Open Font License (see `docs/OFL-*.txt`).
+- **Typefaces**: Outfit for the interface, Unbounded for the clock and big titles, Space Grotesk, Manrope, Sora and Urbanist for app names. All bundled, all SIL Open Font License (see `docs/OFL-*.txt`).
 - **App management**: favorites, hide apps without uninstalling them, reorder favorites, show or hide system apps, sort A to Z or newest first, refresh the list. New and removed apps are picked up automatically.
 - **Settings**: a full-screen page with ten categories (General, Appearance, Widgets, Applications, Remote control, Language & region, Display & animation, AdGuard, Privacy & security, About & credits). Everything is reachable with a D-pad, OK and Back.
 - **Appearance**: six wallpapers, five accent colors plus auto, background dimming, three artwork sizes, 12 or 24-hour clock, screensaver delay.
@@ -141,7 +141,7 @@ docs/               guides and images
 
 ## License
 
-MIT, see [LICENSE](LICENSE). Dependencies: AndroidX RecyclerView and the Kotlin standard library, both Apache License 2.0. Bundled fonts (Outfit, Unbounded, Space Grotesk, Fraunces, Sora, Syne): SIL Open Font License 1.1, texts in `docs/`. AdGuard is a trademark of its owner and this project is not affiliated with it. App names and artwork shown in screenshots belong to their owners.
+MIT, see [LICENSE](LICENSE). Dependencies: AndroidX RecyclerView and the Kotlin standard library, both Apache License 2.0. Bundled fonts (Outfit, Unbounded, Space Grotesk, Manrope, Sora, Urbanist): SIL Open Font License 1.1, texts in `docs/`. AdGuard is a trademark of its owner and this project is not affiliated with it. App names and artwork shown in screenshots belong to their owners.
 
 ## Credits
 
