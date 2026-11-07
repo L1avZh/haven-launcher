@@ -30,6 +30,8 @@ All screenshots were captured on the TV itself.
 
 | | |
 |---|---|
+| ![Scope](docs/images/screenshots/scope.png) | ![Widgets](docs/images/screenshots/widgets.png) |
+| Scope header with a moving light sweep | Widgets: choose what shows where |
 | ![Settings](docs/images/screenshots/settings.png) | ![Applications](docs/images/screenshots/applications.png) |
 | Settings: categories, Appearance open | Applications: manage, hide, sort, shortcuts |
 | ![Remote control](docs/images/screenshots/remote-control.png) | ![Languages](docs/images/screenshots/language.png) |
@@ -128,7 +130,7 @@ docs/               guides and images
 - With an LG remote over HDMI-CEC, only arrows, OK and Back reach the box. There is no remote shortcut that works while another app is in front.
 - There is no floating Home button. An overlay can't be reached with a D-pad without taking input away from the app underneath.
 - Strings added in the latest redesign (screensaver, widgets, greetings) exist in English only and appear in English in the other 49 languages.
-- The screenshots above were taken before the Stage & Rail redesign and need retaking.
+- Home, scope, widgets and settings screenshots show the current design. The other screenshots were taken before the redesign and need retaking.
 - Translations are machine-assisted drafts. None have been checked by a native speaker.
 - Custom wallpapers from files, custom categories and settings export are not implemented.
 
