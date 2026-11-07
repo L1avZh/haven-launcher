@@ -11,8 +11,11 @@ import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 
-/** One custom mapping: a remote key code bound to an action ("app", "search", "settings", "start"). */
-class Binding(val key: Int, val action: String, val arg: String = "")
+/** One custom mapping: a remote key code (short or long press) bound to an action ("app", "search", "settings", "home"). */
+class Binding(val key: Int, val action: String, val arg: String = "", val long: Boolean = false)
+
+/** A held key: Android flags it, and HDMI-CEC repeats arrive as repeat counts. */
+fun isLong(e: KeyEvent) = e.isLongPress || e.repeatCount == 1
 
 fun keyName(code: Int): String = KeyEvent.keyCodeToString(code).removePrefix("KEYCODE_")
 
@@ -52,7 +55,7 @@ fun listInputDevices(): List<Pair<String, String>> {
  */
 class KeyOverlay(
     ctx: Context, private val s: Scale, title: String, hint: String, note: String?,
-    private val learn: ((KeyEvent) -> Unit)?, private val onExit: () -> Unit,
+    private val learn: ((KeyEvent, Boolean) -> Unit)?, private val onExit: () -> Unit,
 ) : FrameLayout(ctx) {
     private val big = TextView(ctx)
     private val details = TextView(ctx)
@@ -60,6 +63,7 @@ class KeyOverlay(
     private val seen = ArrayDeque<String>()
     private var backCount = 0
     private var backLast = 0L
+    private var pending = -1   // key being watched while learning: a quick release is a short press, a hold is a long press
 
     init {
         setBackgroundColor(0xFA060910.toInt())
@@ -83,11 +87,19 @@ class KeyOverlay(
 
     /** Returns true: the overlay always consumes the key. */
     fun onKey(e: KeyEvent, yes: String, labels: Labels): Boolean {
-        if (e.action != KeyEvent.ACTION_DOWN) return true
         if (learn != null) {
-            if (e.keyCode == KeyEvent.KEYCODE_BACK) onExit() else if (e.repeatCount == 0) learn.invoke(e)
+            // Back cancels on a quick press, so a held Back is the only way to bind Back.
+            when {
+                e.action == KeyEvent.ACTION_DOWN && e.repeatCount == 0 -> pending = e.keyCode
+                e.action == KeyEvent.ACTION_DOWN && pending == e.keyCode && isLong(e) -> { pending = -1; learn.invoke(e, true) }
+                e.action == KeyEvent.ACTION_UP && pending == e.keyCode -> {
+                    pending = -1
+                    if (e.keyCode == KeyEvent.KEYCODE_BACK) onExit() else learn.invoke(e, false)
+                }
+            }
             return true
         }
+        if (e.action != KeyEvent.ACTION_DOWN) return true
         big.text = keyName(e.keyCode)
         details.text = "${labels.code}: ${e.keyCode}  ·  scan ${e.scanCode}\n" +
             "${labels.device}: ${deviceName(e)}\n" +

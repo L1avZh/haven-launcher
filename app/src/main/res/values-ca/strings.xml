@@ -166,6 +166,9 @@
     <string name="egg_reveal">Mostra la pista del comandament</string>
     <string name="egg_sequence">A la pantalla d’inici: Amunt, Amunt, Avall, Avall, Esquerra, Dreta, Esquerra, Dreta i després OK.</string>
     <string name="hidden_tag">Amagada</string>
+    <string name="action_home">Ves a l’inici</string>
+    <string name="long_press">Pulsació llarga</string>
+    <string name="learn_hold_hint">Consell: mantén premut un botó un segon per assignar una pulsació llarga. També funciona amb Enrere.</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplicació</item>
         <item quantity="many">%d d’aplicacions</item>

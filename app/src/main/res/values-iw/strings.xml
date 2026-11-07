@@ -166,6 +166,9 @@
     <string name="egg_reveal">הצג את הרמז לשלט</string>
     <string name="egg_sequence">במסך הבית: למעלה, למעלה, למטה, למטה, שמאלה, ימינה, שמאלה, ימינה, ואז OK.</string>
     <string name="hidden_tag">מוסתר</string>
+    <string name="action_home">חזרה למסך הבית</string>
+    <string name="long_press">לחיצה ארוכה</string>
+    <string name="learn_hold_hint">טיפ: החזק כפתור שנייה אחת כדי לשייך לחיצה ארוכה. זה עובד גם עבור חזרה.</string>
     <plurals name="apps_count">
         <item quantity="one">אפליקציה אחת</item>
         <item quantity="two">שתי אפליקציות</item>

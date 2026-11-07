@@ -166,6 +166,9 @@
     <string name="egg_reveal">Onyesha kidokezo cha kidhibiti</string>
     <string name="egg_sequence">Kwenye skrini ya mwanzo: Juu, Juu, Chini, Chini, Kushoto, Kulia, Kushoto, Kulia, kisha OK.</string>
     <string name="hidden_tag">Imefichwa</string>
+    <string name="action_home">Nenda Nyumbani</string>
+    <string name="long_press">Kubonyeza kwa muda mrefu</string>
+    <string name="learn_hold_hint">Kidokezo: shikilia kitufe kwa sekunde moja ili kukabidhi kubonyeza kwa muda mrefu. Hii inafanya kazi pia kwa Rudi.</string>
     <plurals name="apps_count">
         <item quantity="one">Programu %d</item>
         <item quantity="other">Programu %d</item>

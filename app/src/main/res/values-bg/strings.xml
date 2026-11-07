@@ -166,6 +166,9 @@
     <string name="egg_reveal">Показване на подсказката за дистанционното</string>
     <string name="egg_sequence">На началния екран: Нагоре, Нагоре, Надолу, Надолу, Наляво, Надясно, Наляво, Надясно, след това OK.</string>
     <string name="hidden_tag">Скрито</string>
+    <string name="action_home">Към началния екран</string>
+    <string name="long_press">Дълго натискане</string>
+    <string name="learn_hold_hint">Съвет: задръжте бутон за секунда, за да зададете дълго натискане. Работи и за бутона Назад.</string>
     <plurals name="apps_count">
         <item quantity="one">%d приложение</item>
         <item quantity="other">%d приложения</item>

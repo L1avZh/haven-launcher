@@ -166,6 +166,9 @@
     <string name="egg_reveal">Tunjukkan petunjuk kawalan jauh</string>
     <string name="egg_sequence">Pada skrin utama: Atas, Atas, Bawah, Bawah, Kiri, Kanan, Kiri, Kanan, kemudian OK.</string>
     <string name="hidden_tag">Tersembunyi</string>
+    <string name="action_home">Pergi ke Utama</string>
+    <string name="long_press">Tekan lama</string>
+    <string name="learn_hold_hint">Petua: tahan butang selama satu saat untuk menetapkan tekanan lama. Ini juga berfungsi untuk Kembali.</string>
     <plurals name="apps_count">
         <item quantity="other">%d apl</item>
     </plurals>

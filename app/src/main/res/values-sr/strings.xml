@@ -166,6 +166,9 @@
     <string name="egg_reveal">Прикажи савет за даљински</string>
     <string name="egg_sequence">На почетном екрану: Горе, Горе, Доле, Доле, Лево, Десно, Лево, Десно, затим OK.</string>
     <string name="hidden_tag">Скривено</string>
+    <string name="action_home">Иди на почетни екран</string>
+    <string name="long_press">Дуги притисак</string>
+    <string name="learn_hold_hint">Савет: држите тастер секунду да бисте придружили дуги притисак. Ради и за тастер Назад.</string>
     <plurals name="apps_count">
         <item quantity="one">%d апликација</item>
         <item quantity="few">%d апликације</item>

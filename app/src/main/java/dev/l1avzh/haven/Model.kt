@@ -64,9 +64,9 @@ class Prefs(ctx: Context) {
 
     var bindings: List<Binding>
         get() = (sp.getString("bindings", "") ?: "").split('\n').mapNotNull {
-            val p = it.split('|'); if (p.size < 2 || p[0].toIntOrNull() == null) null else Binding(p[0].toInt(), p[1], p.getOrElse(2) { "" })
+            val p = it.split('|'); if (p.size < 2 || p[0].toIntOrNull() == null) null else Binding(p[0].toInt(), p[1], p.getOrElse(2) { "" }, p.getOrElse(3) { "0" } == "1")
         }
-        set(v) { sp.edit().putString("bindings", v.joinToString("\n") { "${it.key}|${it.action}|${it.arg}" }).apply() }
+        set(v) { sp.edit().putString("bindings", v.joinToString("\n") { "${it.key}|${it.action}|${it.arg}|${if (it.long) 1 else 0}" }).apply() }
 
     fun resetRemote() { sp.edit().remove("bindings").remove("mappings_enabled").remove("numbers_open_favs").apply() }
 

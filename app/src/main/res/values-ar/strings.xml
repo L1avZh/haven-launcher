@@ -166,6 +166,9 @@
     <string name="egg_reveal">إظهار تلميح جهاز التحكم</string>
     <string name="egg_sequence">في الشاشة الرئيسية: أعلى، أعلى، أسفل، أسفل، يسار، يمين، يسار، يمين، ثم OK.</string>
     <string name="hidden_tag">مخفي</string>
+    <string name="action_home">الانتقال إلى الرئيسية</string>
+    <string name="long_press">ضغطة مطوّلة</string>
+    <string name="learn_hold_hint">نصيحة: اضغط على زر لمدة ثانية لتعيين ضغطة مطوّلة. يعمل هذا أيضًا مع زر الرجوع.</string>
     <plurals name="apps_count">
         <item quantity="zero">لا تطبيقات</item>
         <item quantity="one">تطبيق واحد</item>

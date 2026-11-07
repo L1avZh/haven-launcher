@@ -166,6 +166,9 @@
     <string name="egg_reveal">Zobrazit nápovědu k ovladači</string>
     <string name="egg_sequence">Na domovské obrazovce: Nahoru, Nahoru, Dolů, Dolů, Vlevo, Vpravo, Vlevo, Vpravo a pak OK.</string>
     <string name="hidden_tag">Skryté</string>
+    <string name="action_home">Přejít na domovskou obrazovku</string>
+    <string name="long_press">Dlouhé stisknutí</string>
+    <string name="learn_hold_hint">Tip: podržte tlačítko jednu sekundu a přiřaďte dlouhé stisknutí. Funguje to i u tlačítka Zpět.</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplikace</item>
         <item quantity="few">%d aplikace</item>

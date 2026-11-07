@@ -166,6 +166,9 @@
     <string name="egg_reveal">Vis tips for fjernkontrollen</string>
     <string name="egg_sequence">På startskjermen: Opp, Opp, Ned, Ned, Venstre, Høyre, Venstre, Høyre, og deretter OK.</string>
     <string name="hidden_tag">Skjult</string>
+    <string name="action_home">Gå til Hjem</string>
+    <string name="long_press">Langt trykk</string>
+    <string name="learn_hold_hint">Tips: hold inne en knapp i ett sekund for å tilordne et langt trykk. Det fungerer også for Tilbake.</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="other">%d apper</item>

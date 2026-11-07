@@ -166,6 +166,9 @@
     <string name="egg_reveal">Sýna ábendingu fyrir fjarstýringu</string>
     <string name="egg_sequence">Á heimaskjá: Upp, Upp, Niður, Niður, Vinstri, Hægri, Vinstri, Hægri, síðan OK.</string>
     <string name="hidden_tag">Falið</string>
+    <string name="action_home">Fara á heimaskjá</string>
+    <string name="long_press">Langt ýtt</string>
+    <string name="learn_hold_hint">Ábending: haltu hnappi inni í eina sekúndu til að úthluta löngu ýti. Þetta virkar líka fyrir Til baka.</string>
     <plurals name="apps_count">
         <item quantity="one">%d forrit</item>
         <item quantity="other">%d forrit</item>

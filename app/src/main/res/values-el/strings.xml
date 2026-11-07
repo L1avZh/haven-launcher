@@ -166,6 +166,9 @@
     <string name="egg_reveal">Εμφάνιση της υπόδειξης για το τηλεχειριστήριο</string>
     <string name="egg_sequence">Στην αρχική οθόνη: Πάνω, Πάνω, Κάτω, Κάτω, Αριστερά, Δεξιά, Αριστερά, Δεξιά και μετά OK.</string>
     <string name="hidden_tag">Κρυφή</string>
+    <string name="action_home">Μετάβαση στην αρχική</string>
+    <string name="long_press">Παρατεταμένο πάτημα</string>
+    <string name="learn_hold_hint">Συμβουλή: κρατήστε πατημένο ένα κουμπί για ένα δευτερόλεπτο για να αντιστοιχίσετε παρατεταμένο πάτημα. Λειτουργεί και για το Πίσω.</string>
     <plurals name="apps_count">
         <item quantity="one">%d εφαρμογή</item>
         <item quantity="other">%d εφαρμογές</item>

@@ -166,6 +166,9 @@
     <string name="egg_reveal">রিমোটের ইঙ্গিত দেখান</string>
     <string name="egg_sequence">হোম স্ক্রিনে: উপরে, উপরে, নিচে, নিচে, বাঁয়ে, ডানে, বাঁয়ে, ডানে, তারপর OK।</string>
     <string name="hidden_tag">লুকানো</string>
+    <string name="action_home">হোমে যান</string>
+    <string name="long_press">দীর্ঘ চাপ</string>
+    <string name="learn_hold_hint">পরামর্শ: দীর্ঘ চাপ বরাদ্দ করতে একটি বোতাম এক সেকেন্ড চেপে ধরে রাখুন। ফিরে যান বোতামের জন্যও এটি কাজ করে।</string>
     <plurals name="apps_count">
         <item quantity="one">%dটি অ্যাপ</item>
         <item quantity="other">%dটি অ্যাপ</item>

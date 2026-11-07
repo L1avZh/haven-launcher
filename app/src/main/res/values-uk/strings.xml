@@ -166,6 +166,9 @@
     <string name="egg_reveal">Показати підказку для пульта</string>
     <string name="egg_sequence">На головному екрані: Вгору, Вгору, Вниз, Вниз, Вліво, Вправо, Вліво, Вправо, потім OK.</string>
     <string name="hidden_tag">Приховано</string>
+    <string name="action_home">На головний екран</string>
+    <string name="long_press">Довге натискання</string>
+    <string name="learn_hold_hint">Порада: утримуйте кнопку секунду, щоб призначити довге натискання. Це працює й для кнопки «Назад».</string>
     <plurals name="apps_count">
         <item quantity="one">%d застосунок</item>
         <item quantity="few">%d застосунки</item>

@@ -166,6 +166,9 @@
     <string name="egg_reveal">리모컨 힌트 보기</string>
     <string name="egg_sequence">홈 화면에서: 위, 위, 아래, 아래, 왼쪽, 오른쪽, 왼쪽, 오른쪽, 그리고 OK.</string>
     <string name="hidden_tag">숨김</string>
+    <string name="action_home">홈으로 이동</string>
+    <string name="long_press">길게 누르기</string>
+    <string name="learn_hold_hint">팁: 버튼을 1초간 누르고 있으면 길게 누르기를 지정할 수 있습니다. 뒤로 버튼에도 사용할 수 있습니다.</string>
     <plurals name="apps_count">
         <item quantity="other">앱 %d개</item>
     </plurals>

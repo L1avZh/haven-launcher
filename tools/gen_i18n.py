@@ -3,7 +3,7 @@
 Run from the project root:  python3 tools/gen_i18n.py"""
 import os, re, sys
 sys.path.insert(0, os.path.dirname(__file__))
-import i18n_data_a as A, i18n_data_b as B, i18n_data_c1 as C1, i18n_data_c2 as C2, i18n_data_d1 as D1, i18n_data_d2 as D2, i18n_data_d3 as D3, i18n_data_d4 as D4
+import i18n_data_a as A, i18n_data_b as B, i18n_data_c1 as C1, i18n_data_c2 as C2, i18n_data_d1 as D1, i18n_data_d2 as D2, i18n_data_d3 as D3, i18n_data_d4 as D4, i18n_data_e as E1
 
 KEYS_C = "remote_control input_devices button_test button_test_hint tester_note test_key test_code test_device test_usable yes no custom_mappings add_mapping choose_action action_open_app action_search action_settings action_start press_button mapping_saved no_mappings remove reset_mappings reset_done numbers_open_favs back_to_start".split()
 KEYS = """search settings favorites library tag_favorite hold_ok open add_fav remove_fav move_earlier move_later hide app_info
@@ -31,6 +31,8 @@ RTL = {'he','ar','fa','ur'}
 dataC = {**C1.C, **C2.C}
 KEYS_D = 'cat_general cat_appearance cat_apps cat_language cat_display cat_privacy cat_about d_general d_appearance d_apps d_remote d_language d_display d_adguard d_privacy d_about return_start_home return_start_home_d set_home_d reset_all reset_all_d restore_title restore_body restore cancel settings_reset accent_color accent_color_d accent_auto accent_blue accent_green accent_coral accent_gold accent_violet dimming dimming_d level_light level_medium level_strong card_size card_size_d size_small size_medium size_large accent_glow_d time_format time_12 time_24 manage_apps show_system_apps show_system_apps_d sort_apps sort_az sort_new app_shortcuts app_shortcuts_d numbers_open_favs_d return_shortcut return_shortcut_d floating_home floating_home_d text_direction dir_ltr dir_rtl languages_available animation animation_d anim_full anim_subtle performance performance_d ag_status ag_installed ag_launch ag_compat ag_compat_d ag_verify priv_stored priv_counts priv_network priv_permissions priv_diag none priv_note ver_build developer licenses licenses_d egg_hint egg_reveal egg_sequence hidden_tag'.split()
 dataD = {**D1.Dd, **D2.Dd, **D3.Dd, **D4.Dd}
+KEYS_E = 'action_home long_press learn_hold_hint'.split()
+dataE = E1.Ee
 data = {**A.D, **B.D}; plurals = {**A.P, **B.P}
 
 def esc(s):
@@ -51,11 +53,14 @@ def xml(lang):
     for k in ('ag_installed','ver_build','priv_counts'):
         assert '%1$s' in linesD[KEYS_D.index(k)], f'{lang}: {k} lacks %1$s'
     assert '%3$s' in linesD[KEYS_D.index('priv_counts')] and '%2$s' in linesD[KEYS_D.index('ver_build')] and '%1$s' in linesD[KEYS_D.index('ag_compat_d')], f'{lang}: placeholders'
+    linesE = dataE[lang].split('\n')
+    assert len(linesE) == len(KEYS_E), f'{lang}: {len(linesE)} home strings, expected {len(KEYS_E)}'
     out = ['<?xml version="1.0" encoding="utf-8"?>', '<resources>']
     if lang == 'en': out.append('    <string name="app_name" translatable="false">Haven</string>')
     for k, v in zip(KEYS, lines): out.append(f'    <string name="{k}">{esc(v)}</string>')
     for k, v in zip(KEYS_C, linesC): out.append(f'    <string name="{k}">{esc(v)}</string>')
     for k, v in zip(KEYS_D, linesD): out.append(f'    <string name="{k}">{esc(v)}</string>')
+    for k, v in zip(KEYS_E, linesE): out.append(f'    <string name="{k}">{esc(v)}</string>')
     out.append('    <plurals name="apps_count">')
     for q, v in plurals[lang].items():
         assert '%d' in v or q in ('one','two','zero'), f'{lang} plural {q}'
@@ -81,11 +86,11 @@ for tag, _, name, _ in LANGS:
 kt += [')', '']
 open('app/src/main/java/dev/l1avzh/haven/Langs.kt','w',encoding='utf-8').write('\n'.join(kt))
 
-rep = ['# Translation status', '', f'{len(KEYS)+len(KEYS_C)+len(KEYS_D)} strings + 1 plural per language. Source of truth: `tools/i18n_data_*.py` (run `python3 tools/gen_i18n.py`).',
+rep = ['# Translation status', '', f'{len(KEYS)+len(KEYS_C)+len(KEYS_D)+len(KEYS_E)} strings + 1 plural per language. Source of truth: `tools/i18n_data_*.py` (run `python3 tools/gen_i18n.py`).',
        '', '**No translation has been reviewed by a native speaker.** They are machine-assisted drafts and should be treated as such.',
        'Tier A: common vocabulary, drafted with reasonable confidence. Tier B: lower confidence (smaller corpus / complex morphology); review before public release.', '',
        '| Tag | Language | Direction | Tier | Strings |', '|---|---|---|---|---|']
 for tag, _, name, tier in LANGS:
-    rep.append(f'| {"id" if tag=="in" else tag} | {name} | {"RTL" if tag in RTL else "LTR"} | {tier} | {len(KEYS)+len(KEYS_C)+len(KEYS_D)}/{len(KEYS)+len(KEYS_C)+len(KEYS_D)} |')
+    rep.append(f'| {"id" if tag=="in" else tag} | {name} | {"RTL" if tag in RTL else "LTR"} | {tier} | {len(KEYS)+len(KEYS_C)+len(KEYS_D)+len(KEYS_E)}/{len(KEYS)+len(KEYS_C)+len(KEYS_D)+len(KEYS_E)} |')
 open('TRANSLATIONS.md','w',encoding='utf-8').write('\n'.join(rep) + '\n')
 print('languages:', len(LANGS), 'strings each:', len(KEYS))

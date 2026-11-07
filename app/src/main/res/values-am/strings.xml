@@ -166,6 +166,9 @@
     <string name="egg_reveal">የርቀት መቆጣጠሪያ ፍንጭ አሳይ</string>
     <string name="egg_sequence">በመነሻ ማያ ገጽ፡ ላይ፣ ላይ፣ ታች፣ ታች፣ ግራ፣ ቀኝ፣ ግራ፣ ቀኝ፣ ከዚያ OK።</string>
     <string name="hidden_tag">ተደብቋል</string>
+    <string name="action_home">ወደ መነሻ ሂድ</string>
+    <string name="long_press">ረጅም ጭመራ</string>
+    <string name="learn_hold_hint">ጠቃሚ ምክር፦ ረጅም ጭመራ ለመመደብ አንድን አዝራር ለአንድ ሰከንድ ተጭነው ይያዙ። ይህ ለተመለስ አዝራርም ይሰራል።</string>
     <plurals name="apps_count">
         <item quantity="one">%d መተግበሪያ</item>
         <item quantity="other">%d መተግበሪያዎች</item>

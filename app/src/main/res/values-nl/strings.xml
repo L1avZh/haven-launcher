@@ -166,6 +166,9 @@
     <string name="egg_reveal">Hint voor de afstandsbediening tonen</string>
     <string name="egg_sequence">Op het startscherm: Omhoog, Omhoog, Omlaag, Omlaag, Links, Rechts, Links, Rechts en dan OK.</string>
     <string name="hidden_tag">Verborgen</string>
+    <string name="action_home">Naar Home</string>
+    <string name="long_press">Lang indrukken</string>
+    <string name="learn_hold_hint">Tip: houd een knop een seconde ingedrukt om een lange druk toe te wijzen. Dit werkt ook voor Terug.</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="other">%d apps</item>

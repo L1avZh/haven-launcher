@@ -166,6 +166,9 @@
     <string name="egg_reveal">Hiện gợi ý cho điều khiển</string>
     <string name="egg_sequence">Trên màn hình chính: Lên, Lên, Xuống, Xuống, Trái, Phải, Trái, Phải, rồi OK.</string>
     <string name="hidden_tag">Đã ẩn</string>
+    <string name="action_home">Đến Trang chủ</string>
+    <string name="long_press">Nhấn giữ</string>
+    <string name="learn_hold_hint">Mẹo: nhấn giữ một nút trong một giây để gán thao tác nhấn giữ. Cũng áp dụng cho nút Quay lại.</string>
     <plurals name="apps_count">
         <item quantity="other">%d ứng dụng</item>
     </plurals>

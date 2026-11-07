@@ -166,6 +166,9 @@
     <string name="egg_reveal">Näytä kaukosäätimen vihje</string>
     <string name="egg_sequence">Aloitusnäytössä: Ylös, Ylös, Alas, Alas, Vasen, Oikea, Vasen, Oikea ja sitten OK.</string>
     <string name="hidden_tag">Piilotettu</string>
+    <string name="action_home">Siirry Kotiin</string>
+    <string name="long_press">Pitkä painallus</string>
+    <string name="learn_hold_hint">Vinkki: pidä painiketta painettuna sekunnin ajan määrittääksesi pitkän painalluksen. Tämä toimii myös Takaisin-painikkeella.</string>
     <plurals name="apps_count">
         <item quantity="one">%d sovellus</item>
         <item quantity="other">%d sovellusta</item>

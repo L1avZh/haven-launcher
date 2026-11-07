@@ -166,6 +166,9 @@
     <string name="egg_reveal">ریموٹ کا اشارہ دکھائیں</string>
     <string name="egg_sequence">ہوم اسکرین پر: اوپر، اوپر، نیچے، نیچے، بائیں، دائیں، بائیں، دائیں، پھر OK۔</string>
     <string name="hidden_tag">چھپی ہوئی</string>
+    <string name="action_home">ہوم پر جائیں</string>
+    <string name="long_press">لمبا دبانا</string>
+    <string name="learn_hold_hint">مشورہ: لمبا دبانا تفویض کرنے کے لیے بٹن کو ایک سیکنڈ دبائے رکھیں۔ یہ واپس کے بٹن کے لیے بھی کام کرتا ہے۔</string>
     <plurals name="apps_count">
         <item quantity="one">%d ایپ</item>
         <item quantity="other">%d ایپس</item>

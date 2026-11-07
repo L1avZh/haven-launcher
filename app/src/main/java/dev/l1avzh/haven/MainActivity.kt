@@ -81,6 +81,7 @@ class MainActivity : Activity() {
     private var konamiIdx = 0
     private var konamiLast = 0L
     private var settings: SettingsScreen? = null
+    private var suppressUp = -1
     private var eggRevealed = false
     private lateinit var homeContent: LinearLayout
     private lateinit var dimView: View
@@ -141,6 +142,14 @@ class MainActivity : Activity() {
     override fun dispatchKeyEvent(e: KeyEvent): Boolean {
         overlay?.let { return it.onKey(e, getString(R.string.yes), KeyOverlay.Labels(getString(R.string.test_code), getString(R.string.test_device), getString(R.string.test_usable))) }
         if (egg != null) { if (e.action == KeyEvent.ACTION_DOWN && e.repeatCount == 0) closeEgg(); return true }
+        if (dialogs.isEmpty() && settings == null) {
+            // Long-press bindings fire once, on the first repeat; the release that follows is swallowed so Back or OK does not also act.
+            if (e.action == KeyEvent.ACTION_UP && e.keyCode == suppressUp) { suppressUp = -1; return true }
+            if (e.action == KeyEvent.ACTION_DOWN && e.repeatCount >= 1 && prefs.mappingsEnabled) {
+                val b = prefs.bindings.firstOrNull { it.long && it.key == e.keyCode }
+                if (b != null) { if (e.repeatCount == 1) { suppressUp = e.keyCode; runAction(b.action, b.arg) }; return true }
+            }
+        }
         if (e.action == KeyEvent.ACTION_DOWN && e.repeatCount == 0 && dialogs.isEmpty() && settings == null && konami(e.keyCode)) return true
         if (e.action == KeyEvent.ACTION_DOWN && e.repeatCount == 0 && dialogs.isEmpty() && settings == null && remoteKey(e)) return true
         return super.dispatchKeyEvent(e)
@@ -150,7 +159,7 @@ class MainActivity : Activity() {
 
     /** Custom bindings first, then digits. Only runs on the home screen (no menu open), so text entry is never affected. */
     private fun remoteKey(e: KeyEvent): Boolean {
-        if (prefs.mappingsEnabled) prefs.bindings.firstOrNull { it.key == e.keyCode }?.let { runAction(it.action, it.arg); return true }
+        if (prefs.mappingsEnabled) prefs.bindings.firstOrNull { !it.long && it.key == e.keyCode }?.let { runAction(it.action, it.arg); return true }
         if (prefs.numbersOpenFavs && currentFocus !is EditText && e.keyCode in KeyEvent.KEYCODE_0..KeyEvent.KEYCODE_9) {
             val n = e.keyCode - KeyEvent.KEYCODE_0
             val fav = favAdapter.items.getOrNull(if (n == 0) 9 else n - 1) ?: return false
@@ -159,13 +168,18 @@ class MainActivity : Activity() {
         return false
     }
 
+    /** Holding OK normally opens the app menu; if the user bound a long press of OK, that binding wins instead. */
+    private fun okHeldIsBound() = prefs.mappingsEnabled && prefs.bindings.any {
+        it.long && (it.key == KeyEvent.KEYCODE_DPAD_CENTER || it.key == KeyEvent.KEYCODE_ENTER)
+    }
+
     private fun runAction(action: String, arg: String) {
         when (action) {
             "app" -> all.firstOrNull { it.key == arg }?.let { launch(it) }
                 ?: Toast.makeText(this, getString(R.string.cant_open, arg.substringBefore('/')), Toast.LENGTH_LONG).show()
             "search" -> openSearch()
             "settings" -> openSettings()
-            "start" -> focusStart()
+            "home", "start" -> focusStart()
         }
     }
 
@@ -173,7 +187,7 @@ class MainActivity : Activity() {
         "app" -> all.firstOrNull { it.key == b.arg }?.label ?: b.arg.substringBefore('/')
         "search" -> getString(R.string.action_search)
         "settings" -> getString(R.string.action_settings)
-        else -> getString(R.string.action_start)
+        else -> getString(R.string.action_home)
     }
 
     private fun closeOverlay() { overlay?.let { frame.removeView(it) }; overlay = null }
@@ -189,12 +203,14 @@ class MainActivity : Activity() {
         })
     }
 
-    /** Waits for one key press and binds it. Back cancels. */
+    /** Waits for one key press (short or held) and binds it. A quick Back cancels. */
+    private fun bindingName(code: Int, long: Boolean) = keyName(code) + if (long) " \u00B7 ${getString(R.string.long_press)}" else ""
+
     private fun startLearn(action: String, arg: String, label: String) {
-        showOverlay(KeyOverlay(this, s, label, getString(R.string.press_button), null, { e ->
-            prefs.bindings = prefs.bindings.filter { it.key != e.keyCode } + Binding(e.keyCode, action, arg)
+        showOverlay(KeyOverlay(this, s, label, getString(R.string.press_button), getString(R.string.learn_hold_hint), { e, long ->
+            prefs.bindings = prefs.bindings.filter { !(it.key == e.keyCode && it.long == long) } + Binding(e.keyCode, action, arg, long)
             closeOverlay()
-            Toast.makeText(this, getString(R.string.mapping_saved, keyName(e.keyCode), label), Toast.LENGTH_LONG).show()
+            Toast.makeText(this, getString(R.string.mapping_saved, bindingName(e.keyCode, long), label), Toast.LENGTH_LONG).show()
             openMappings(0)
         }) { closeOverlay(); openMappings(0) })
     }
@@ -209,9 +225,9 @@ class MainActivity : Activity() {
         items += MenuItem(getString(R.string.custom_mappings), onOff(prefs.mappingsEnabled)) { d -> prefs.mappingsEnabled = !prefs.mappingsEnabled; d.dismiss(); openMappings(0) }
         val bs = prefs.bindings
         if (bs.isEmpty()) items += MenuItem(getString(R.string.no_mappings)) { it.dismiss(); openMappings(0) }
-        bs.forEach { b -> items += MenuItem(keyName(b.key), actionLabel(b)) { d ->
+        bs.forEach { b -> items += MenuItem(bindingName(b.key, b.long), actionLabel(b)) { d ->
             d.dismiss()
-            track(showMenu(s, keyName(b.key), listOf(MenuItem(getString(R.string.remove), actionLabel(b)) { d2 -> prefs.bindings = prefs.bindings - b; d2.dismiss(); openMappings(0) })))
+            track(showMenu(s, bindingName(b.key, b.long), listOf(MenuItem(getString(R.string.remove), actionLabel(b)) { d2 -> prefs.bindings = prefs.bindings - b; d2.dismiss(); openMappings(0) })))
         } }
         items += MenuItem(getString(R.string.add_mapping)) { d -> d.dismiss(); chooseAction() }
         items += MenuItem(getString(R.string.reset_mappings)) { d ->
@@ -225,7 +241,7 @@ class MainActivity : Activity() {
             MenuItem(getString(R.string.action_open_app)) { d -> d.dismiss(); chooseApp() },
             MenuItem(getString(R.string.action_search)) { d -> d.dismiss(); startLearn("search", "", getString(R.string.action_search)) },
             MenuItem(getString(R.string.action_settings)) { d -> d.dismiss(); startLearn("settings", "", getString(R.string.action_settings)) },
-            MenuItem(getString(R.string.action_start)) { d -> d.dismiss(); startLearn("start", "", getString(R.string.action_start)) },
+            MenuItem(getString(R.string.action_home)) { d -> d.dismiss(); startLearn("home", "", getString(R.string.action_home)) },
         )
         track(showMenu(s, getString(R.string.choose_action), items))
     }
@@ -330,7 +346,7 @@ class MainActivity : Activity() {
         content.addView(hero, LinearLayout.LayoutParams(-1, s.px(250)))
 
         // Favorites shelf (large artwork) and library shelf (compact, every app).
-        favAdapter = TileAdapter(s, icons, favW, T.FAV_GAP, 1.12f, ::onTile, { menuFor(it, true) }, ::artReady)
+        favAdapter = TileAdapter(s, icons, favW, T.FAV_GAP, 1.12f, ::onTile, { if (!okHeldIsBound()) menuFor(it, true) }, ::artReady)
         favRV = shelf(favAdapter, favW)
         favEmpty = TextView(this).apply {
             textAlignment = View.TEXT_ALIGNMENT_VIEW_START
@@ -344,7 +360,7 @@ class MainActivity : Activity() {
         }
         content.addView(favBlock, LinearLayout.LayoutParams(-1, -2))
 
-        allAdapter = TileAdapter(s, icons, libW, T.LIB_GAP, 1.12f, ::onTile, { menuFor(it, false) }, ::artReady)
+        allAdapter = TileAdapter(s, icons, libW, T.LIB_GAP, 1.12f, ::onTile, { if (!okHeldIsBound()) menuFor(it, false) }, ::artReady)
         allRV = shelf(allAdapter, libW)
         allBlock = Block(this).apply {
             orientation = LinearLayout.VERTICAL; clipChildren = false
@@ -659,7 +675,7 @@ class MainActivity : Activity() {
             Action(g(R.string.button_test), g(R.string.tester_note)) { startTester() },
             Action(g(R.string.custom_mappings), null, { onOff(prefs.mappingsEnabled) }) { openMappings(0) },
             Toggle(g(R.string.numbers_open_favs), g(R.string.numbers_open_favs_d), { prefs.numbersOpenFavs }, { prefs.numbersOpenFavs = it }),
-            Action(g(R.string.return_shortcut), g(R.string.return_shortcut_d)) { startLearn("start", "", g(R.string.action_start)) },
+            Action(g(R.string.return_shortcut), g(R.string.return_shortcut_d)) { startLearn("home", "", g(R.string.action_home)) },
             Action(g(R.string.input_devices), null, { nf.format(listInputDevices().size) }) { openDevices() },
             Info(g(R.string.floating_home), g(R.string.floating_home_d)),
         ) }

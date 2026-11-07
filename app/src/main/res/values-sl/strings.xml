@@ -166,6 +166,9 @@
     <string name="egg_reveal">Pokaži namig za daljinec</string>
     <string name="egg_sequence">Na domačem zaslonu: Gor, Gor, Dol, Dol, Levo, Desno, Levo, Desno, nato OK.</string>
     <string name="hidden_tag">Skrito</string>
+    <string name="action_home">Pojdi na domači zaslon</string>
+    <string name="long_press">Dolg pritisk</string>
+    <string name="learn_hold_hint">Namig: držite tipko eno sekundo, da dodelite dolg pritisk. Deluje tudi za tipko Nazaj.</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplikacija</item>
         <item quantity="two">%d aplikaciji</item>

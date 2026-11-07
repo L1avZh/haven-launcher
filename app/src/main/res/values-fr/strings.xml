@@ -166,6 +166,9 @@
     <string name="egg_reveal">Afficher l’indice pour la télécommande</string>
     <string name="egg_sequence">Sur l’écran d’accueil : Haut, Haut, Bas, Bas, Gauche, Droite, Gauche, Droite, puis OK.</string>
     <string name="hidden_tag">Masquée</string>
+    <string name="action_home">Aller à l’accueil</string>
+    <string name="long_press">Appui long</string>
+    <string name="learn_hold_hint">Astuce : maintenez un bouton une seconde pour associer un appui long. Cela fonctionne aussi pour Retour.</string>
     <plurals name="apps_count">
         <item quantity="one">%d appli</item>
         <item quantity="many">%d d’applis</item>

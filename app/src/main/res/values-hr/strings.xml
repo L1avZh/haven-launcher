@@ -166,6 +166,9 @@
     <string name="egg_reveal">Prikaži savjet za daljinski</string>
     <string name="egg_sequence">Na početnom zaslonu: Gore, Gore, Dolje, Dolje, Lijevo, Desno, Lijevo, Desno, zatim OK.</string>
     <string name="hidden_tag">Skriveno</string>
+    <string name="action_home">Idi na početni zaslon</string>
+    <string name="long_press">Dugi pritisak</string>
+    <string name="learn_hold_hint">Savjet: držite tipku sekundu kako biste pridružili dugi pritisak. Radi i za tipku Natrag.</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplikacija</item>
         <item quantity="few">%d aplikacije</item>

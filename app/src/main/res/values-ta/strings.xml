@@ -166,6 +166,9 @@
     <string name="egg_reveal">ரிமோட் குறிப்பைக் காட்டு</string>
     <string name="egg_sequence">முகப்புத் திரையில்: மேல், மேல், கீழ், கீழ், இடது, வலது, இடது, வலது, பிறகு OK.</string>
     <string name="hidden_tag">மறைக்கப்பட்டது</string>
+    <string name="action_home">முகப்புக்குச் செல்</string>
+    <string name="long_press">நீண்ட அழுத்தம்</string>
+    <string name="learn_hold_hint">குறிப்பு: நீண்ட அழுத்தத்தை இணைக்க ஒரு பொத்தானை ஒரு விநாடி அழுத்திப் பிடிக்கவும். இது பின் பொத்தானுக்கும் வேலை செய்யும்.</string>
     <plurals name="apps_count">
         <item quantity="one">%d பயன்பாடு</item>
         <item quantity="other">%d பயன்பாடுகள்</item>

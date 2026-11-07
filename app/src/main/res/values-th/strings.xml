@@ -166,6 +166,9 @@
     <string name="egg_reveal">แสดงคำใบ้สำหรับรีโมต</string>
     <string name="egg_sequence">ในหน้าจอหลัก: ขึ้น ขึ้น ลง ลง ซ้าย ขวา ซ้าย ขวา แล้วกด OK</string>
     <string name="hidden_tag">ซ่อนอยู่</string>
+    <string name="action_home">ไปที่หน้าหลัก</string>
+    <string name="long_press">กดค้าง</string>
+    <string name="learn_hold_hint">เคล็ดลับ: กดปุ่มค้างไว้หนึ่งวินาทีเพื่อกำหนดการกดค้าง ใช้ได้กับปุ่มย้อนกลับด้วย</string>
     <plurals name="apps_count">
         <item quantity="other">%d แอป</item>
     </plurals>

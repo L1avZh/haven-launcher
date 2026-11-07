@@ -166,6 +166,9 @@
     <string name="egg_reveal">Kumanda ipucunu göster</string>
     <string name="egg_sequence">Ana ekranda: Yukarı, Yukarı, Aşağı, Aşağı, Sol, Sağ, Sol, Sağ, ardından OK.</string>
     <string name="hidden_tag">Gizli</string>
+    <string name="action_home">Ana ekrana git</string>
+    <string name="long_press">Uzun basma</string>
+    <string name="learn_hold_hint">İpucu: uzun basmayı atamak için bir tuşu bir saniye basılı tutun. Bu, Geri tuşu için de geçerlidir.</string>
     <plurals name="apps_count">
         <item quantity="one">%d uygulama</item>
         <item quantity="other">%d uygulama</item>

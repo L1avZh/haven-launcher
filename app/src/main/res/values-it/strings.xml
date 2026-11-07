@@ -166,6 +166,9 @@
     <string name="egg_reveal">Mostra il suggerimento per il telecomando</string>
     <string name="egg_sequence">Nella schermata Home: Su, Su, Giù, Giù, Sinistra, Destra, Sinistra, Destra, poi OK.</string>
     <string name="hidden_tag">Nascosta</string>
+    <string name="action_home">Vai alla Home</string>
+    <string name="long_press">Pressione lunga</string>
+    <string name="learn_hold_hint">Suggerimento: tieni premuto un pulsante per un secondo per assegnare una pressione lunga. Funziona anche con Indietro.</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="many">%d di app</item>

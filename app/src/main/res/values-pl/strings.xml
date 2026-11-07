@@ -166,6 +166,9 @@
     <string name="egg_reveal">Pokaż wskazówkę dla pilota</string>
     <string name="egg_sequence">Na ekranie głównym: Góra, Góra, Dół, Dół, Lewo, Prawo, Lewo, Prawo, potem OK.</string>
     <string name="hidden_tag">Ukryta</string>
+    <string name="action_home">Przejdź do ekranu głównego</string>
+    <string name="long_press">Długie naciśnięcie</string>
+    <string name="learn_hold_hint">Wskazówka: przytrzymaj przycisk przez sekundę, aby przypisać długie naciśnięcie. Działa to także dla przycisku Wstecz.</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplikacja</item>
         <item quantity="few">%d aplikacje</item>

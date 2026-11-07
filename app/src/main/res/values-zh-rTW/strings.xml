@@ -166,6 +166,9 @@
     <string name="egg_reveal">顯示遙控器提示</string>
     <string name="egg_sequence">在主畫面上：上、上、下、下、左、右、左、右，然後按確認鍵。</string>
     <string name="hidden_tag">已隱藏</string>
+    <string name="action_home">前往主畫面</string>
+    <string name="long_press">長按</string>
+    <string name="learn_hold_hint">提示：按住按鍵一秒即可綁定長按。「返回」鍵同樣適用。</string>
     <plurals name="apps_count">
         <item quantity="other">%d 個應用程式</item>
     </plurals>

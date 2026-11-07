@@ -166,6 +166,9 @@
     <string name="egg_reveal">Mostrar a dica do telecomando</string>
     <string name="egg_sequence">No ecrã inicial: Cima, Cima, Baixo, Baixo, Esquerda, Direita, Esquerda, Direita e depois OK.</string>
     <string name="hidden_tag">Oculta</string>
+    <string name="action_home">Ir para o início</string>
+    <string name="long_press">Pressão longa</string>
+    <string name="learn_hold_hint">Dica: mantenha um botão premido durante um segundo para atribuir uma pressão longa. Também funciona com Voltar.</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="many">%d de apps</item>

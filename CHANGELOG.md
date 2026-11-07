@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5
+- "Go to Home" action for custom mappings, and long-press bindings: hold a button while learning it to bind a long press (a quick Back still cancels; hold Back to bind Back).
+- A bound long press of OK takes priority over the long-press app menu.
+- Mappings list shows long presses ("DPAD_CENTER · Long press").
+- Translations for the three new strings in all 50 languages.
+
 ## 1.4
 - Full-screen Settings with nine categories, row descriptions and animated switches.
 - Shared dialog style with fade in and out.

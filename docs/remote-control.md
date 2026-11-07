@@ -7,7 +7,7 @@ Haven needs only the arrow keys, OK and Back. Everything in the launcher, includ
 Settings > Remote control:
 
 - **Button test**: shows every key Android delivers: key name and code, the input device, its source, repeat count, and whether it was a long press. Press Back three times to leave.
-- **Custom mappings**: pick an action (open an app, search, settings, go to start) and press the remote button to bind it. Only buttons that actually reach the app can be bound.
+- **Custom mappings**: pick an action (open an app, search, settings, Go to Home) and press the remote button to bind it. Hold the button for about a second to bind a long press instead; a quick Back cancels, so hold Back to bind Back. Only buttons that actually reach the app can be bound.
 - **Number keys open favorites**: on the home screen, 1 to 9 open favorites one to nine and 0 opens the tenth. This is on by default and only works when no menu is open.
 - **Return to start shortcut** and **Input devices**.
 
@@ -34,6 +34,8 @@ Long-press OK was not tested with this remote.
 The LG Home button is handled by the TV. The box only sees the TV leave and later return to its input (CEC Active Source and Routing Change messages). No app can turn that into a key press.
 
 ## Getting back to Haven from another app
+
+A Home shortcut (Settings > Remote control > Return to start shortcut) is a mapping like any other. It was tested on the box: a long press of OK bound to Go to Home jumps back to the first favorite from anywhere in Haven. **It does not work while another app is in front.** With the Android TV Settings app open, holding OK did nothing and the app stayed in front; Android only delivers keys to the focused app.
 
 What works:
 

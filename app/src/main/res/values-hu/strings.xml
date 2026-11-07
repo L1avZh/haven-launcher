@@ -166,6 +166,9 @@
     <string name="egg_reveal">Távirányító-tipp megjelenítése</string>
     <string name="egg_sequence">A kezdőképernyőn: Fel, Fel, Le, Le, Balra, Jobbra, Balra, Jobbra, majd OK.</string>
     <string name="hidden_tag">Elrejtve</string>
+    <string name="action_home">Ugrás a kezdőlapra</string>
+    <string name="long_press">Hosszú megnyomás</string>
+    <string name="learn_hold_hint">Tipp: tartson lenyomva egy gombot egy másodpercig a hosszú megnyomás hozzárendeléséhez. A Vissza gombbal is működik.</string>
     <plurals name="apps_count">
         <item quantity="one">%d alkalmazás</item>
         <item quantity="other">%d alkalmazás</item>

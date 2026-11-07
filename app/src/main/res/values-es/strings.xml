@@ -166,6 +166,9 @@
     <string name="egg_reveal">Mostrar la pista del mando</string>
     <string name="egg_sequence">En la pantalla de inicio: Arriba, Arriba, Abajo, Abajo, Izquierda, Derecha, Izquierda, Derecha y luego OK.</string>
     <string name="hidden_tag">Oculta</string>
+    <string name="action_home">Ir al inicio</string>
+    <string name="long_press">Pulsación larga</string>
+    <string name="learn_hold_hint">Consejo: mantén un botón un segundo para asignar una pulsación larga. También funciona con Atrás.</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="many">%d de apps</item>

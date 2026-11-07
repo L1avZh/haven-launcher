@@ -166,6 +166,9 @@
     <string name="egg_reveal">Zobraziť nápovedu k ovládaču</string>
     <string name="egg_sequence">Na domovskej obrazovke: Hore, Hore, Dole, Dole, Vľavo, Vpravo, Vľavo, Vpravo a potom OK.</string>
     <string name="hidden_tag">Skryté</string>
+    <string name="action_home">Prejsť na domovskú obrazovku</string>
+    <string name="long_press">Dlhé stlačenie</string>
+    <string name="learn_hold_hint">Tip: podržte tlačidlo jednu sekundu a priraďte dlhé stlačenie. Funguje to aj pri tlačidle Späť.</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplikácia</item>
         <item quantity="few">%d aplikácie</item>

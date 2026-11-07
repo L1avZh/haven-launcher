@@ -166,6 +166,9 @@
     <string name="egg_reveal">リモコンのヒントを表示</string>
     <string name="egg_sequence">ホーム画面で：上、上、下、下、左、右、左、右、そして OK。</string>
     <string name="hidden_tag">非表示</string>
+    <string name="action_home">ホームへ移動</string>
+    <string name="long_press">長押し</string>
+    <string name="learn_hold_hint">ヒント：ボタンを1秒間押し続けると長押しを割り当てられます。「戻る」にも使えます。</string>
     <plurals name="apps_count">
         <item quantity="other">%d 個のアプリ</item>
     </plurals>

@@ -166,6 +166,9 @@
     <string name="egg_reveal">Erakutsi urruneko aginteko aholkua</string>
     <string name="egg_sequence">Hasierako pantailan: Gora, Gora, Behera, Behera, Ezkerra, Eskuina, Ezkerra, Eskuina, eta gero OK.</string>
     <string name="hidden_tag">Ezkutuan</string>
+    <string name="action_home">Joan hasierara</string>
+    <string name="long_press">Sakatze luzea</string>
+    <string name="learn_hold_hint">Aholkua: eduki botoi bat segundo batez sakatuta sakatze luze bat esleitzeko. Atzera botoiarekin ere balio du.</string>
     <plurals name="apps_count">
         <item quantity="one">Aplikazio %d</item>
         <item quantity="other">%d aplikazio</item>

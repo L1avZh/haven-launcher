@@ -166,6 +166,9 @@
     <string name="egg_reveal">Hinweis zur Fernbedienung anzeigen</string>
     <string name="egg_sequence">Auf dem Startbildschirm: Hoch, Hoch, Runter, Runter, Links, Rechts, Links, Rechts, dann OK.</string>
     <string name="hidden_tag">Ausgeblendet</string>
+    <string name="action_home">Zum Startbildschirm</string>
+    <string name="long_press">Langer Druck</string>
+    <string name="learn_hold_hint">Tipp: Halte eine Taste eine Sekunde gedrückt, um einen langen Druck zuzuordnen. Das geht auch bei Zurück.</string>
     <plurals name="apps_count">
         <item quantity="one">%d App</item>
         <item quantity="other">%d Apps</item>

@@ -166,6 +166,9 @@
     <string name="egg_reveal">Taispeáin leid an iargúlta</string>
     <string name="egg_sequence">Ar an scáileán baile: Suas, Suas, Síos, Síos, Clé, Deas, Clé, Deas, ansin OK.</string>
     <string name="hidden_tag">Folaithe</string>
+    <string name="action_home">Téigh go dtí an Baile</string>
+    <string name="long_press">Brú fhada</string>
+    <string name="learn_hold_hint">Leid: coinnigh cnaipe síos ar feadh soicind chun brú fhada a shannadh. Oibríonn sé seo le Ar ais freisin.</string>
     <plurals name="apps_count">
         <item quantity="one">%d aip</item>
         <item quantity="two">%d aip</item>
