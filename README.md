@@ -32,16 +32,8 @@ All screenshots were captured on the TV itself.
 |---|---|
 | ![Scope](docs/images/screenshots/scope.png) | ![Widgets](docs/images/screenshots/widgets.png) |
 | Scope header with a moving light sweep | Widgets: choose what shows where |
-| ![Settings](docs/images/screenshots/settings.png) | ![Applications](docs/images/screenshots/applications.png) |
-| Settings: categories, Appearance open | Applications: manage, hide, sort, shortcuts |
-| ![Remote control](docs/images/screenshots/remote-control.png) | ![Languages](docs/images/screenshots/language.png) |
-| Remote control: button test, mappings, input devices | Language picker (native names) |
-| ![Hebrew](docs/images/screenshots/hebrew-rtl.png) | ![Display](docs/images/screenshots/display.png) |
-| Hebrew, right-to-left | Display & animation |
-| ![AdGuard](docs/images/screenshots/adguard.png) | ![Privacy](docs/images/screenshots/privacy.png) |
-| AdGuard status page | Privacy & security |
-| ![About](docs/images/screenshots/about.png) | ![Easter egg](docs/images/screenshots/easter-egg.png) |
-| About & credits | The hidden signature |
+| ![Settings](docs/images/screenshots/settings.png) | ![Easter egg](docs/images/screenshots/easter-egg.png) |
+| Settings: categories, Appearance open | The hidden signature |
 
 <p align="center">
   <img src="docs/images/animations/easter-egg.gif" alt="Easter egg animation" width="560"><br>
@@ -130,7 +122,7 @@ docs/               guides and images
 - With an LG remote over HDMI-CEC, only arrows, OK and Back reach the box. There is no remote shortcut that works while another app is in front.
 - There is no floating Home button. An overlay can't be reached with a D-pad without taking input away from the app underneath.
 - Strings added in the latest redesign (screensaver, widgets, greetings) exist in English only and appear in English in the other 49 languages.
-- Home, scope, widgets and settings screenshots show the current design. The other screenshots were taken before the redesign and need retaking.
+- Screenshots for the remaining settings pages and right-to-left layout are not included yet; the old ones predated the redesign and were removed.
 - Translations are machine-assisted drafts. None have been checked by a native speaker.
 - Custom wallpapers from files, custom categories and settings export are not implemented.
 
