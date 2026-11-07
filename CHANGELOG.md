@@ -1,5 +1,8 @@
 ## 1.6
 
+- Widgets for the home screen and the screensaver, chosen in Settings → Widgets.
+- Scope hero (animated scope name) when a tab has focus instead of an app.
+- Per-app typefaces in the rail and stage title (Space Grotesk, Fraunces, Sora, Syne, Outfit).
 - Screensaver (Settings → Appearance): drifting clock over the live background, starts after 2–20 min idle, any button wakes it.
 - Live animated background that follows the focused app's colours.
 - Unbounded display face for the clock and stage title (SIL OFL, `docs/OFL-Unbounded.txt`).

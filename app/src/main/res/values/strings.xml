@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <string name="app_name" translatable="false">Haven</string>
     <string name="search">Search</string>
     <string name="settings">Settings</string>
@@ -24,9 +24,24 @@
     <string name="system_settings">System settings</string>
     <string name="on">On</string>
     <string name="off">Off</string>
-    <string name="screensaver">Screensaver</string>
-    <string name="screensaver_d">Starts after a while without input. Any button wakes it.</string>
-    <string name="minutes_fmt">%d min</string>
+    <string name="cat_widgets" tools:ignore="MissingTranslation">Widgets</string>
+    <string name="d_widgets" tools:ignore="MissingTranslation">Glanceable info for the home screen and the screensaver</string>
+    <string name="widgets_home" tools:ignore="MissingTranslation">On the home screen (up to 3)</string>
+    <string name="widgets_saver" tools:ignore="MissingTranslation">On the screensaver (up to 4)</string>
+    <string name="w_greeting" tools:ignore="MissingTranslation">Greeting</string>
+    <string name="w_day" tools:ignore="MissingTranslation">Today</string>
+    <string name="w_year" tools:ignore="MissingTranslation">This year</string>
+    <string name="w_moon" tools:ignore="MissingTranslation">Moon</string>
+    <string name="w_storage" tools:ignore="MissingTranslation">Free storage</string>
+    <string name="w_memory" tools:ignore="MissingTranslation">Free memory</string>
+    <string name="w_uptime" tools:ignore="MissingTranslation">Uptime</string>
+    <string name="greet_morning" tools:ignore="MissingTranslation">Good morning</string>
+    <string name="greet_afternoon" tools:ignore="MissingTranslation">Good afternoon</string>
+    <string name="greet_evening" tools:ignore="MissingTranslation">Good evening</string>
+    <string name="greet_night" tools:ignore="MissingTranslation">Good night</string>
+    <string name="screensaver" tools:ignore="MissingTranslation">Screensaver</string>
+    <string name="screensaver_d" tools:ignore="MissingTranslation">Starts after a while without input. Any button wakes it.</string>
+    <string name="minutes_fmt" tools:ignore="MissingTranslation">%d min</string>
     <string name="language">Language</string>
     <string name="system_default">System default</string>
     <string name="no_hidden">No hidden apps</string>

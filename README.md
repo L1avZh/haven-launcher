@@ -16,7 +16,7 @@
   <img alt="Languages" src="https://img.shields.io/badge/Languages-50-orange">
 </p>
 
-Haven replaces the usual Android TV home screen with something quieter: your apps, big artwork, and a hero line that names whatever is focused. The glow behind it takes its color from the app's own artwork. It is written in plain Kotlin views with a single dependency (`androidx.recyclerview`), asks for no permissions, and never touches the network.
+Haven replaces the usual Android TV home screen with something quieter: a typographic list of your apps on the left, and a stage on the right with big artwork and the name of whatever is focused. Behind it, a live background drifts in the colors of the focused app's own artwork. It is written in plain Kotlin views with a single dependency (`androidx.recyclerview`), asks for no permissions, and never touches the network.
 
 I built and tested it on a Xiaomi TV Box S (3rd Gen) running Android 14. Other Android TV devices should work, but I haven't tried them (see [Known limitations](#known-limitations)).
 
@@ -31,7 +31,7 @@ All screenshots were captured on the TV itself.
 | | |
 |---|---|
 | ![Settings](docs/images/screenshots/settings.png) | ![Applications](docs/images/screenshots/applications.png) |
-| Settings: nine categories, Appearance open | Applications: manage, hide, sort, shortcuts |
+| Settings: categories, Appearance open | Applications: manage, hide, sort, shortcuts |
 | ![Remote control](docs/images/screenshots/remote-control.png) | ![Languages](docs/images/screenshots/language.png) |
 | Remote control: button test, mappings, input devices | Language picker (native names) |
 | ![Hebrew](docs/images/screenshots/hebrew-rtl.png) | ![Display](docs/images/screenshots/display.png) |
@@ -48,10 +48,14 @@ All screenshots were captured on the TV itself.
 
 ## Features
 
-- **Home screen**: a favorites shelf with large artwork, a compact library shelf with every app, a clock, and a hero title for the focused app. The accent glow follows the artwork of the focused app (or a fixed accent color if you prefer).
+- **Home screen ("Stage & Rail")**: three scopes, Favorites, Recent and Library, as a list of app names. Each app name uses one of five typefaces, so the list has character. The stage shows large artwork and actions for the focused app. When a scope tab has focus instead of an app, the stage shows the scope's name with a moving light sweep.
+- **Live background**: soft color fields and drifting motes that take their palette from the focused app and speed up briefly when focus changes. Rendered at low resolution at 30 fps and paused when not visible; static in performance mode.
+- **Widgets**: choose what appears on the home screen (up to 3) and on the screensaver (up to 4): greeting, share of the day, share of the year, moon illumination, free storage, free memory, uptime. All computed on the device, no permissions, no network (so no weather).
+- **Screensaver**: after 2 to 20 minutes without input (or off), a black screen with the live background, a drifting clock and your screensaver widgets. The clock moves every 25 seconds to spare OLED panels. Any button wakes it. It lives inside Haven and changes no system setting.
+- **Typefaces**: Outfit for the interface, Unbounded for the clock and big titles, Space Grotesk, Fraunces, Sora and Syne for app names. All bundled, all SIL Open Font License (see `docs/OFL-*.txt`).
 - **App management**: favorites, hide apps without uninstalling them, reorder favorites, show or hide system apps, sort A to Z or newest first, refresh the list. New and removed apps are picked up automatically.
-- **Settings**: a full-screen page with nine categories (General, Appearance, Applications, Remote control, Language & region, Display & animation, AdGuard, Privacy & security, About & credits). Everything is reachable with a D-pad, OK and Back.
-- **Appearance**: six wallpapers, five accent colors plus auto, background dimming, three card sizes, 12 or 24-hour clock.
+- **Settings**: a full-screen page with ten categories (General, Appearance, Widgets, Applications, Remote control, Language & region, Display & animation, AdGuard, Privacy & security, About & credits). Everything is reachable with a D-pad, OK and Back.
+- **Appearance**: six wallpapers, five accent colors plus auto, background dimming, three artwork sizes, 12 or 24-hour clock, screensaver delay.
 - **Motion**: focus scaling, an entrance animation, glow cross-fades, fading menus. Animation can be full, subtle or off, and there is a performance mode. The system animator scale is respected.
 - **50 languages** with native names in the picker and a System default option. Hebrew, Arabic, Persian and Urdu are laid out right-to-left. See [docs/localization.md](docs/localization.md) for what is and isn't verified.
 - **Remote control tools**: a button tester that shows what Android actually receives (key, code, device, source, long press), custom button mappings, number keys that open favorites, and an input device list. Details in [docs/remote-control.md](docs/remote-control.md).
@@ -103,6 +107,10 @@ app/src/main/java/dev/l1avzh/haven/
   SettingsUi.kt     full-screen settings: categories, rows, switches
   Ui.kt             tiles, icon loader, shared menu dialog, layout helpers
   Tokens.kt         colors, type, spacing, shape and motion values
+  HomeUi.kt         app rail, stage buttons, scope hero
+  LiveBackground.kt animated background
+  Saver.kt          screensaver
+  Widgets.kt        widget definitions and strip
   Model.kt          app discovery and preferences
   Remote.kt         key tester and mapping overlay
   Egg.kt            the Easter egg animation
@@ -119,6 +127,8 @@ docs/               guides and images
 - The firmware on my box ignores a third-party Home app: the Home button still opens Google's launcher. Haven registers as a Home app, but that is up to the device.
 - With an LG remote over HDMI-CEC, only arrows, OK and Back reach the box. There is no remote shortcut that works while another app is in front.
 - There is no floating Home button. An overlay can't be reached with a D-pad without taking input away from the app underneath.
+- Strings added in the latest redesign (screensaver, widgets, greetings) exist in English only and appear in English in the other 49 languages.
+- The screenshots above were taken before the Stage & Rail redesign and need retaking.
 - Translations are machine-assisted drafts. None have been checked by a native speaker.
 - Custom wallpapers from files, custom categories and settings export are not implemented.
 
@@ -131,7 +141,7 @@ docs/               guides and images
 
 ## License
 
-MIT, see [LICENSE](LICENSE). Dependencies: AndroidX RecyclerView and the Kotlin standard library, both Apache License 2.0. AdGuard is a trademark of its owner and this project is not affiliated with it. App names and artwork shown in screenshots belong to their owners.
+MIT, see [LICENSE](LICENSE). Dependencies: AndroidX RecyclerView and the Kotlin standard library, both Apache License 2.0. Bundled fonts (Outfit, Unbounded, Space Grotesk, Fraunces, Sora, Syne): SIL Open Font License 1.1, texts in `docs/`. AdGuard is a trademark of its owner and this project is not affiliated with it. App names and artwork shown in screenshots belong to their owners.
 
 ## Credits
 

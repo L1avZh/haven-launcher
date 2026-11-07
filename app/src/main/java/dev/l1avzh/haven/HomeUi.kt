@@ -89,7 +89,7 @@ class RailAdapter(
             val sc = if (f && T.animated) 1f + 0.16f * T.motion else 1f
             name.animate().scaleX(sc).scaleY(sc).alpha(if (f) 1f else 0.42f).setDuration(T.d(T.MED)).setInterpolator(T.OUT).start()
             dot.animate().alpha(if (f) 1f else 0f).setDuration(T.d(T.FAST)).start()
-            name.typeface = if (f) Fonts.regular else Fonts.light
+            vh.bound?.let { k -> val fam = Fonts.familyFor(k); name.typeface = if (f) fam.second else fam.first }
             if (f) { focusedHolder = vh; val p = vh.bindingAdapterPosition; items.getOrNull(p)?.let { onFocus(it, p) } }
             else if (focusedHolder === vh) focusedHolder = null
         }
@@ -112,6 +112,7 @@ class RailAdapter(
         val e = items[pos]
         h.bound = e.key
         h.name.text = e.label
+        h.name.typeface = Fonts.familyFor(e.key).first
         h.row.contentDescription = e.label
         h.row.setOnClickListener { v ->
             if (T.animated) v.animate().alpha(0.7f).setDuration(T.d(T.FAST - 40)).withEndAction { v.alpha = 1f; onClick(e) }.start() else onClick(e)
@@ -136,4 +137,55 @@ fun stagePill(ctx: Context, s: Scale, primary: Boolean, label: String, onClick: 
         v.animate().scaleX(sc).scaleY(sc).setDuration(T.d(T.FAST)).setInterpolator(T.OUT).start()
     }
     setOnClickListener { onClick() }
+}
+
+/**
+ * Shown on the stage while a scope tab (not an app) has focus: the scope's name in the display face with a
+ * light that slowly sweeps across the letters, and a one-line summary.
+ */
+class ScopeHero(ctx: Context, private val s: Scale) : LinearLayout(ctx) {
+    private val title = TextView(ctx).apply {
+        sizePx(s.px(132f)); typeface = Fonts.display; includeFontPadding = false; maxLines = 1
+        textAlignment = View.TEXT_ALIGNMENT_VIEW_START; setTextColor(Color.WHITE)
+    }
+    private val sub = TextView(ctx).apply {
+        sizePx(s.px(34f)); typeface = Fonts.light; setTextColor(T.TEXT_DIM); textAlignment = View.TEXT_ALIGNMENT_VIEW_START
+    }
+    private val rule = View(ctx)
+    private var accent = T.ACCENT
+    private var sweep: android.animation.ValueAnimator? = null
+    private val m = android.graphics.Matrix()
+    private var shader: android.graphics.LinearGradient? = null
+
+    init {
+        orientation = VERTICAL
+        addView(title, LayoutParams(-2, -2))
+        addView(rule, LayoutParams(s.px(96), s.px(4)).apply { topMargin = s.px(30) })
+        addView(sub, LayoutParams(-2, -2).apply { topMargin = s.px(22) })
+    }
+
+    fun set(name: String, summary: String, color: Int) {
+        title.text = name; sub.text = summary; accent = color
+        rule.background = rounded(color, s.px(2f))
+        val w = s.px(900f).toFloat()
+        shader = android.graphics.LinearGradient(0f, 0f, w, 0f,
+            intArrayOf(0x88FFFFFF.toInt(), Color.WHITE, 0x88FFFFFF.toInt(), 0xFF000000.toInt() or (color and 0xFFFFFF), 0x88FFFFFF.toInt()),
+            floatArrayOf(0f, 0.25f, 0.5f, 0.75f, 1f), android.graphics.Shader.TileMode.MIRROR)
+        title.paint.shader = shader
+        title.invalidate()
+        restart()
+    }
+
+    private fun restart() {
+        sweep?.cancel()
+        if (!T.animated || !isShown) return
+        sweep = android.animation.ValueAnimator.ofFloat(0f, s.px(1800f).toFloat()).apply {
+            duration = 6500; repeatCount = android.animation.ValueAnimator.INFINITE; interpolator = android.view.animation.LinearInterpolator()
+            addUpdateListener { m.setTranslate(it.animatedValue as Float, 0f); shader?.setLocalMatrix(m); title.invalidate() }
+            start()
+        }
+    }
+
+    override fun onVisibilityChanged(v: View, vis: Int) { super.onVisibilityChanged(v, vis); if (vis == VISIBLE) restart() else sweep?.cancel() }
+    override fun onDetachedFromWindow() { sweep?.cancel(); super.onDetachedFromWindow() }
 }

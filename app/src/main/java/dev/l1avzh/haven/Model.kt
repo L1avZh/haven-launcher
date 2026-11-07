@@ -118,6 +118,14 @@ class Prefs(ctx: Context) {
         get() = sp.getInt("saver", 2).coerceIn(0, 4)
         set(v) { sp.edit().putInt("saver", v).apply() }
 
+    var homeWidgets: String
+        get() = sp.getString("widgets_home", "day,storage,memory") ?: ""
+        set(v) { sp.edit().putString("widgets_home", v).apply() }
+
+    var saverWidgets: String
+        get() = sp.getString("widgets_saver", "greet,moon,day") ?: ""
+        set(v) { sp.edit().putString("widgets_saver", v).apply() }
+
     var showSystemApps: Boolean
         get() = sp.getBoolean("show_system_apps", true)
         set(v) { sp.edit().putBoolean("show_system_apps", v).apply() }

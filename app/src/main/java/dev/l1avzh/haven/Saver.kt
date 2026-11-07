@@ -16,7 +16,7 @@ import kotlin.random.Random
  * Screensaver: true-black base (kind to OLED panels), the live background in a slowly cycling palette and a
  * clock that drifts to a new spot every half minute so nothing stays lit in one place.
  */
-class SaverView(ctx: Context, s: Scale, timePattern12: CharSequence?, timePattern24: CharSequence?, datePattern: CharSequence?) : FrameLayout(ctx) {
+class SaverView(ctx: Context, s: Scale, timePattern12: CharSequence?, timePattern24: CharSequence?, datePattern: CharSequence?, widgets: List<String>) : FrameLayout(ctx) {
     private val live = LiveBackground(ctx)
     private val box = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
     private val handler = Handler(Looper.getMainLooper())
@@ -37,6 +37,7 @@ class SaverView(ctx: Context, s: Scale, timePattern12: CharSequence?, timePatter
             if (datePattern != null) { format12Hour = datePattern; format24Hour = datePattern }
             sizePx(s.px(34f)); setTextColor(0x99FFFFFF.toInt()); typeface = Fonts.light
         })
+        if (widgets.isNotEmpty()) box.addView(WidgetStrip(ctx, s, widgets.take(4), true), LinearLayout.LayoutParams(-2, -2).apply { topMargin = s.px(36) })
         box.alpha = 0f
         addView(box, LayoutParams(-2, -2, Gravity.TOP or Gravity.START))
         alpha = 0f

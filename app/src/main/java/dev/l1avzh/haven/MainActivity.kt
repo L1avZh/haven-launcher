@@ -55,6 +55,7 @@ class MainActivity : Activity() {
     private lateinit var stageTitle: TextView
     private lateinit var stageMeta: TextView
     private lateinit var stageEmpty: TextView
+    private lateinit var scopeHero: ScopeHero
     private lateinit var btnOpen: TextView
     private lateinit var btnFav: TextView
     private lateinit var btnMore: TextView
@@ -149,6 +150,13 @@ class MainActivity : Activity() {
     @Deprecated("Back never leaves the launcher; it returns to the start position.")
     override fun onBackPressed() { if (egg != null) closeEgg() else settings?.back() ?: focusStart() }
 
+    private lateinit var widgetHost: FrameLayout
+    private fun applyWidgets() {
+        widgetHost.removeAllViews()
+        val ids = Widgets.parse(prefs.homeWidgets).take(3)
+        if (ids.isNotEmpty()) widgetHost.addView(WidgetStrip(this, s, ids, false), FrameLayout.LayoutParams(-2, -2, Gravity.CENTER_VERTICAL or Gravity.START))
+    }
+
     private var saverView: SaverView? = null
     private val saverRun = Runnable { startSaver() }
     private val SAVER_MINUTES = intArrayOf(0, 2, 5, 10, 20)
@@ -161,7 +169,7 @@ class MainActivity : Activity() {
 
     private fun startSaver() {
         if (saverView != null || overlay != null) return
-        val v = SaverView(this, s, timeClock.format12Hour, timeClock.format24Hour, DateFormat.getBestDateTimePattern(Lang.locale(this), "EEEdMMM"))
+        val v = SaverView(this, s, timeClock.format12Hour, timeClock.format24Hour, DateFormat.getBestDateTimePattern(Lang.locale(this), "EEEdMMM"), Widgets.parse(prefs.saverWidgets))
         saverView = v; frame.addView(v, -1, -1)
     }
 
@@ -366,8 +374,11 @@ class MainActivity : Activity() {
         homeContent.addView(railBox, LinearLayout.LayoutParams(s.px(560), -1))
 
         // ----- Stage: big artwork, name, last-opened line, and the actions for the focused app.
+        widgetHost = FrameLayout(this).apply { clipChildren = false }
+        applyWidgets()
         header = LinearLayout(this).apply {
             gravity = Gravity.CENTER_VERTICAL or Gravity.END
+            addView(widgetHost, LinearLayout.LayoutParams(0, -1, 1f))
             addView(iconButton(R.drawable.ic_home, getString(R.string.back_to_start)) { focusStart() })
             addView(iconButton(R.drawable.ic_search, getString(R.string.search)) { openSearch() })
             addView(iconButton(R.drawable.ic_settings, getString(R.string.settings)) { openSettings() })
@@ -414,10 +425,15 @@ class MainActivity : Activity() {
             textAlignment = View.TEXT_ALIGNMENT_VIEW_START; sizePx(s.px(T.BODY)); setTextColor(T.TEXT_DIM); typeface = Fonts.light
             text = getString(R.string.loading); setLineSpacing(0f, 1.2f)
         }
+        scopeHero = ScopeHero(this, s).apply { visibility = View.GONE }
         val stageCol = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL; clipChildren = false
             addView(header, LinearLayout.LayoutParams(-1, s.px(84)))
-            addView(stageBody, LinearLayout.LayoutParams(-2, -2).apply { topMargin = s.px(14) })
+            addView(FrameLayout(this@MainActivity).apply {
+                clipChildren = false
+                addView(stageBody, FrameLayout.LayoutParams(-2, -2))
+                addView(scopeHero, FrameLayout.LayoutParams(-2, -2).apply { topMargin = s.px(200) })
+            }, LinearLayout.LayoutParams(-2, -2).apply { topMargin = s.px(14) })
             addView(stageEmpty, LinearLayout.LayoutParams(s.px(artW), -2).apply { topMargin = s.px(160) })
         }
         homeContent.addView(stageCol, LinearLayout.LayoutParams(0, -1, 1f).apply { marginStart = s.px(56) })
@@ -435,12 +451,23 @@ class MainActivity : Activity() {
             setPadding(0, s.px(8), s.px(34), s.px(6))
             addView(txt, LinearLayout.LayoutParams(-2, -2)); addView(bar, LinearLayout.LayoutParams(s.px(34), s.px(3)).apply { topMargin = s.px(8) })
             tag = Pair(txt, bar)
-            setOnFocusChangeListener { _, f -> if (f && scope != i) setScope(i); updateTabs() }
+            setOnFocusChangeListener { _, f -> if (f) { if (scope != i) setScope(i); showHero(i) }; updateTabs() }
             setOnClickListener { focusRail(lastIdx[i]) }
             setOnKeyListener { _, code, e ->
                 if (e.action == KeyEvent.ACTION_DOWN && code == KeyEvent.KEYCODE_DPAD_DOWN) { focusRail(lastIdx[scope]); true } else false
             }
         }.also { tabs += it }
+    }
+
+    /** A scope tab has focus rather than an app: show the scope's name instead of an empty app card. */
+    private fun showHero(i: Int) {
+        val n = scopeItems().size
+        val name = getString(intArrayOf(R.string.favorites, R.string.recent, R.string.library)[i])
+        val summary = if (n > 0) resources.getQuantityString(R.plurals.apps_count, n, n)
+            else getString(when (i) { 0 -> R.string.no_favorites; 1 -> R.string.no_recent; else -> R.string.no_hidden })
+        focusedEntry = null
+        stageBody.visibility = View.INVISIBLE; stageEmpty.visibility = View.GONE
+        scopeHero.set(name, summary, glowColor); scopeHero.visibility = View.VISIBLE
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -516,6 +543,7 @@ class MainActivity : Activity() {
 
     private fun updateStageEmpty() {
         val none = scopeItems().isEmpty()
+        if (tabs.any { it.isFocused }) { showHero(scope); return }
         stageBody.visibility = if (none) View.INVISIBLE else View.VISIBLE
         stageEmpty.visibility = if (none) View.VISIBLE else View.GONE
         if (none) stageEmpty.text = getString(when { !loaded -> R.string.loading; scope == 0 -> R.string.no_favorites; scope == 1 -> R.string.no_recent; else -> R.string.no_hidden })
@@ -530,12 +558,12 @@ class MainActivity : Activity() {
     /** Names the focused app and shows its artwork; the glow takes the artwork's accent colour. */
     private fun showStage(e: AppEntry) {
         focusedEntry = e; focusedKey = e.key
-        stageEmpty.visibility = View.GONE; stageBody.visibility = View.VISIBLE
+        stageEmpty.visibility = View.GONE; scopeHero.visibility = View.GONE; stageBody.visibility = View.VISIBLE
         val accent = accentFor(e)
         val isFav = e.key in prefs.favorites
         Caps.set(stageTag, getString(if (e.virtual) R.string.not_installed else if (isFav) R.string.tag_favorite else R.string.library), 0.22f)
         stageTag.setTextColor(accent)
-        stageTitle.text = e.label
+        stageTitle.text = e.label; stageTitle.typeface = Fonts.familyFor(e.key).first
         stageMeta.text = if (e.virtual) getString(R.string.adguard_open_page) else openedText(e)
         btnFav.text = (if (isFav) "\u2605 " else "\u2606 ") + getString(R.string.tag_favorite)
         val real = if (e.virtual) View.GONE else View.VISIBLE
@@ -797,6 +825,13 @@ class MainActivity : Activity() {
             Info(g(R.string.priv_note), null),
             Action(g(R.string.reset_all), null) { confirmRestore() },
         ) }
+        val widgets = Category(R.drawable.ic_cat_apps, g(R.string.cat_widgets), g(R.string.d_widgets)) {
+            val homeOn = Widgets.parse(prefs.homeWidgets); val saverOn = Widgets.parse(prefs.saverWidgets)
+            listOf<Item>(Info(g(R.string.widgets_home), null)) +
+                Widgets.ALL.map { d -> Toggle(g(d.nameRes), null, { d.id in Widgets.parse(prefs.homeWidgets) }, { prefs.homeWidgets = Widgets.toggle(prefs.homeWidgets, d.id, it); applyWidgets() }) } +
+                Info(g(R.string.widgets_saver), null) +
+                Widgets.ALL.map { d -> Toggle(g(d.nameRes), null, { d.id in Widgets.parse(prefs.saverWidgets) }, { prefs.saverWidgets = Widgets.toggle(prefs.saverWidgets, d.id, it) }) }
+        }
         val about = Category(R.drawable.ic_cat_about, g(R.string.cat_about), g(R.string.d_about)) { listOf(
             Info(g(R.string.app_name), null, getString(R.string.ver_build, appInfo?.versionName ?: "", nf.format(buildNumber(appInfo)))),
             Info(g(R.string.developer), null, "L1avZh"),
@@ -804,7 +839,7 @@ class MainActivity : Activity() {
             Secret(g(R.string.egg_hint)) { showEgg() },
             if (eggRevealed) Info(g(R.string.egg_sequence), null) else Action(g(R.string.egg_reveal), null) { eggRevealed = true; settings?.refresh() },
         ) }
-        return listOf(general, appearance, apps, remote, language, display, adguard, privacy, about)
+        return listOf(general, appearance, widgets, apps, remote, language, display, adguard, privacy, about)
     }
 
     @Suppress("DEPRECATION")

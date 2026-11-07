@@ -67,10 +67,21 @@ object Fonts {
     var display: Typeface = Typeface.create("sans-serif-light", Typeface.NORMAL); private set
     var displayBold: Typeface = Typeface.create("sans-serif-medium", Typeface.NORMAL); private set
 
+    /** Each app gets one of these faces (light, focused) by a stable hash of its package, so the rail has character. */
+    var families: List<Pair<Typeface, Typeface>> = emptyList(); private set
+    fun familyFor(key: String): Pair<Typeface, Typeface> = if (families.isEmpty()) light to regular else families[(key.hashCode() and 0x7FFFFFFF) % families.size]
+
     fun init(ctx: Context) {
         try {
             thin = ctx.resources.getFont(R.font.outfit_thin); light = ctx.resources.getFont(R.font.outfit_light)
             regular = ctx.resources.getFont(R.font.outfit_regular); medium = ctx.resources.getFont(R.font.outfit_medium)
+            families = listOf(
+                light to regular,
+                ctx.resources.getFont(R.font.f_spacegrotesk_l) to ctx.resources.getFont(R.font.f_spacegrotesk_r),
+                ctx.resources.getFont(R.font.f_fraunces_l) to ctx.resources.getFont(R.font.f_fraunces_r),
+                ctx.resources.getFont(R.font.f_sora_l) to ctx.resources.getFont(R.font.f_sora_r),
+                ctx.resources.getFont(R.font.f_syne_l) to ctx.resources.getFont(R.font.f_syne_r),
+            )
             display = ctx.resources.getFont(R.font.unbounded_light); displayBold = ctx.resources.getFont(R.font.unbounded_regular)
         } catch (_: Exception) { /* keep the system fonts */ }
     }
