@@ -46,7 +46,7 @@ class MainActivity : Activity() {
     private lateinit var icons: IconLoader
     private lateinit var frame: FrameLayout
     private lateinit var wallpaperView: View
-    private lateinit var glowView: View
+    private lateinit var glowView: LiveBackground
     private lateinit var header: LinearLayout
     private lateinit var railBox: View
     private lateinit var stageBody: LinearLayout
@@ -78,7 +78,6 @@ class MainActivity : Activity() {
     private var focusedKey: String? = null
     private var entered = false
 
-    private val glowDrawable = GradientDrawable()
     private var glowColor = T.ACCENT
     private var glowAnim: ValueAnimator? = null
 
@@ -298,11 +297,7 @@ class MainActivity : Activity() {
 
         // Layer 1: wallpaper. Layer 2: accent glow behind the stage. Layer 3: optional dimming.
         wallpaperView = View(this).apply { background = wallpaperDrawable() }
-        glowDrawable.gradientType = GradientDrawable.RADIAL_GRADIENT
-        glowDrawable.setGradientCenter(if (rtl) 0.3f else 0.7f, 0.42f)
-        glowDrawable.gradientRadius = s.px(1150f)
-        setGlowColor(glowColor)
-        glowView = View(this).apply { background = glowDrawable; visibility = if (prefs.glow && !prefs.performance) View.VISIBLE else View.GONE }
+        glowView = LiveBackground(this).apply { visibility = if (prefs.glow) View.VISIBLE else View.GONE; setStatic(prefs.performance); setAccent(glowColor) }
         dimView = View(this).apply { setBackgroundColor(dimColor()) }
         frame.addView(wallpaperView, -1, -1); frame.addView(glowView, -1, -1); frame.addView(dimView, -1, -1)
 
@@ -474,11 +469,12 @@ class MainActivity : Activity() {
 
     private fun setGlowColor(c: Int) {
         glowColor = c
-        glowDrawable.colors = intArrayOf((c and 0x00FFFFFF) or (0x66 shl 24), c and 0x00FFFFFF)
+        if (::glowView.isInitialized) glowView.setAccent(c)
     }
 
     private fun glowTo(target: Int) {
         glowAnim?.cancel()
+        if (::glowView.isInitialized) glowView.pulse()
         if (!T.animated || target == glowColor) { setGlowColor(target); return }
         glowAnim = ValueAnimator.ofObject(ArgbEvaluator(), glowColor, target).apply {
             duration = T.d(T.SLOW + 100); interpolator = T.STD
@@ -688,7 +684,7 @@ class MainActivity : Activity() {
         val a = accentFor(e); stageTag.setTextColor(a); railAdapter.tint(a); glowTo(a)
     }
 
-    private fun applyGlow() { glowView.visibility = if (prefs.glow && !prefs.performance) View.VISIBLE else View.GONE }
+    private fun applyGlow() { glowView.visibility = if (prefs.glow) View.VISIBLE else View.GONE; glowView.setStatic(prefs.performance) }
 
     private fun openSettings(cat: Int = prefs.settingsCategory) {
         if (settings != null) return
