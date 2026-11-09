@@ -82,6 +82,9 @@ class CharacterReactor(var enabled: Boolean = true) {
     /** True while nothing is selected: the character stands relaxed and looks around instead of at a target. */
     var waiting = false
 
+    /** The saved prop in the right hand ('none' for empty hands); set by the renderer whenever the look changes. */
+    var carried = "none"
+
     /** Weather stance and sleep. Sleeping silences every reaction; the stance is a held pose, not a beat. */
     var stance = Stance.NONE
     val sleeping get() = stance == Stance.SLEEP
@@ -140,16 +143,42 @@ class CharacterReactor(var enabled: Boolean = true) {
     companion object { const val NAV_GAP_MS = 90L; const val THEMED_GAP_MS = 1800L }
 }
 
+/**
+ * How the right arm carries each prop. Angles are the arm's pitch and roll in radians (negative pitch lifts the forearm forward), [hand] levels the
+ * prop again after the forearm tilts it, [curl] is how far the fingers close around the grip (the bed of the grip itself is the prop's own
+ * transform in `world.glb`, baked per prop by `tools/assets/build_world.mjs`). One row per prop: no prop shares another's alignment.
+ */
+object PropGrips {
+    class Grip(val upper: Float, val roll: Float, val fore: Float, val hand: Float, val curl: Float)
+    // A fist closes around a rod that runs along the knuckle row (hand-local z), so the arm is bent until that axis points up: the three pitches of
+    // each row add up to about -90 degrees (-1.57 rad). The grip itself (which point of the prop the fist closes on) is baked into world.glb.
+    private val table = mapOf(
+        "candle" to Grip(-0.45f, 0.06f, -0.95f, -0.20f, 0.85f),   // held up in front of the belly, flame upright
+        "book" to Grip(-0.40f, 0.08f, -1.00f, -0.20f, 0.55f),     // carried by its spine at the front, cover facing out
+        "sword" to Grip(-0.50f, 0.10f, -1.00f, -0.10f, 1f),       // at the ready, blade up
+        "axe" to Grip(-0.50f, 0.10f, -1.00f, -0.10f, 1f),
+        "staff" to Grip(-0.30f, 0.10f, -1.10f, -0.20f, 1f),       // planted beside the foot, gripped at chest height
+    )
+    fun of(prop: String): Grip? = table[prop]
+}
+
 /** Joint rotation offsets, in radians as (pitch about x, yaw about y, roll about z), plus a few non-joint channels. */
 class Pose {
     val rot = FloatArray(JOINTS.size * 3)
     var hipsX = 0f; var hipsY = 0f; var hipsZ = 0f
     var rootYaw = 0f
     /** Used for lying down to sleep: roll about the depth axis, a smaller scale, and a shift so the body rests low in the frame. */
-    var rootRoll = 0f; var rootScale = 1f; var rootX = 0f; var rootY = 0f
+    var rootRoll = 0f; var rootPitch = 0f; var rootScale = 1f; var rootX = 0f; var rootY = 0f
     /** 0 = eyes closed, 1 = open, above 1 = widened for a moment. */
     var eyes = 1f
-    fun clear() { rot.fill(0f); hipsX = 0f; hipsY = 0f; hipsZ = 0f; rootYaw = 0f; rootRoll = 0f; rootScale = 1f; rootX = 0f; rootY = 0f; eyes = 1f }
+    /** Finger curl of each hand, 0 = relaxed open, 1 = closed around a grip. Applied to the finger joints by the renderer. */
+    var curlR = 0f; var curlL = 0f
+    /** How much of the saved prop, the umbrella and the bed is "present": the renderer scales each to this, so they grow and shrink with the pose instead of popping. */
+    var propScale = 1f; var umbrellaScale = 0f; var bedScale = 0f
+    /** 0 standing .. 1 lying down; the camera widens with it so the whole bed fits. */
+    var sleepFrame = 0f
+    fun clear() { rot.fill(0f); hipsX = 0f; hipsY = 0f; hipsZ = 0f; rootYaw = 0f; rootRoll = 0f; rootPitch = 0f; rootScale = 1f; rootX = 0f; rootY = 0f; eyes = 1f
+        curlR = 0f; curlL = 0f; propScale = 1f; umbrellaScale = 0f; bedScale = 0f; sleepFrame = 0f }
     fun add(joint: String, pitch: Float, yaw: Float, roll: Float) {
         val i = INDEX[joint] ?: return; rot[i*3] += pitch; rot[i*3 + 1] += yaw; rot[i*3 + 2] += roll
     }
@@ -163,51 +192,72 @@ class Pose {
 }
 
 /**
- * Turns time, reactions and the gaze into a pose. Idle motion is a slow breath, a weight shift, small head drift and
- * blinks; beats add short gestures on top. [motion] is 0 for reduced motion (a still pose), up to 1 for full motion.
+ * Turns time, reactions and the gaze into a pose. Layers, from the bottom: idle (breath, weight shift, head drift, blinks), the held scene state
+ * (carrying the saved prop, the weather stance with the umbrella, or lying in bed) and short beats on top. Every layer has an eased weight, so a
+ * state change is a blend, never a snap, and the prop, umbrella and bed scale with those weights (see [Pose.propScale]).
+ *
+ * Which arm does what: the right hand carries the prop and the umbrella; one-handed gestures move to the left (free) arm while the right one is
+ * busy and are mirrored smoothly as the carry weight changes. [motion] is 0 for reduced motion (held poses only), up to 1 for full motion.
  */
 class CharacterAnimator(private val reactor: CharacterReactor) {
     private var gx = 0f; private var gy = 0f
     private var lastSec = -1.0
     private var wait = 0f                                            // 0..1, eased toward the reactor's waiting flag
     private var sleep = 0f                                           // 0..1, eased toward sleeping
+    private var hold = 0f                                            // 0..1, eased toward "a prop is in the right hand"
     private val stances = FloatArray(Stance.values().size)           // blend per weather stance
     private var nextBlinkSec = 2.5; private var blinkStart = -10.0
     private var blinkSeed = 7
     val pose = Pose()
+
+    private fun ease(cur: Float, target: Float, dt: Double, rate: Double, snap: Boolean) = if (snap) target else cur + (target - cur) * (1 - exp(-dt * rate).toFloat())
+
+    // weights derived each frame
+    private var umb = 0f      // umbrella weight: the strongest weather stance
+    private var free = 0f     // how much the right arm is busy (prop or umbrella): one-handed gestures use the left arm by this much
 
     fun update(nowMs: Long, motion: Float): Pose {
         val t = nowMs / 1000.0
         val dt = if (lastSec < 0) 0.016 else (t - lastSec).coerceIn(0.0, 0.1)
         lastSec = t
         pose.clear()
-        if (motion <= 0f) {
-            // Reduced motion: no easing, no idle, no breathing, but the scene's held pose (lying down, umbrella) still shows.
-            gx = 0f; gy = 0f; sleep = if (reactor.sleeping) 1f else 0f
-            for (s in Stance.values()) stances[s.ordinal] = if (reactor.stance == s && s != Stance.SLEEP) 1f else 0f
-            if (sleep > 0f) sleepPose(t, 1f, 0f) else for (s in Stance.values()) if (stances[s.ordinal] > 0f && s != Stance.NONE) stancePose(s, t, 1f, 0f)
+        val snap = motion <= 0f
+        sleep = ease(sleep, if (reactor.sleeping) 1f else 0f, dt, 0.9, snap)
+        for (s in Stance.values()) stances[s.ordinal] = ease(stances[s.ordinal], if (reactor.stance == s && s != Stance.SLEEP) 1f else 0f, dt, 2.6, snap)
+        umb = 0f; for (s in Stance.values()) if (s != Stance.NONE && s != Stance.SLEEP) umb = max(umb, stances[s.ordinal])
+        val awake = 1f - smooth(sleep / 0.3f)                      // lying down takes the prop and the arm pose away first
+        val grip = PropGrips.of(reactor.carried)
+        hold = ease(hold, if (grip != null) 1f else 0f, dt, 3.0, snap)
+        val carry = hold * (1f - umb) * awake                      // the saved prop is carried only when nothing stronger holds the hand
+        free = max(carry, umb) * awake
+        pose.propScale = if (grip != null) carry else 0f
+        pose.umbrellaScale = umb * awake
+        pose.curlR = max(carry * (grip?.curl ?: 0f), umb * awake); pose.curlL = 0.16f
+        sleepPhases()
+
+        if (snap) {
+            gx = 0f; gy = 0f
+            heldPose(grip, carry, t, 0f)
             return pose
         }
         val k = 1 - exp(-dt * 7.0).toFloat()                        // gaze eases toward its target, frame-rate independent
-        wait += ((if (reactor.waiting) 1f else 0f) - wait) * (1 - exp(-dt * 3.0).toFloat())
-        // while waiting the eyes wander slowly instead of following a target
-        val tx = reactor.gazeX * (1 - wait) + 0.55f * sin(t * 0.55).toFloat() * wait
+        wait = ease(wait, if (reactor.waiting) 1f else 0f, dt, 3.0, false)
+        val tx = reactor.gazeX * (1 - wait) + 0.55f * sin(t * 0.55).toFloat() * wait     // while waiting the eyes wander instead of following a target
         val ty = reactor.gazeY * (1 - wait) + 0.12f * sin(t * 0.31 + 1.0).toFloat() * wait
         gx += (tx - gx) * k; gy += (ty - gy) * k
 
         // idle: breathing, weight shift, small head drift
         val breath = sin(t * 2 * PI * 0.26).toFloat()
         val sway = sin(t * 2 * PI * 0.07).toFloat()
-        pose.hipsY = 0.003f * breath * motion
-        pose.hipsX = 0.012f * sway * motion
-        pose.add("spine", -0.014f * breath * motion, 0f, -0.03f * sway * motion)
-        pose.add("chest", -0.02f * breath * motion, 0f, 0.02f * sway * motion)
-        pose.add("head", 0.02f * sin(t * 2 * PI * 0.11).toFloat() * motion, 0.05f * sin(t * 2 * PI * 0.083).toFloat() * motion, 0f)
-        pose.add("upperarm_l", 0f, 0f, (0.02f * breath) * motion); pose.add("upperarm_r", 0f, 0f, (-0.02f * breath) * motion)
-        pose.add("thigh_l", 0f, 0f, -0.03f * sway * motion); pose.add("thigh_r", 0f, 0f, 0.03f * sway * motion)
-
+        val up = awake                                              // idle sway fades out as the body lies down
+        pose.hipsY = 0.003f * breath * motion * up
+        pose.hipsX = 0.012f * sway * motion * up
+        pose.add("spine", -0.014f * breath * motion, 0f, -0.03f * sway * motion * up)
+        pose.add("chest", -0.02f * breath * motion, 0f, 0.02f * sway * motion * up)
+        pose.add("head", 0.02f * sin(t * 2 * PI * 0.11).toFloat() * motion * up, 0.05f * sin(t * 2 * PI * 0.083).toFloat() * motion * up, 0f)
+        pose.add("thigh_l", 0f, 0f, -0.03f * sway * motion * up); pose.add("thigh_r", 0f, 0f, 0.03f * sway * motion * up)
         // attention: the head and upper body turn a little toward whatever has focus
-        val look = 0.55f * motion
+        val look = 0.55f * motion * up
         pose.add("head", -gy * 0.30f * look, gx * 0.65f * look, 0f)
         pose.add("neck", -gy * 0.10f * look, gx * 0.22f * look, 0f)
         pose.add("chest", 0f, gx * 0.16f * look, 0f)
@@ -217,37 +267,55 @@ class CharacterAnimator(private val reactor: CharacterReactor) {
         val bu = ((t - blinkStart) / 0.16).toFloat()
         if (bu in 0f..1f) pose.eyes = 1f - 0.92f * sin(bu * PI.toFloat())
 
-        sleep += ((if (reactor.sleeping) 1f else 0f) - sleep) * (1 - exp(-dt * 2.2).toFloat())
-        for (s in Stance.values()) { val target = if (reactor.stance == s && s != Stance.SLEEP) 1f else 0f; stances[s.ordinal] += (target - stances[s.ordinal]) * (1 - exp(-dt * 2.6).toFloat()) }
-        if (sleep > 0.01f) sleepPose(t, sleep, motion)
-        else if (wait > 0.01f) waitingPose(t, wait * motion)
-        for (s in Stance.values()) if (s != Stance.NONE && s != Stance.SLEEP && stances[s.ordinal] > 0.01f && sleep < 0.5f) stancePose(s, t, stances[s.ordinal], motion)
-        reactor.active(nowMs)?.let { a -> beat(a.beat, a.progress, motion) }
+        heldPose(grip, carry, t, motion)
+        if (wait > 0.01f && sleep < 0.01f) waitingPose(t, wait * motion)
+        reactor.active(nowMs)?.let { a -> if (sleep < 0.05f) beat(a.beat, a.progress, motion) }
         return pose
     }
 
-    /** Lying down: the whole body rolls onto its side under a blanket, arms folded, eyes closed, slow breathing. */
-    private fun sleepPose(t: Double, w: Float, motion: Float) {
-        val br = sin(t * 2 * PI * 0.14).toFloat() * motion          // with reduced motion the figure still lies down, it just does not breathe
-        pose.rootRoll = (PI / 2).toFloat() * w; pose.rootScale = 1f - 0.38f * w; pose.rootX = 0.56f * w; pose.rootY = 0.35f * w
-        pose.eyes = 1f - 0.97f * w
-        pose.hipsY += 0.004f * br * w
-        pose.add("chest", -0.03f * br * w, 0f, 0f); pose.add("head", 0.12f * w, 0f, 0.15f * w)
-        pose.add("upperarm_l", -0.55f * w, 0f, -0.15f * w); pose.add("forearm_l", -1.75f * w, 0f, 0f)
-        pose.add("upperarm_r", -0.55f * w, 0f, 0.15f * w); pose.add("forearm_r", -1.75f * w, 0f, 0f)
-        pose.add("shin_l", 0.18f * w, 0f, 0f); pose.add("shin_r", 0.12f * w, 0f, 0f)
+    /** The held layers: carrying the prop, the weather stance, and lying down. */
+    private fun heldPose(grip: PropGrips.Grip?, carry: Float, t: Double, motion: Float) {
+        if (grip != null && carry > 0f) {
+            pose.add("upperarm_r", grip.upper * carry, 0f, grip.roll * carry); pose.add("forearm_r", grip.fore * carry, 0f, 0f); pose.add("hand_r", grip.hand * carry, 0f, 0f)
+        }
+        for (s in Stance.values()) if (s != Stance.NONE && s != Stance.SLEEP && stances[s.ordinal] > 0.001f) stancePose(s, t, stances[s.ordinal] * (1f - smooth(sleep / 0.3f)), motion)
+        if (sleep > 0.001f) sleepPose(t, motion)
     }
 
-    /** Holding an umbrella overhead with the right arm, plus what the weather does to the rest of the body. */
+    // ---- lying down -----------------------------------------------------------------------------------------------------------------
+    private var bedRise = 0f; private var lie = 0f
+    /** Phase 1 (first 30%): the bed grows under the standing character, who rises with its mattress. Phase 2: it lies down on its side. */
+    private fun sleepPhases() {
+        bedRise = smooth(sleep / 0.3f); lie = smooth((sleep - 0.3f) / 0.7f)
+        pose.bedScale = bedRise; pose.sleepFrame = sleep
+        pose.rootY = BED_TOP * bedRise + LIE_LIFT * lie
+        pose.rootPitch = (-PI / 2).toFloat() * lie; pose.rootYaw = (PI / 2).toFloat() * lie; pose.rootX = LIE_X * lie       // on the back, face up, head toward the pillow
+        pose.eyes = 1f - 0.97f * smooth((lie - 0.6f) / 0.4f)
+    }
+
+    /** On the back, face up, seen from the side: head on the pillow, one knee drawn up, both arms resting along the body. */
+    private fun sleepPose(t: Double, motion: Float) {
+        val w = lie; if (w <= 0f) return
+        val br = sin(t * 2 * PI * 0.14).toFloat() * motion          // with reduced motion the figure still lies down, it just does not breathe
+        pose.hipsY += 0.004f * br * w
+        pose.add("chest", -0.03f * br * w, 0f, 0f); pose.add("head", 0.20f * w, 0f, 0f); pose.add("neck", 0.08f * w, 0f, 0f)
+        pose.add("upperarm_l", 0.02f * w, 0f, 0.12f * w); pose.add("forearm_l", -0.22f * w, 0f, 0f)       // both arms rest along the body, elbows slightly bent
+        pose.add("upperarm_r", 0.02f * w, 0f, 0.12f * w); pose.add("forearm_r", -0.28f * w, 0f, 0f)
+        pose.add("thigh_l", -0.75f * w, 0f, 0f); pose.add("shin_l", 1.25f * w, 0f, 0f)
+        pose.add("thigh_r", -0.04f * w, 0f, 0f); pose.add("shin_r", 0.10f * w, 0f, 0f)
+        pose.curlL = 0.30f * w + pose.curlL * (1 - w); pose.curlR = 0.30f * w + pose.curlR * (1 - w)
+    }
+
+    /** Holding an umbrella with the right arm, plus what the weather does to the rest of the body. */
     private fun stancePose(s: Stance, t: Double, w: Float, motion: Float) {
-        pose.add("upperarm_r", -0.8f * w, 0f, 0.0f * w); pose.add("forearm_r", -1.4f * w, 0f, 0f); pose.add("hand_r", -1.0f * w, 0f, 0.45f * w)
+        pose.add("upperarm_r", -0.55f * w, 0f, -0.10f * w); pose.add("forearm_r", -1.25f * w, 0f, 0f); pose.add("hand_r", -0.05f * w, 0f, 0f)
         when (s) {
-            Stance.RAIN -> { pose.add("head", -0.1f * w, 0f, 0f); pose.add("upperarm_l", -0.35f * w, 0f, -0.28f * w); pose.add("forearm_l", -0.7f * w, 0f, 0f) }
-            Stance.SNOW -> { pose.add("head", -0.18f * w, 0f, 0.05f * w); pose.add("upperarm_l", -0.7f * w, 0f, -0.35f * w); pose.add("forearm_l", -0.5f * w, 0f, 0f); pose.add("hand_l", -0.4f * w, 0f, 0f) }
+            Stance.RAIN -> { pose.add("head", -0.1f * w, 0f, 0f); pose.add("upperarm_l", -0.2f * w, 0f, -0.22f * w); pose.add("forearm_l", -0.55f * w, 0f, 0f) }
+            Stance.SNOW -> { pose.add("head", -0.18f * w, 0f, 0.05f * w); pose.add("upperarm_l", -0.35f * w, 0f, -0.28f * w); pose.add("forearm_l", -0.5f * w, 0f, 0f) }
             Stance.STORM -> {
                 val gust = sin(t * 9).toFloat() * motion
                 pose.add("spine", 0.16f * w, 0f, 0f); pose.add("chest", 0.08f * w, 0f, 0f); pose.hipsZ -= 0.03f * w
-                pose.add("upperarm_r", 0f, 0f, 0.05f * gust * w); pose.add("upperarm_l", -1.0f * w, 0f, -0.2f * w); pose.add("forearm_l", -1.3f * w, 0f, 0f)
+                pose.add("upperarm_r", 0f, 0f, 0.05f * gust * w); pose.add("upperarm_l", -0.5f * w, 0f, -0.2f * w); pose.add("forearm_l", -0.9f * w, 0f, 0f)
                 pose.eyes = max(pose.eyes, 1f + 0.25f * w)
             }
             Stance.COLD -> {
@@ -260,14 +328,22 @@ class CharacterAnimator(private val reactor: CharacterReactor) {
         }
     }
 
-    /** Relaxed "waiting for a selection": weight on one leg, a hand raised to the chin, the head tilted, slow breathing. */
+    /** One arm. [side] is 'l' or 'r'; a positive [roll] always means "away from the body". */
+    private fun arm(side: Char, up: Float, roll: Float, fore: Float, hand: Float, w: Float) {
+        if (w <= 0f) return
+        val sgn = if (side == 'r') 1f else -1f
+        pose.add("upperarm_$side", up * w, 0f, roll * sgn * w); pose.add("forearm_$side", fore * w, 0f, 0f); pose.add("hand_$side", hand * w, 0f, 0f)
+    }
+    /** A one-handed gesture: the right hand normally, the free left hand while the right one is busy, blended as that changes. */
+    private fun oneHand(up: Float, roll: Float, fore: Float, hand: Float, w: Float) { arm('r', up, roll, fore, hand, w * (1f - free)); arm('l', up, roll, fore, hand, w * free) }
+
+    /** Relaxed "waiting for a selection": weight on one leg, a free hand at the chin, the head tilted, slow breathing. */
     private fun waitingPose(t: Double, w: Float) {
         val sway = sin(t * 2 * PI * 0.05).toFloat()
         pose.hipsX += 0.035f * w; pose.hipsY -= 0.006f * w
         pose.add("spine", 0.02f * w, 0f, -0.05f * w); pose.add("chest", 0f, -0.06f * w, 0.03f * w)
         pose.add("head", 0.04f * w, 0f, 0.1f * w + 0.015f * sway * w)
-        pose.add("upperarm_r", -0.55f * w, 0f, 0.2f * w); pose.add("forearm_r", -1.35f * w, 0f, 0f); pose.add("hand_r", -0.2f * w, 0f, 0f)
-        pose.add("upperarm_l", 0f, 0f, 0.06f * w); pose.add("forearm_l", -0.12f * w, 0f, 0f)
+        oneHand(-0.55f, 0.2f, -1.35f, -0.2f, w)
         pose.add("thigh_l", 0f, 0f, -0.07f * w); pose.add("thigh_r", 0f, 0f, 0.05f * w)
     }
 
@@ -280,77 +356,76 @@ class CharacterAnimator(private val reactor: CharacterReactor) {
     private fun beat(b: Beat, u: Float, m: Float) {
         val e = shape(u) * m
         when (b) {
-            Beat.NAVIGATE -> {                                      // a small nod toward the new target and a glance of the hand
+            Beat.NAVIGATE -> {                                      // a small nod toward the new target
                 pose.add("head", 0.05f * e, gx * 0.10f * e, 0f)
                 pose.add("spine", 0.02f * e, gx * 0.06f * e, 0f)
-                pose.add("forearm_r", -0.10f * e, 0f, 0f)
             }
             Beat.CATEGORY -> {                                      // chest lifts, shoulders settle: "new place"
                 pose.add("chest", -0.06f * e, 0f, 0f); pose.add("clavicle_l", 0f, 0f, 0.06f * e); pose.add("clavicle_r", 0f, 0f, -0.06f * e)
                 pose.add("head", 0.04f * e, 0f, 0f)
             }
-            Beat.BACK -> {                                          // a step back and a small open-hand dismissal
+            Beat.BACK -> {                                          // a step back and a small open-hand dismissal with the free hand
                 pose.hipsZ = -0.035f * e
                 pose.add("spine", -0.04f * e, 0f, 0f); pose.add("head", 0f, -0.18f * sin(u * 2 * PI.toFloat()) * m, 0f)
-                pose.add("upperarm_l", -0.25f * e, 0f, -0.2f * e); pose.add("forearm_l", -0.45f * e, 0f, 0f)
+                arm('l', -0.25f, 0.2f, -0.45f, 0f, e)
             }
-            Beat.CONFIRM -> {                                       // nod, raised hand, eyes widen for a moment
+            Beat.CONFIRM -> {                                       // a nod and the free hand lifts a little
                 pose.add("head", 0.20f * sin(u * PI.toFloat() * 1.6f) * m, 0f, 0f)
-                pose.add("upperarm_r", -0.85f * e, 0f, 0.35f * e); pose.add("forearm_r", -1.05f * e, 0f, 0f); pose.add("hand_r", -0.2f * e, 0f, 0f)
+                oneHand(-0.45f, 0.18f, -0.75f, -0.1f, e)
                 pose.hipsY += 0.012f * e
                 pose.eyes = max(pose.eyes, 1f + 0.35f * e)
             }
-            Beat.LONG_PRESS -> {                                    // both hands lift: "options"
-                pose.add("upperarm_l", -0.55f * e, 0f, -0.15f * e); pose.add("forearm_l", -0.8f * e, 0f, 0f)
-                pose.add("upperarm_r", -0.55f * e, 0f, 0.15f * e); pose.add("forearm_r", -0.8f * e, 0f, 0f)
+            Beat.LONG_PRESS -> {                                    // both hands lift: "options" (a busy hand stays where it is)
+                arm('l', -0.55f, 0.15f, -0.8f, 0f, e); arm('r', -0.55f, 0.15f, -0.8f, 0f, e * (1f - free))
                 pose.add("head", 0.05f * e, 0f, 0f)
             }
             Beat.PREVIEW -> {                                       // quarter turn to show the outfit off
                 pose.rootYaw = 0.55f * e
                 pose.add("head", 0f, -0.30f * e, 0f)
-                pose.add("upperarm_l", -0.2f * e, 0f, -0.25f * e)
+                arm('l', -0.2f, 0.25f, 0f, 0f, e)
             }
             Beat.CANCEL -> {                                        // shrug
                 pose.add("clavicle_l", 0f, 0f, 0.20f * e); pose.add("clavicle_r", 0f, 0f, -0.20f * e)
-                pose.add("head", 0f, 0f, 0.10f * e); pose.add("upperarm_l", 0f, 0f, -0.10f * e); pose.add("upperarm_r", 0f, 0f, 0.10f * e)
+                pose.add("head", 0f, 0f, 0.10f * e)
             }
             Beat.APPLY -> {                                         // a small bow of thanks
                 pose.add("spine", 0.30f * shape(u) * m, 0f, 0f); pose.add("head", 0.22f * shape(u) * m, 0f, 0f)
-                pose.add("upperarm_l", 0f, 0f, -0.05f * e)
             }
-            Beat.LISTEN -> {                                        // both hands to the ears, a small nod to a beat that only the character hears
+            Beat.LISTEN -> {                                        // hands to the ears, a small nod to a beat that only the character hears
                 val bob = sin(u * 2 * PI.toFloat() * 3f) * m
-                pose.add("upperarm_l", -0.9f * e, 0f, -0.25f * e); pose.add("forearm_l", -1.7f * e, 0f, 0f)
-                pose.add("upperarm_r", -0.9f * e, 0f, 0.25f * e); pose.add("forearm_r", -1.7f * e, 0f, 0f)
+                arm('l', -0.9f, 0.25f, -1.7f, 0f, e); arm('r', -0.9f, 0.25f, -1.7f, 0f, e * (1f - free))
                 pose.add("head", 0.05f * bob * e, 0f, 0.03f * bob * e); pose.hipsY += 0.006f * bob * e
             }
-            Beat.WATCH -> {                                         // turns toward the screen and presents a remote
+            Beat.WATCH -> {                                         // turns toward the screen and presents a remote with the free hand
                 pose.rootYaw = -0.25f * e
-                pose.add("upperarm_r", -0.7f * e, 0f, 0.3f * e); pose.add("forearm_r", -0.95f * e, 0f, 0f); pose.add("hand_r", -0.4f * e, 0f, 0f)
+                oneHand(-0.7f, 0.3f, -0.95f, -0.4f, e)
                 pose.add("head", 0.03f * e, 0.2f * e, 0f)
             }
             Beat.LAUNCH_LISTEN -> {                                 // a bigger version of the same gesture as the app opens
                 val bob = sin(u * 2 * PI.toFloat() * 3f) * m
-                pose.add("upperarm_l", -1.0f * e, 0f, -0.3f * e); pose.add("forearm_l", -1.8f * e, 0f, 0f)
-                pose.add("upperarm_r", -1.0f * e, 0f, 0.3f * e); pose.add("forearm_r", -1.8f * e, 0f, 0f)
+                arm('l', -1.0f, 0.3f, -1.8f, 0f, e); arm('r', -1.0f, 0.3f, -1.8f, 0f, e * (1f - free))
                 pose.add("head", 0.08f * bob * e, 0f, 0f); pose.eyes = max(pose.eyes, 1f + 0.2f * e)
             }
             Beat.LAUNCH_WATCH -> {
                 pose.rootYaw = -0.3f * e
-                pose.add("upperarm_r", -0.9f * e, 0f, 0.35f * e); pose.add("forearm_r", -1.1f * e, 0f, 0f)
+                oneHand(-0.9f, 0.35f, -1.1f, 0f, e)
                 pose.add("head", 0.05f * e, 0.25f * e, 0f); pose.eyes = max(pose.eyes, 1f + 0.2f * e)
             }
-            Beat.RETURN -> {                                        // a small wave: nothing is claimed about what happened in the other app
-                val wave = sin(u * 2 * PI.toFloat() * 2.5f)
-                pose.add("upperarm_l", -0.2f * e, 0f, -1.9f * e); pose.add("forearm_l", -0.5f * e + 0.35f * wave * e, 0f, 0f)
-                pose.add("head", 0f, 0f, 0.07f * e)
+            Beat.RETURN -> {                                        // a glad nod and an open free hand; nothing is claimed about what happened in the other app
+                pose.add("head", 0.12f * sin(u * PI.toFloat()) * m, 0f, 0.05f * e)
+                arm('l', -0.35f, 0.25f, -0.7f, 0f, e)
             }
             Beat.EQUIP -> {                                         // a full turn on the spot while the new look is swapped in
                 pose.rootYaw = (2 * PI.toFloat()) * smooth(u) * m
-                pose.add("upperarm_l", -0.3f * e, 0f, -0.45f * e); pose.add("upperarm_r", -0.3f * e, 0f, 0.45f * e)
+                arm('l', -0.1f, 0.3f, 0f, 0f, e); arm('r', -0.1f, 0.3f, 0f, 0f, e * (1f - free))
                 pose.hipsY += 0.015f * sin(u * PI.toFloat()) * m
             }
         }
+    }
+
+    companion object {
+        /** Mattress top of `world.glb`'s bed at scale 1, and where a side-lying body rests relative to it (set from the model; see docs/character.md). */
+        const val BED_TOP = 0.52f; const val LIE_LIFT = 0.17f; const val LIE_X = 0.84f
     }
 }
 

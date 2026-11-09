@@ -72,7 +72,7 @@ adb shell "am start -n dev.l1avzh.haven/.MainActivity --es haven_weather '61|9|1
 ```
 
 `haven_weather` is `code|celsius|isDay` (isDay `1`, `0` or empty), `off` clears it; `haven_daynight` is `0`, `1`, `2` or `off`;
-`haven_character` picks human, wizard or robot; `--ez haven_saver true` opens the screensaver. They are stored under `dbg_*` preference keys, which a
+`haven_character` picks human, wizard or robot; `--ef haven_yaw <deg>` turns the character to inspect poses from the side; `--ez haven_saver true` opens the screensaver. They are stored under `dbg_*` preference keys, which a
 release build never reads.
 
 ## What was and was not verified

@@ -67,11 +67,18 @@ class CharacterView(ctx: Context) : TextureView(ctx), Choreographer.FrameCallbac
     private class Joint(val entity: Int, val inst: Int, val bind: FloatArray)
     /** One loaded character: its skeleton, eyes and the optional pieces that can be shown or hidden. */
     private class Model(val def: CharacterDef, val asset: FilamentAsset, val joints: Map<String, Joint>, val eyes: List<Joint>,
-                        val outfits: Map<String, Int>, val star: Int, val always: IntArray, val attachR: Int)
+                        val outfits: Map<String, Int>, val star: Int, val always: IntArray, val attachR: Int, val fingers: List<Finger>)
+    /** One finger segment: which hand (+1 right, -1 left), which finger (0 thumb .. 4 pinky) and segment (1..3), for the grip curl. */
+    private class Finger(val joint: Joint, val side: Float, val finger: Int, val seg: Int)
     /** Props, bed, scenery and weather effects, loaded once and shared by every character. Entities are shown or hidden by name. */
     private class World(val asset: FilamentAsset, val ent: Map<String, Int>) { var attachedTo: Model? = null }
     private var world: World? = null
     private var envNight = false
+    private var debugYaw = 0f
+    /** Debug builds only: turns the character about its vertical axis so poses and grips can be inspected from the side. */
+    fun setDebugYaw(deg: Float) { debugYaw = Math.toRadians(deg.toDouble()).toFloat(); dirty = true; kick() }
+    private val shown = HashSet<Int>()       // world entities currently in the scene, so show/hide only touches the scene on a change
+    private var framedUmb = -1f; private var framedSleep = -1f
     private var envEffect = WeatherEffect.NONE
     private val models = HashMap<String, Model>()
     private var active: Model? = null
@@ -116,7 +123,7 @@ class CharacterView(ctx: Context) : TextureView(ctx), Choreographer.FrameCallbac
     /** Weather and day/night staging: a held pose, a temporary prop (the umbrella) and the sleeping setup. The saved look is untouched. */
     fun setScene(s: SceneLook) {
         if (s.stance == scenery.stance && s.propOverride == scenery.propOverride && s.sleeping == scenery.sleeping) return
-        scenery = s; reactor.stance = s.stance; applyLook(); frameCamera(); dirty = true; kick()
+        scenery = s; reactor.stance = s.stance; dirty = true; kick()
     }
 
     /** The scenery around the character: sky (sun or moon) and the weather in 3D. Independent of the saved look. */
@@ -221,17 +228,15 @@ class CharacterView(ctx: Context) : TextureView(ctx), Choreographer.FrameCallbac
     }
 
     private var aspect = 0.73
-    private fun frameCamera() {
+    /** Frames the character. The camera backs off and rises while an umbrella is up (head-room) and again while lying down (the whole bed must fit); both follow the pose weights, so it glides. */
+    private fun frameCamera(umb: Float = 0f, sleepF: Float = 0f) {
         val d = (active?.def ?: Look.def(look.character))
-        // An umbrella needs headroom; a sleeper is lower and smaller, so it is framed lower. The default framing is unchanged.
-        val umbrella = scenery.propOverride == "umbrella"
-        var dist = d.cameraDistance * (if (umbrella) 1.32 else 1.0); var ty = d.cameraTargetY + (if (umbrella) 0.2 else 0.0)
-        if (scenery.sleeping) {
-            // A lying figure is wide and low: come in until it fills the view's width, but never further out than the standing frame.
-            val fit = 1.75 / (2 * Math.tan(Math.toRadians(10.5)) * aspect)
-            dist = fit.coerceIn(2.4, d.cameraDistance); ty = 0.3
-        }
-        camera?.setProjection(21.0, aspect, 0.1, 30.0, Camera.Fov.VERTICAL)
+        framedUmb = umb; framedSleep = sleepF
+        fun lerp(a: Double, b: Double, f: Float) = a + (b - a) * f
+        var dist = lerp(d.cameraDistance, d.cameraDistance * 1.32, umb); var ty = lerp(d.cameraTargetY, d.cameraTargetY + 0.2, umb)
+        val fit = 2.7 / (2 * Math.tan(Math.toRadians(10.5)) * aspect)          // distance at which a 2.7 unit wide bed fills the view
+        dist = lerp(dist, fit.coerceIn(d.cameraDistance, 14.0), sleepF); ty = lerp(ty, 0.62, sleepF)
+        camera?.setProjection(21.0, aspect, 0.1, 40.0, Camera.Fov.VERTICAL)
         camera?.lookAt(0.0, ty + 0.03, dist, 0.0, ty, 0.0, 0.0, 1.0, 0.0)
     }
 
@@ -259,7 +264,10 @@ class CharacterView(ctx: Context) : TextureView(ctx), Choreographer.FrameCallbac
             val outfits = def.outfits.associateWith { a.getFirstEntityByName("outfit_$it") }
             val star = a.getFirstEntityByName("acc_star")
             val optional = (outfits.values + star).toSet()
-            Model(def, a, joints, listOfNotNull(joint("eye_l"), joint("eye_r")), outfits, star, a.entities.filter { it !in optional }.toIntArray(), a.getFirstEntityByName("attach_hand_r"))
+            val fingers = ArrayList<Finger>()
+            for (s in listOf("r" to 1f, "l" to -1f)) for ((fi, f) in listOf("thumb", "index", "middle", "ring", "pinky").withIndex()) for (seg in 1..3)
+                joint("${f}_0${seg}_${s.first}")?.let { fingers += Finger(it, s.second, fi, seg) }
+            Model(def, a, joints, listOfNotNull(joint("eye_l"), joint("eye_r")), outfits, star, a.entities.filter { it !in optional }.toIntArray(), a.getFirstEntityByName("attach_hand_r"), fingers)
                 .also { models[def.id] = it }
         } catch (t: Throwable) { Log.w("Haven", "character ${def.id} not loaded: $t"); null }
     }
@@ -292,23 +300,14 @@ class CharacterView(ctx: Context) : TextureView(ctx), Choreographer.FrameCallbac
         s.addEntities(want.always)
         for ((o, ent) in want.outfits) if (ent != 0) { if (o == look.outfit) s.addEntity(ent) else s.removeEntity(ent) }
         if (want.star != 0) { if (look.star) s.addEntity(want.star) else s.removeEntity(want.star) }
-        if (w != null) {
-            if (w.attachedTo !== want && want.attachR != 0) {
-                val parent = tm.getInstance(want.attachR)
-                w.ent.forEach { (n, ent) -> if (n.startsWith("prop_") && ent != 0) tm.setParent(tm.getInstance(ent), parent) }; w.attachedTo = want
-            }
-            fun show(name: String, on: Boolean) { val ent = w.ent[name] ?: 0; if (ent != 0) { if (on) s.addEntity(ent) else s.removeEntity(ent) } }
-            val shown = if (scenery.sleeping) null else scenery.propOverride ?: look.prop
-            for (n in w.ent.keys) if (n.startsWith("prop_")) show(n, n == "prop_$shown")
-            val sleeping = scenery.sleeping; val snowy = envEffect == WeatherEffect.SNOW
-            show("bed", sleeping)
-            w.ent["bed"]?.takeIf { it != 0 }?.let { setT(tm, it, 0f, 0f, -0.08f) }    // behind the sleeper, so the face is not hidden by the pillow
-            show("ground_grass", !snowy); show("ground_snow", snowy); show("env_day", !snowy && !sleeping); show("env_snow", snowy && !sleeping)
-            show("env_sun", !envNight && envEffect == WeatherEffect.NONE); show("env_moon", envNight)
-            val rain = !sleeping && (envEffect == WeatherEffect.RAIN || envEffect == WeatherEffect.STORM); val snow = !sleeping && snowy
-            show("fx_rain_0", rain); show("fx_rain_1", rain); show("fx_snow_0", snow); show("fx_snow_1", snow)
+        if (w != null && w.attachedTo !== want && want.attachR != 0) {
+            val parent = tm.getInstance(want.attachR)
+            w.ent.forEach { (n, ent) -> if (n.startsWith("prop_") && ent != 0) tm.setParent(tm.getInstance(ent), parent) }; w.attachedTo = want
         }
-        if (active !== want) { active = want; frameCamera() }
+        reactor.carried = look.prop
+        shown.clear(); w?.ent?.values?.forEach { if (it != 0) s.removeEntity(it) }     // visibility is re-derived from the pose on the next frame
+        dirty = true
+        if (active !== want) { active = want; frameCamera(framedUmb.coerceAtLeast(0f), framedSleep.coerceAtLeast(0f)) }
     }
 
     private fun destroyEngine() {
@@ -364,9 +363,35 @@ class CharacterView(ctx: Context) : TextureView(ctx), Choreographer.FrameCallbac
         }
         val pose = animator.update(nowMs, motion)
         poseJoints(e, pose)
+        syncWorld(e, pose)
         scrollEffects(e, nowMs)
         active?.asset?.instance?.animator?.updateBoneMatrices()
         if (r.beginFrame(sc, frameTimeNanos)) { r.render(v); r.endFrame() }
+    }
+
+    /**
+     * Derives what is in the scene from the pose weights: the saved prop, the umbrella and the bed grow and shrink with the pose (never pop), and the
+     * scenery follows day, night, weather and whether the character lies down. Only changes touch the scene; the camera follows the same weights.
+     */
+    private fun syncWorld(e: Engine, p: Pose) {
+        val w = world ?: return; val s = scene ?: return; val tm = e.transformManager
+        fun vis(name: String, on: Boolean): Int { val ent = w.ent[name] ?: 0; if (ent == 0) return 0
+            if (on && shown.add(ent)) s.addEntity(ent) else if (!on && shown.remove(ent)) s.removeEntity(ent); return ent }
+        fun scaled(name: String, f: Float) { val ent = vis(name, f > 0.02f); if (ent != 0 && f > 0.02f) setS(tm, ent, f) }
+        val prop = look.prop
+        for (n in w.ent.keys) if (n.startsWith("prop_") && n != "prop_umbrella") scaled(n, if (n == "prop_$prop") p.propScale else 0f)
+        scaled("prop_umbrella", p.umbrellaScale)
+        scaled("bed", p.bedScale)
+        val lying = p.sleepFrame > 0.3f; val snowy = envEffect == WeatherEffect.SNOW
+        vis("env_day", !snowy && !lying); vis("env_snow", snowy && !lying)
+        scaled("ground_grass", if (snowy) 0f else 1f + 1.6f * p.bedScale); scaled("ground_snow", if (snowy) 1f + 1.6f * p.bedScale else 0f)
+        vis("env_sun", !envNight && envEffect == WeatherEffect.NONE && !lying); vis("env_moon", envNight && !lying)
+        val rain = !lying && (envEffect == WeatherEffect.RAIN || envEffect == WeatherEffect.STORM); val snow = !lying && snowy
+        vis("fx_rain_0", rain); vis("fx_rain_1", rain); vis("fx_snow_0", snow); vis("fx_snow_1", snow)
+        if (kotlin.math.abs(p.umbrellaScale - framedUmb) > 0.004f || kotlin.math.abs(p.sleepFrame - framedSleep) > 0.004f) frameCamera(p.umbrellaScale, p.sleepFrame)
+    }
+    private fun setS(tm: com.google.android.filament.TransformManager, ent: Int, f: Float) {
+        val m = scratch; m.fill(0f); m[0] = f; m[5] = f; m[10] = f; m[15] = 1f; tm.setTransform(tm.getInstance(ent), m)
     }
 
     /** Rain and snow are 3D layers of small meshes that scroll down and wrap; with reduced motion they hold still. */
@@ -398,11 +423,14 @@ class CharacterView(ctx: Context) : TextureView(ctx), Choreographer.FrameCallbac
             tm.setTransform(j.inst, scratch)
         }
         m.joints["root"]?.let { j ->
-            compose(j.bind, 0f, p.rootYaw, p.rootRoll, scratch)
+            compose(j.bind, p.rootPitch, p.rootYaw + debugYaw, p.rootRoll, scratch)
             if (p.rootScale != 1f) for (k in 0 until 12) scratch[k] *= p.rootScale
             scratch[12] += p.rootX; scratch[13] += p.rootY
             tm.setTransform(j.inst, scratch)
         }
+        for (f in m.fingers) { val c = if (f.side > 0f) p.curlR else p.curlL
+            val maxAngle = if (f.finger == 0) floatArrayOf(0.30f, 0.45f, 0.45f)[f.seg - 1] else floatArrayOf(0.95f, 1.15f, 0.85f)[f.seg - 1] * (if (f.finger == 4) 0.92f else 1f)
+            compose(f.joint.bind, 0f, 0f, f.side * c * maxAngle, scratch); tm.setTransform(f.joint.inst, scratch) }
         for (eye in m.eyes) blink(tm, eye, p.eyes)
     }
 

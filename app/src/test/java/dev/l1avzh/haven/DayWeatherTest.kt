@@ -94,10 +94,10 @@ class SleepAndStanceTest {
     @Test fun sleepLiesDownAndClosesTheEyesThenStandsBackUp() {
         val r = CharacterReactor(); val a = CharacterAnimator(r); a.update(0, 1f); r.stance = Stance.SLEEP
         var p = a.update(0, 1f); for (t in 16..6000 step 16) p = a.update(t.toLong(), 1f)
-        assertTrue("rolled onto its side", p.rootRoll > 1.4f); assertTrue("smaller on the floor", p.rootScale < 0.7f); assertTrue("eyes closed", p.eyes < 0.15f)
+        assertTrue("on its back", p.rootPitch < -1.4f); assertTrue("head toward the pillow", p.rootYaw > 1.4f); assertTrue("bed is up", p.bedScale > 0.95f); assertTrue("prop put away", p.propScale == 0f); assertTrue("eyes closed", p.eyes < 0.15f)
         r.stance = Stance.NONE
         for (t in 6016..14000 step 16) p = a.update(t.toLong(), 1f)
-        assertTrue("upright again", p.rootRoll < 0.05f); assertTrue(p.eyes > 0.5f)
+        assertTrue("upright again", p.rootPitch > -0.05f); assertTrue("bed gone", p.bedScale < 0.02f); assertTrue(p.eyes > 0.5f)
     }
     @Test fun coldRaisesTheUmbrellaArmAndReducedMotionKeepsTheStill() {
         val r = CharacterReactor(); val a = CharacterAnimator(r); r.stance = Stance.COLD
@@ -106,7 +106,7 @@ class SleepAndStanceTest {
         val calm = CharacterAnimator(r); var q = calm.update(0, 0f); for (t in 16..4000 step 16) q = calm.update(t.toLong(), 0f)
         assertTrue("reduced motion keeps the pose", -q.get("forearm_r", 0) > 1.2f)
         val s2 = CharacterReactor(); s2.stance = Stance.SLEEP; val z = CharacterAnimator(s2); var sp = z.update(0, 0f); for (t in 16..6000 step 16) sp = z.update(t.toLong(), 0f)
-        assertTrue("and still lies down", sp.rootRoll > 1.4f)
+        assertTrue("and still lies down", sp.rootPitch < -1.4f)
     }
 }
 
@@ -142,5 +142,59 @@ class AssetContractTest {
     }
     @Test fun noExtensionsBeyondWhatFilamentLoads() {
         for (id in Look.CHARACTERS.map { it.id } + "world") (gltf(id).optJSONArray("extensionsRequired") ?: org.json.JSONArray()).let { arr -> for (i in 0 until arr.length()) assertEquals("KHR_materials_unlit", arr.getString(i)) }
+    }
+}
+
+/** The state, pose and prop policy: what is held, what is shown, and that every change is a blend. */
+class PropPolicyTest {
+    private fun run(r: CharacterReactor, a: CharacterAnimator, from: Int, to: Int, each: (Pose, Int) -> Unit = { _, _ -> }): Pose {
+        var p = a.update(from.toLong(), 1f); for (t in from + 16..to step 16) { p = a.update(t.toLong(), 1f); each(p, t) }; return p
+    }
+    @Test fun carriedPropIsHeldAndUmbrellaTakesOverWithoutBothShowing() {
+        val r = CharacterReactor(); r.carried = "sword"; val a = CharacterAnimator(r)
+        var p = run(r, a, 0, 3000); assertTrue(p.propScale > 0.95f); assertEquals(0f, p.umbrellaScale, 0.01f); assertTrue("fingers closed on the grip", p.curlR > 0.9f)
+        r.stance = Stance.RAIN
+        var worst = 0f
+        p = run(r, a, 3000, 7000) { q, _ -> worst = maxOf(worst, q.propScale + q.umbrellaScale) }
+        assertTrue("prop and umbrella never both fully shown (sum $worst)", worst < 1.15f)
+        assertTrue(p.umbrellaScale > 0.95f); assertEquals(0f, p.propScale, 0.02f)
+        r.stance = Stance.NONE; p = run(r, a, 7000, 11000); assertTrue("the saved prop returns", p.propScale > 0.95f); assertEquals(0f, p.umbrellaScale, 0.02f)
+    }
+    @Test fun noPropMeansNoCarryPoseAndRelaxedFingers() {
+        val r = CharacterReactor(); val a = CharacterAnimator(r)
+        val p = run(r, a, 0, 3000); assertEquals(0f, p.propScale, 0f); assertTrue(p.curlR < 0.2f); assertTrue(-p.get("forearm_r", 0) < 0.2f)
+    }
+    @Test fun sleepingPutsThePropAwayFirstAndWakingBringsItBackLast() {
+        val r = CharacterReactor(); r.carried = "staff"; val a = CharacterAnimator(r); run(r, a, 0, 2000)
+        r.stance = Stance.SLEEP
+        var propGoneAt = -1; var lyingAt = -1
+        run(r, a, 2000, 9000) { p, t -> if (propGoneAt < 0 && p.propScale < 0.02f) propGoneAt = t; if (lyingAt < 0 && p.rootPitch < -1.0f) lyingAt = t }
+        assertTrue("prop away before the body is down ($propGoneAt < $lyingAt)", propGoneAt in 0 until lyingAt)
+        r.stance = Stance.NONE
+        var propBackAt = -1; var upAt = -1
+        run(r, a, 9000, 16000) { p, t -> if (upAt < 0 && p.rootPitch > -0.3f) upAt = t; if (propBackAt < 0 && p.propScale > 0.5f) propBackAt = t }
+        assertTrue("standing again before the prop returns ($upAt <= $propBackAt)", upAt in 0..propBackAt)
+    }
+    @Test fun withAPropInTheRightHandGesturesUseTheLeftArm() {
+        val free = CharacterReactor(); val busy = CharacterReactor(); busy.carried = "sword"
+        val af = CharacterAnimator(free); val ab = CharacterAnimator(busy); run(free, af, 0, 2500); run(busy, ab, 0, 2500)
+        val base = busy.let { ab.update(2500, 1f).get("forearm_r", 0) }
+        free.onInput(CharInput.Key(KeyKind.OK), 2600); busy.onInput(CharInput.Key(KeyKind.OK), 2600)
+        var rightMove = 0f; var leftLift = 0f; var freeRight = 0f
+        for (t in 2616..3200 step 16) { val pf = af.update(t.toLong(), 1f); val pb = ab.update(t.toLong(), 1f)
+            rightMove = maxOf(rightMove, kotlin.math.abs(pb.get("forearm_r", 0) - base)); leftLift = maxOf(leftLift, -pb.get("forearm_l", 0)); freeRight = maxOf(freeRight, -pf.get("forearm_r", 0)) }
+        assertTrue("the busy right arm stays put ($rightMove)", rightMove < 0.1f); assertTrue("the left hand lifts instead ($leftLift)", leftLift > 0.5f); assertTrue("an empty right hand does the gesture", freeRight > 0.5f)
+    }
+    @Test fun noJointSnapsDuringStateChanges() {
+        val r = CharacterReactor(); r.carried = "candle"; val a = CharacterAnimator(r); var prev = a.update(0, 1f); var worst = 0f
+        val steps = listOf(2000 to Stance.RAIN, 4500 to Stance.SLEEP, 11000 to Stance.NONE, 17000 to Stance.COLD, 20000 to Stance.NONE)
+        var next = 0
+        for (t in 16..24000 step 16) {
+            if (next < steps.size && t >= steps[next].first) { r.stance = steps[next].second; next++ }
+            val p = a.update(t.toLong(), 1f)
+            for (i in p.rot.indices) worst = maxOf(worst, kotlin.math.abs(p.rot[i] - prev.rot[i]))
+            prev = Pose().also { q -> p.rot.copyInto(q.rot) }
+        }
+        assertTrue("largest joint step per 16 ms frame was $worst rad", worst < 0.09f)
     }
 }

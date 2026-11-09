@@ -174,7 +174,11 @@ async function addExtras(doc, id, headY) {
   const skin = doc.getRoot().listSkins()[0]; const J = (n) => skin.listJoints().find((j) => j.getName() === n);
   const handR = J('hand_r'), handL = J('hand_l'), chest = J('chest');
   const mk = (name, parent, t) => { const nd = doc.createNode(name).setTranslation(t); parent.addChild(nd); return nd; };
-  const attachR = mk('attach_hand_r', handR, [0, -0.085, 0.035]); mk('attach_hand_l', handL, [0, -0.085, 0.035]);
+  // Grip sockets from the model's own hand: the palm centre (halfway from the wrist to the middle knuckle) pushed 2 cm toward the body, where a fist
+  // closes around a shaft. Joints have identity rotations, so local = world difference. Props are baked in world.glb with their grip point at the origin.
+  const socket = (hand, knuckle) => { const h = hand.getWorldMatrix(), k = knuckle.getWorldMatrix(); const medial = h[12] > 0 ? -1 : 1;
+    return [(k[12] - h[12]) / 2 + 0.02 * medial, (k[13] - h[13]) / 2, (k[14] - h[14]) / 2].map((v) => +v.toFixed(4)); };
+  const attachR = mk('attach_hand_r', handR, socket(handR, J('middle_01_r'))); mk('attach_hand_l', handL, socket(handL, J('middle_01_l')));
   const rootJoint = J('hips').getParentNode();
   for (const nd of fresh.filter((n) => names.has(n.getName()))) {
     const nn = nd.getName(); const parent = nn === 'acc_star' ? chest : nn.startsWith('sleep_') ? rootJoint : attachR;

@@ -66,6 +66,41 @@ What would raise it further: the paid Quaternius Wizard outfit or any CC0 hat/ro
 
 **Size, load and memory, measured on the TV box** (Xiaomi TV Box S 3rd Gen): see the figures at the end of this document.
 
+## State, pose and prop policy
+
+One animator (`CharacterAnimator`) turns the state into joint rotations, and the renderer derives what is visible from the same weights, so the pose,
+the prop and the scene cannot disagree. Every layer has an eased weight (nothing snaps); `PropPolicyTest` checks the rules below, including that no
+joint moves more than 0.09 rad per 16 ms frame across a rain, sleep, wake and cold sequence.
+
+| State (highest priority first) | Right hand | Left hand | Visible |
+|---|---|---|---|
+| Sleeping (also while lying down or getting up) | empty, resting along the body | resting along the body | bed (grows under the standing character, who then lies on their back on it, head on the pillow); no prop, no umbrella, no weather particles |
+| Rain, snow, storm, cold | holds the umbrella (the fist closes on its pole; the saved prop is put away) | free; weather gesture | umbrella; the saved prop is hidden until the weather clears |
+| A saved prop is chosen | carries it; the arm pose is that prop's row in `PropGrips` | free | the prop in the hand |
+| No prop ("none") | relaxed | relaxed | nothing |
+
+* **One-handed gestures** (confirm, "watch", the waiting pose's hand at the chin) use the right hand when it is empty and the free left hand when it is busy,
+  blended by the carry weight, so a prop is never waved around. Two-handed gestures (listen, options) only move a busy hand's partner. The earlier waves
+  (return, confirm hand raised) were replaced by a nod and a small open hand.
+* **Order of events**: going to sleep puts the prop away in the first 15% of the transition, then the bed grows under the standing character (30%),
+  then the character lies down; waking reverses it, and the prop returns only once the character stands. Prop, umbrella and bed scale with their weights.
+* **Reduced motion** shows the held pose directly (carrying, umbrella, lying), without easing, breathing or gestures.
+* **The camera** follows the same weights: it backs off for the umbrella's head-room and widens as the character lies down so the whole bed fits.
+
+## Grips and sockets
+
+A fist closes around a rod along the knuckle row (hand-local z), so each prop is baked in `world.glb` with its **grip point at the node origin and its
+shaft along +z**, and the arm is bent until that axis points up (the three pitches of every `PropGrips` row add up to about -1.57 rad). Per prop:
+the sword is gripped mid-hilt, the axe a third up its handle, the candle by its stem, the staff 55% up (so it stands on the ground beside the foot),
+the book by the back edge of its spine (it extends toward the body, cover forward), the umbrella just below its hook (canopy along +z).
+`curl` in `PropGrips` closes the finger joints (the renderer rotates `thumb/index/middle/ring/pinky_01..03` about the knuckle row by up to 0.95, 1.15
+and 0.85 rad); an empty hand keeps a relaxed 0.16 curl.
+
+The sockets are computed from each model's own hand by `build.mjs`: halfway from the wrist to the middle knuckle, plus 2 cm toward the body. For all three
+characters (same skeleton) `attach_hand_r` is (0.015, -0.058, 0.006) from `hand_r` and `attach_hand_l` its mirror. Re-measure with
+`node tools/assets/probe2.mjs app/src/main/assets/character/<id>.glb` after changing a model. Debug builds accept `--ef haven_yaw <degrees>` to view
+a pose from the side (see [day-night.md](day-night.md)).
+
 ## Reacting to the remote
 
 `CharacterReactor` is the explicit mapping from launcher input to a short reaction (a *beat*):

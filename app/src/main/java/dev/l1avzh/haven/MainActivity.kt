@@ -49,6 +49,7 @@ class MainActivity : Activity() {
     private lateinit var glowView: LiveBackground
     private lateinit var moodView: MoodView
     private var mood: Mood.State? = null
+    private var debugYaw = 0f
     private lateinit var header: LinearLayout
     private lateinit var railBox: View
     private lateinit var stageBody: LinearLayout
@@ -200,6 +201,7 @@ class MainActivity : Activity() {
     private fun debugInputs(i: Intent?) {
         if (applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE == 0 || i == null) return
         i.getStringExtra("haven_weather")?.let { prefs.putStr("dbg_weather", if (it == "off") "" else it) }
+        if (i.hasExtra("haven_yaw")) { debugYaw = i.getFloatExtra("haven_yaw", 0f); character?.setDebugYaw(debugYaw) }
         i.getStringExtra("haven_character")?.let { prefs.characterId = it; character?.setLook(prefs.look()) }
         if (i.getBooleanExtra("haven_saver", false)) main.postDelayed({ startSaver() }, 1500)
         i.getStringExtra("haven_daynight")?.let { prefs.putStr("dbg_daynight", if (it == "off") "" else it) }
@@ -486,7 +488,7 @@ class MainActivity : Activity() {
         frame.addView(platform, FrameLayout.LayoutParams(s.px(620), s.px(620), Gravity.START or Gravity.BOTTOM).apply { marginStart = s.px(40); bottomMargin = -s.px(235) })
         if (prefs.characterEnabled) {
             character = CharacterView(this).also {
-                it.setLook(prefs.look()); it.motion = T.motion; mood?.let { m -> it.setScene(m.scene); it.setEnvironment(m.night, envEffectFor(m)) }
+                it.setLook(prefs.look()); it.motion = T.motion; it.setDebugYaw(debugYaw); mood?.let { m -> it.setScene(m.scene); it.setEnvironment(m.night, envEffectFor(m)) }
                 frame.addView(it, FrameLayout.LayoutParams(s.px(700), s.px(960), Gravity.START or Gravity.BOTTOM).apply { bottomMargin = s.px(50) })
             }
         }

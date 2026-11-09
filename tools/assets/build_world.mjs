@@ -30,6 +30,7 @@ const mat = (s = 1, rx = 0, ry = 0, rz = 0, tx = 0, ty = 0, tz = 0) => {
   const r = [cz*cy, cz*sy*sx - sz*cx, cz*sy*cx + sz*sx,  sz*cy, sz*sy*sx + cz*cx, sz*sy*cx - cz*sx,  -sy, cy*sx, cy*cx];
   return [r[0]*s, r[3]*s, r[6]*s, 0,  r[1]*s, r[4]*s, r[7]*s, 0,  r[2]*s, r[5]*s, r[8]*s, 0,  tx, ty, tz, 1];
 };
+const mulm = (a, b) => { const o = new Array(16).fill(0); for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) for (let k = 0; k < 4; k++) o[c*4+r] += a[k*4+r] * b[c*4+k]; return o; };
 const apply = (m, p) => [m[0]*p[0]+m[4]*p[1]+m[8]*p[2]+m[12], m[1]*p[0]+m[5]*p[1]+m[9]*p[2]+m[13], m[2]*p[0]+m[6]*p[1]+m[10]*p[2]+m[14]];
 const applyDir = (m, p) => { const v = [m[0]*p[0]+m[4]*p[1]+m[8]*p[2], m[1]*p[0]+m[5]*p[1]+m[9]*p[2], m[2]*p[0]+m[6]*p[1]+m[10]*p[2]]; const l = Math.hypot(...v) || 1; return v.map((x) => x / l); };
 
@@ -97,22 +98,37 @@ function dropLayer(name, material, count, period, seed, size, tall) {
 
 // ---------------------------------------------------------------- assemble
 async function build() {
-  // ---- props (grip at the node origin; hand space has arms hanging, +y up, +z forward) ----
-  const hold = [
-    ['prop_sword', path.join(PROPS, 'Sword_Bronze.gltf'), mat(0.5, 0.75, 0, 0, 0, 0.0, 0.03)],
-    ['prop_axe', path.join(PROPS, 'Axe_Bronze.gltf'), mat(0.5, 0.35, 0, -Math.PI / 2, 0, 0.0, 0.03)],
-    ['prop_candle', path.join(PROPS, 'CandleStick.gltf'), mat(1.1, 0, 0, 0, 0, 0.0, 0.05)],
-    ['prop_book', path.join(PROPS, 'Book_7.gltf'), mat(0.8, Math.PI / 2, 0, 0, 0, 0.02, 0.1)],
+  // ---- props: each is oriented, scaled and then shifted so its GRIP point is the node origin with the shaft along +y (the hand's long axis) ----
+  // A prop's `orient` is its own matrix (no two props share an alignment); `grip(bounds)` picks the point the fist closes on, in the oriented frame.
+  const bounds = (prims, m) => { const lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9], v = [0, 0, 0];
+    for (const p of prims) { const a = p.getAttribute('POSITION'); for (let i = 0; i < a.getCount(); i++) { const q = apply(m, a.getElement(i, v)); for (let k = 0; k < 3; k++) { lo[k] = Math.min(lo[k], q[k]); hi[k] = Math.max(hi[k], q[k]); } } }
+    return { lo, hi, c: lo.map((x, i) => (x + hi[i]) / 2), h: hi.map((x, i) => x - lo[i]) }; };
+  const alongZ = (b, f) => [b.c[0], b.c[1], b.lo[2] + f * b.h[2]];          // a point f of the way along the shaft (now +z)
+  const along = (b, f) => [b.c[0], b.lo[1] + f * b.h[1], b.c[2]];            // a point f of the way up the prop, on its axis
+  const permute = (cols, s) => [cols[0][0]*s, cols[0][1]*s, cols[0][2]*s, 0, cols[1][0]*s, cols[1][1]*s, cols[1][2]*s, 0, cols[2][0]*s, cols[2][1]*s, cols[2][2]*s, 0, 0, 0, 0, 1];
+  const spin = (m) => mulm(mat(1, Math.PI / 2, 0, 0), m);     // shaft from +y to the hand's +z (the knuckle row)
+  const props = [
+    // sword: blade up, held at the middle of the hilt
+    ['prop_sword', path.join(PROPS, 'Sword_Bronze.gltf'), spin(mat(0.5)), () => [0, 0, -0.10 * 0.5]],
+    // axe: the model's long axis is x with the head at -x; turn it upright, head up, and grip the handle a third of the way up
+    ['prop_axe', path.join(PROPS, 'Axe_Bronze.gltf'), spin(mat(0.5, 0, 0, -Math.PI / 2)), (b) => alongZ(b, 0.30)],
+    // candle: gripped by its stem, below the flame
+    ['prop_candle', path.join(PROPS, 'CandleStick.gltf'), spin(mat(1.1)), (b) => alongZ(b, 0.30)],
+    // book: its thickness along x, height along y, width along +z; held by the back edge of the spine, so it extends forward of the hand
+    ['prop_book', path.join(PROPS, 'Book_7.gltf'), mat(0.8), (b) => [b.lo[0] + 0.015, b.c[1], b.c[2]]],
+    // staff: planted beside the foot, gripped 42% up
+    ['prop_staff', STAFF, spin(mat(0.8)), (b) => alongZ(b, 0.55)],
   ];
-  for (const [name, file, m] of hold) { const s = await source(file); const g = group(name); bake(g.mesh, s.prims, m); }
-  { const s = await source(STAFF); const g = group('prop_staff'); bake(g.mesh, s.prims, mat(0.95, 0, 0, 0, 0, 0.1, 0.0)); }
-  { // umbrella: Haven's own mesh from the v1 models (no CC0 umbrella in glTF form was found)
-    const s = await source(V1); const keep = Object.keys(s.named).filter((n) => n === 'prop_umbrella' || n.includes('umbrella'));
-    const um = doc.getRoot().listNodes(); /* meshes carry names from nodes in the v1 file */
-    const g = group('prop_umbrella'); const ms = doc.getRoot().listMeshes().filter((m) => /umbrella/i.test(m.getName())); for (const m of ms) bake(g.mesh, m.listPrimitives(), mat(1));
+  for (const [name, file, orient, gripAt] of props) {
+    const s = await source(file); const b = bounds(s.prims, orient); const gp = gripAt(b);
+    const m = orient.slice(); m[12] -= gp[0]; m[13] -= gp[1]; m[14] -= gp[2];
+    const g = group(name); bake(g.mesh, s.prims, m);
   }
+  { // umbrella: Haven's own mesh from the v1 models (no CC0 umbrella in glTF form was found); the pole runs along -y from the handle, gripped just below the hook
+    const s = await source(V1);
+    const ms = doc.getRoot().listMeshes().filter((m) => /umbrella/i.test(m.getName())); const g = group('prop_umbrella'); for (const m of ms) bake(g.mesh, m.listPrimitives(), mulm(mat(1, -Math.PI / 2, 0, 0), mat(1, 0, 0, 0, 0, 0.08, 0))); }
   // ---- bed: the Quaternius twin bed, laid so its long side runs along x (the sleeper lies along x) ----
-  { const s = await source(path.join(PROPS, 'Bed_Twin1.gltf')); const g = group('bed'); bake(g.mesh, s.prims, mat(0.5, 0, Math.PI / 2, 0, 0, 0, 0)); }
+  { const s = await source(path.join(PROPS, 'Bed_Twin1.gltf')); const g = group('bed'); bake(g.mesh, s.prims, mat(1.0, 0, Math.PI / 2, 0, 0, 0, 0)); }
   // ---- scenery ----
   const N = (n) => path.join(NATURE, n + '.gltf');
   { const g = group('env_day');
