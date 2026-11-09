@@ -65,6 +65,9 @@ object Weather {
     fun cached(p: Prefs): Triple<Double, Int, Long>? =
         WeatherCache.forCity(p.weatherCache, p.weatherCity - 1)?.let { Triple(it.temp, it.code, it.stamp) }
 
+    /** The selected city's reading, or null when no city is chosen. The reading may be stale; check [WeatherEffects.isFresh]. */
+    fun entry(p: Prefs): WeatherCache.Entry? = if (p.weatherCity > 0) WeatherCache.forCity(p.weatherCache, p.weatherCity - 1) else null
+
     private val gate = RequestGate<Pair<Int, String>>()
 
     /** The selected city changed: drop the cache and let any slow request for the old city die quietly. */
@@ -94,10 +97,10 @@ object Weather {
                     if (n != null && stillSelected()) { p.putStr(nameKey(app, idx), n); ui.post(done) }
                 }
                 if (!fresh) {
-                    val body = get(String.format(Locale.US, "https://api.open-meteo.com/v1/forecast?latitude=%.2f&longitude=%.2f&current=temperature_2m,weather_code", city.lat, city.lon))
+                    val body = get(String.format(Locale.US, "https://api.open-meteo.com/v1/forecast?latitude=%.2f&longitude=%.2f&current=temperature_2m,weather_code,is_day", city.lat, city.lon))
                     val cur = body?.let { WeatherJson.parseCurrent(it) }
                     if (cur != null && stillSelected()) {
-                        p.weatherCache = WeatherCache.encode(WeatherCache.Entry(cur.temp, cur.code, System.currentTimeMillis(), idx))
+                        p.weatherCache = WeatherCache.encode(WeatherCache.Entry(cur.temp, cur.code, System.currentTimeMillis(), idx, cur.isDay))
                         ui.post(done)
                     }
                 }

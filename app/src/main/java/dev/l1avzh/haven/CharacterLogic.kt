@@ -82,6 +82,10 @@ class CharacterReactor(var enabled: Boolean = true) {
     /** True while nothing is selected: the character stands relaxed and looks around instead of at a target. */
     var waiting = false
 
+    /** Weather stance and sleep. Sleeping silences every reaction; the stance is a held pose, not a beat. */
+    var stance = Stance.NONE
+    val sleeping get() = stance == Stance.SLEEP
+
     class Active(val beat: Beat, val progress: Float)
 
     fun onInput(i: CharInput, nowMs: Long) {
@@ -114,7 +118,7 @@ class CharacterReactor(var enabled: Boolean = true) {
     fun onLongPress(nowMs: Long) = start(Beat.LONG_PRESS, nowMs)
 
     private fun start(b: Beat, now: Long) {
-        if (!enabled) return
+        if (!enabled || sleeping) return
         val cur = active(now)
         if (b == Beat.NAVIGATE) { if (now - lastNavMs < NAV_GAP_MS) return; lastNavMs = now }
         if (cur != null) {
@@ -141,9 +145,11 @@ class Pose {
     val rot = FloatArray(JOINTS.size * 3)
     var hipsX = 0f; var hipsY = 0f; var hipsZ = 0f
     var rootYaw = 0f
+    /** Used for lying down to sleep: roll about the depth axis, a smaller scale, and a shift so the body rests low in the frame. */
+    var rootRoll = 0f; var rootScale = 1f; var rootX = 0f; var rootY = 0f
     /** 0 = eyes closed, 1 = open, above 1 = widened for a moment. */
     var eyes = 1f
-    fun clear() { rot.fill(0f); hipsX = 0f; hipsY = 0f; hipsZ = 0f; rootYaw = 0f; eyes = 1f }
+    fun clear() { rot.fill(0f); hipsX = 0f; hipsY = 0f; hipsZ = 0f; rootYaw = 0f; rootRoll = 0f; rootScale = 1f; rootX = 0f; rootY = 0f; eyes = 1f }
     fun add(joint: String, pitch: Float, yaw: Float, roll: Float) {
         val i = INDEX[joint] ?: return; rot[i*3] += pitch; rot[i*3 + 1] += yaw; rot[i*3 + 2] += roll
     }
@@ -164,6 +170,8 @@ class CharacterAnimator(private val reactor: CharacterReactor) {
     private var gx = 0f; private var gy = 0f
     private var lastSec = -1.0
     private var wait = 0f                                            // 0..1, eased toward the reactor's waiting flag
+    private var sleep = 0f                                           // 0..1, eased toward sleeping
+    private val stances = FloatArray(Stance.values().size)           // blend per weather stance
     private var nextBlinkSec = 2.5; private var blinkStart = -10.0
     private var blinkSeed = 7
     val pose = Pose()
@@ -173,7 +181,13 @@ class CharacterAnimator(private val reactor: CharacterReactor) {
         val dt = if (lastSec < 0) 0.016 else (t - lastSec).coerceIn(0.0, 0.1)
         lastSec = t
         pose.clear()
-        if (motion <= 0f) { gx = 0f; gy = 0f; return pose }
+        if (motion <= 0f) {
+            // Reduced motion: no easing, no idle, no breathing, but the scene's held pose (lying down, umbrella) still shows.
+            gx = 0f; gy = 0f; sleep = if (reactor.sleeping) 1f else 0f
+            for (s in Stance.values()) stances[s.ordinal] = if (reactor.stance == s && s != Stance.SLEEP) 1f else 0f
+            if (sleep > 0f) sleepPose(t, 1f, 0f) else for (s in Stance.values()) if (stances[s.ordinal] > 0f && s != Stance.NONE) stancePose(s, t, 1f, 0f)
+            return pose
+        }
         val k = 1 - exp(-dt * 7.0).toFloat()                        // gaze eases toward its target, frame-rate independent
         wait += ((if (reactor.waiting) 1f else 0f) - wait) * (1 - exp(-dt * 3.0).toFloat())
         // while waiting the eyes wander slowly instead of following a target
@@ -203,9 +217,47 @@ class CharacterAnimator(private val reactor: CharacterReactor) {
         val bu = ((t - blinkStart) / 0.16).toFloat()
         if (bu in 0f..1f) pose.eyes = 1f - 0.92f * sin(bu * PI.toFloat())
 
-        if (wait > 0.01f) waitingPose(t, wait * motion)
+        sleep += ((if (reactor.sleeping) 1f else 0f) - sleep) * (1 - exp(-dt * 2.2).toFloat())
+        for (s in Stance.values()) { val target = if (reactor.stance == s && s != Stance.SLEEP) 1f else 0f; stances[s.ordinal] += (target - stances[s.ordinal]) * (1 - exp(-dt * 2.6).toFloat()) }
+        if (sleep > 0.01f) sleepPose(t, sleep, motion)
+        else if (wait > 0.01f) waitingPose(t, wait * motion)
+        for (s in Stance.values()) if (s != Stance.NONE && s != Stance.SLEEP && stances[s.ordinal] > 0.01f && sleep < 0.5f) stancePose(s, t, stances[s.ordinal], motion)
         reactor.active(nowMs)?.let { a -> beat(a.beat, a.progress, motion) }
         return pose
+    }
+
+    /** Lying down: the whole body rolls onto its side under a blanket, arms folded, eyes closed, slow breathing. */
+    private fun sleepPose(t: Double, w: Float, motion: Float) {
+        val br = sin(t * 2 * PI * 0.14).toFloat() * motion          // with reduced motion the figure still lies down, it just does not breathe
+        pose.rootRoll = (PI / 2).toFloat() * w; pose.rootScale = 1f - 0.38f * w; pose.rootX = 0.56f * w; pose.rootY = 0.14f * w
+        pose.eyes = 1f - 0.97f * w
+        pose.hipsY += 0.004f * br * w
+        pose.add("chest", -0.03f * br * w, 0f, 0f); pose.add("head", 0.12f * w, 0f, 0.15f * w)
+        pose.add("upperarm_l", -0.55f * w, 0f, -0.15f * w); pose.add("forearm_l", -1.75f * w, 0f, 0f)
+        pose.add("upperarm_r", -0.55f * w, 0f, 0.15f * w); pose.add("forearm_r", -1.75f * w, 0f, 0f)
+        pose.add("shin_l", 0.18f * w, 0f, 0f); pose.add("shin_r", 0.12f * w, 0f, 0f)
+    }
+
+    /** Holding an umbrella overhead with the right arm, plus what the weather does to the rest of the body. */
+    private fun stancePose(s: Stance, t: Double, w: Float, motion: Float) {
+        pose.add("upperarm_r", -0.8f * w, 0f, 0.0f * w); pose.add("forearm_r", -1.4f * w, 0f, 0f); pose.add("hand_r", -1.0f * w, 0f, 0.45f * w)
+        when (s) {
+            Stance.RAIN -> { pose.add("head", -0.1f * w, 0f, 0f); pose.add("upperarm_l", -0.35f * w, 0f, -0.28f * w); pose.add("forearm_l", -0.7f * w, 0f, 0f) }
+            Stance.SNOW -> { pose.add("head", -0.18f * w, 0f, 0.05f * w); pose.add("upperarm_l", -0.7f * w, 0f, -0.35f * w); pose.add("forearm_l", -0.5f * w, 0f, 0f); pose.add("hand_l", -0.4f * w, 0f, 0f) }
+            Stance.STORM -> {
+                val gust = sin(t * 9).toFloat() * motion
+                pose.add("spine", 0.16f * w, 0f, 0f); pose.add("chest", 0.08f * w, 0f, 0f); pose.hipsZ -= 0.03f * w
+                pose.add("upperarm_r", 0f, 0f, 0.05f * gust * w); pose.add("upperarm_l", -1.0f * w, 0f, -0.2f * w); pose.add("forearm_l", -1.3f * w, 0f, 0f)
+                pose.eyes = max(pose.eyes, 1f + 0.25f * w)
+            }
+            Stance.COLD -> {
+                val shiver = sin(t * 28).toFloat() * 0.012f * w * motion
+                pose.add("upperarm_l", -0.5f * w, 0f, -0.45f * w); pose.add("forearm_l", -2.0f * w, 0f, 0f)
+                pose.add("clavicle_l", 0f, 0f, 0.14f * w); pose.add("clavicle_r", 0f, 0f, -0.14f * w)
+                pose.add("spine", 0.06f * w, 0f, shiver); pose.add("head", 0.1f * w, 0f, 0f); pose.hipsX += shiver
+            }
+            else -> {}
+        }
     }
 
     /** Relaxed "waiting for a selection": weight on one leg, a hand raised to the chin, the head tilted, slow breathing. */

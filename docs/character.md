@@ -8,7 +8,7 @@ Everything is local: no accounts, no downloads, no extra permissions.
 
 | Piece | Where |
 |---|---|
-| Models (GLB, about 750 KiB each) | `app/src/main/assets/character/{human,wizard,robot}.glb` |
+| Models (GLB, 783 to 839 KiB each) | `app/src/main/assets/character/{human,wizard,robot}.glb` |
 | Model generator (Python standard library only) | `tools/character/gen_character.py` |
 | Roster, input-to-reaction mapping, poses | `CharacterLogic.kt` (pure Kotlin, unit tested) |
 | App kind classification | `AppKinds.kt` (pure Kotlin, unit tested) |
@@ -25,19 +25,55 @@ skinned to the same 17-joint rig, so one pose system drives all three:
 * **Wizard**: beard, long hair, robe and hat, and two outfits (*Archmage*, *Apprentice*); the *Staff* prop is his.
 * **Robot**: armored chassis with ribs, piston rods, a visor light bar and three-finger hands, and two outfits (*Plated*, *Stealth*).
 
-Props (Lantern, Tablet, Compass, Staff) hang from the named node `attach_hand_r`. They are decoration only.
+Props (Lantern, Tablet, Compass, Staff) hang from the named node `attach_hand_r`. They are decoration only. Every model also carries a `prop_umbrella`
+(same node, shown by the weather rules instead of the saved prop), and `sleep_blanket` and `sleep_pillow` (under `root`, shown while sleeping); see
+[day-night.md](day-night.md).
 
 **Asset contract** (identical for every character): joint names `root hips spine chest neck head clavicle_l/r upperarm_l/r forearm_l/r hand_l/r
-thigh_l/r shin_l/r foot_l/r`; nodes `body`, `eye_l`, `eye_r`, `attach_hand_r`, `attach_hand_l`, `acc_star`; `outfit_<id>` skinned meshes and
-`prop_<id>` meshes. `Look.CHARACTERS` lists which ids exist for each character and how the camera frames it. A model that fails to load is
+thigh_l/r shin_l/r foot_l/r`; nodes `body`, `eye_l`, `eye_r`, `attach_hand_r`, `attach_hand_l`, `acc_star`, `prop_umbrella`, `sleep_blanket`, `sleep_pillow`; `outfit_<id>` skinned
+meshes and `prop_<id>` meshes. `Look.CHARACTERS` lists which ids exist for each character and how the camera frames it. A model that fails to load is
 skipped; if none loads the character hides itself and the launcher carries on.
 
 Regenerate or edit the models:
 
     python3 tools/character/gen_character.py
 
-Honest note on quality: the models are stylized, procedurally generated figures. They are distinct and readable, but they are not
-hand-sculpted production art.
+## Quality: where it stands, and what would raise it
+
+**Honest assessment.** A reference image of a professionally sculpted, textured, lit wizard was given as the quality target. These characters do
+**not** reach it, and this change did not make them reach it. They are procedurally generated from primitives (ellipsoids, tapered tubes, boxes,
+rings) in a Python script and use flat-colored PBR materials with no painted textures, no normal maps, no hair cards, no cloth simulation and no
+facial blend shapes. That cannot be bridged by tuning numbers: it needs sculpting, retopology, UV unwrapping and texture painting in a DCC tool
+(Blender, ZBrush, Substance Painter), and there is no such tool or artist in this environment.
+
+What was improved within the limits of the method, for all three characters: distinct silhouettes and proportions per character, faces, hair and
+hands on the human and wizard, an articulated robot chassis, per-character camera framing, a shared 17-joint rig and pose system, and (new) an
+umbrella, a blanket and a pillow with matching weather and sleep poses. The result is stylized and readable at TV distance and consistent with the
+launcher's look, but it is below the reference.
+
+**Asset-production requirement** (what to commission or build to close the gap). Deliver three GLB 2.0 files that drop into
+`app/src/main/assets/character/` without code changes:
+
+* The rig contract above, unchanged: the same 17 joint names, T-pose or A-pose bind with the arms hanging, the node names listed above, a single
+  skin, at most 4 joint influences per vertex.
+* Mesh budget: about 25k to 40k triangles per character including outfit and prop (the mid-range Mali-G310 on the target TV box renders the current
+  models, about 20k triangles, at 30 fps with room to spare); at most 4 materials per character.
+* Textures: base color, normal and a packed occlusion/roughness/metal map, 1024 px or 2048 px, ETC2 or KTX2 Basis if the pipeline supports it, so the
+  APK grows by no more than a few MB per character.
+* Facial detail: eyes as separate nodes `eye_l` and `eye_r` (the blink is a scale of those nodes), hair and beard as meshes on the head joint.
+* Optional but useful: blend shapes for blink and a mouth, and baked umbrella, blanket and pillow meshes under the same node names.
+* Licence: original work or CC0/CC-BY with attribution recorded in `docs/` and `LICENSE`; no assets from sources whose terms forbid redistribution.
+  The current models are original and MIT.
+
+Until then the honest claim is "stylized procedural characters".
+
+**Provenance and licences.** Generated by `tools/character/gen_character.py` (standard library only) from original geometry; no third-party
+meshes, textures or animations are used. Filament is Apache 2.0.
+
+**Size, load and memory, measured on the TV box** (Xiaomi TV Box S 3rd Gen, release build): release APK 12.0 MiB (the three characters are about
+2.4 MiB of that; Filament's native libraries dominate); the whole home screen with the character awake runs at 0.08% janky frames over 20 s with a
+median GPU time of 13 ms; total PSS about 160 to 210 MiB with the engine, the three models and the home screen. `assets/character/warden.glb`
+is a leftover from the first single-character version, is not referenced by any code and could be deleted to save about 0.8 MiB of APK.
 
 ## Reacting to the remote
 
@@ -75,7 +111,7 @@ In every state except "an app is focused" the character glides to the middle of 
 
 ## Motion, performance and lifecycle
 
-* Reduced motion (Animation: Off, or the system animator scale 0) gives a still pose and no reactions; nothing is rendered until something changes.
+* Reduced motion (Animation: Off, or the system animator scale 0) gives a still pose and no reactions; nothing is rendered until something changes. The held poses of the weather and sleep scenes (lying down, umbrella arm) still apply, without breathing or shiver.
 * Performance mode lowers the character to about 20 fps and shortens its motion. Normal mode is capped at about 30 fps.
 * Rendering stops when the launcher is stopped or covered (Settings hides the whole scene) and resumes when it is visible again. Settings does not
   keep the 3D scene on screen on purpose: it would cost rendering time behind an opaque page and add nothing to its controls.

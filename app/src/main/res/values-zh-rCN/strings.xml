@@ -235,6 +235,18 @@
     <string name="studio_apply">应用</string>
     <string name="browsing_scope">正在浏览%1$s</string>
     <string name="state_waiting">按下键选择应用</string>
+    <string name="daynight_mode">白天与夜晚</string>
+    <string name="daynight_mode_d">“自动”在已知时使用天气城市的日照，否则使用时钟。</string>
+    <string name="dn_auto">自动</string>
+    <string name="dn_day">始终白天</string>
+    <string name="dn_night">始终夜晚</string>
+    <string name="night_from">夜晚开始</string>
+    <string name="night_to">夜晚结束</string>
+    <string name="sleep_night">夜间睡觉</string>
+    <string name="sleep_night_d">夜晚角色会盖着毯子躺下。</string>
+    <string name="weather_reacts">天气反应</string>
+    <string name="weather_reacts_d">在雨、雪、风暴和寒冷中撑伞并改变姿势。</string>
+    <string name="saver_char">屏保上的睡觉角色</string>
     <plurals name="apps_count">
         <item quantity="other">%d 个应用</item>
     </plurals>

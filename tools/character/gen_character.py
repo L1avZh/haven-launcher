@@ -7,7 +7,8 @@ whose proportions differ per character. No third-party models, textures or licen
 
 Asset contract (identical for every character, so the app can pose any of them):
   joints:  root hips spine chest neck head clavicle_l/r upperarm_l/r forearm_l/r hand_l/r thigh_l/r shin_l/r foot_l/r
-  nodes:   body, eye_l, eye_r (under head), attach_hand_r / attach_hand_l, acc_star (under chest; the hidden pendant)
+  nodes:   body, eye_l, eye_r (under head), attach_hand_r / attach_hand_l, acc_star (under chest; the hidden pendant),
+           sleep_blanket / sleep_pillow (under root; shown only while the character sleeps), prop_umbrella (weather prop)
   outfits: outfit_<id> skinned meshes (ids per character, see CHARACTERS below)
   props:   prop_<id> meshes parented to attach_hand_r
 """
@@ -207,6 +208,8 @@ mat('r_stealth', (0.09, 0.1, 0.13), 0.3, 0.4); mat('r_line', (0.1, 0.8, 1.0), 0.
 # props and accessory
 mat('lantern_glass', (1.0, 0.72, 0.30), 0.0, 0.2, (1.0, 0.62, 0.2)); mat('prop_metal', (0.55, 0.57, 0.62), 0.9, 0.3)
 mat('tablet_body', (0.07, 0.08, 0.1), 0.6, 0.3); mat('tablet_screen', (0.2, 0.7, 1.0), 0.0, 0.3, (0.1, 0.55, 0.95))
+mat('umbrella_cloth', (0.16, 0.2, 0.5), 0.0, 0.7, double=True); mat('umbrella_rib', (0.7, 0.72, 0.78), 0.8, 0.35)
+mat('blanket', (0.2, 0.24, 0.5), 0.0, 0.9, double=True); mat('blanket_trim', (0.78, 0.8, 0.9), 0.0, 0.85); mat('pillow', (0.9, 0.9, 0.94), 0.0, 0.9)
 mat('compass_core', (0.6, 1.0, 0.8), 0.0, 0.3, (0.3, 1.0, 0.7)); mat('star_gold', (0.98, 0.8, 0.32), 0.95, 0.22, (0.25, 0.18, 0.04))
 
 def T0(p): return []                      # unskinned: no weights
@@ -500,6 +503,31 @@ def prop_staff():
     cr.ellipsoid((0, 0.7, 0), (0.035, 0.05, 0.035), T0, seg=14, ring=10)
     return [wood, gold, cr]
 
+def prop_umbrella():
+    """Weather prop. The canopy is on the -y side of the hand, so it ends up overhead when the forearm is raised. Scaled to 0.75 so it fits the frame."""
+    k = 0.75
+    cloth = Prim('umbrella_cloth', skinned=False); rib = Prim('umbrella_rib', skinned=False)
+    rib.tube((0, 0.0, 0), (0, -0.88 * k, 0), 0.0075, 0.0065, T0, seg=8, rings=6)
+    rib.torus((0, 0.02, 0), 0.026, 0.0085, (0, 0, 1), T0, seg=14, sides=6)                      # handle hook
+    cloth.ellipsoid((0, -0.82 * k, 0), (0.5 * k, 0.2 * k, 0.5 * k), T0, seg=24, ring=8, th0=math.pi - 1.35, th1=math.pi)   # dome
+    for n in range(8):
+        a = n * math.pi / 4
+        rib.tube((0.0, -1.02 * k, 0), (0.5 * k * math.cos(a) * 0.98, -0.83 * k, 0.5 * k * math.sin(a) * 0.98), 0.0035, 0.0035, T0, seg=6, rings=3)
+    rib.ellipsoid((0, -1.03 * k, 0), (0.012, 0.02, 0.012), T0, seg=8, ring=6)                   # tip
+    return [cloth, rib]
+
+def sleep_blanket(front):
+    b = Prim('blanket', skinned=False); tr = Prim('blanket_trim', skinned=False)
+    z = front + 0.07
+    b.ellipsoid((0, 0.74, z), (0.36, 0.6, 0.06), T0, seg=22, ring=14)
+    tr.tube((-0.36, 1.27, z + 0.01), (0.36, 1.27, z + 0.01), 0.04, 0.04, T0, seg=14, rings=1)   # folded top edge
+    return [b, tr]
+
+def sleep_pillow(head_y):
+    p = Prim('pillow', skinned=False)
+    p.ellipsoid((0, head_y + 0.1, -0.13), (0.22, 0.14, 0.09), T0, seg=20, ring=10)
+    return [p]
+
 def accessory_star(front_z, y):
     """The hidden pendant: two interlaced triangles on a chain, built in chest-local space."""
     gold = Prim('star_gold', skinned=False)
@@ -525,7 +553,7 @@ CHARACTERS = {
                   body=robot_body, eyes=robot_eyes, outfits={'plated': robot_plated, 'stealth': robot_stealth},
                   props=['tablet', 'compass', 'lantern'], front=0.19, hand=(0.0, -0.06, 0.05)),
 }
-PROPS = {'lantern': prop_lantern, 'tablet': prop_tablet, 'compass': prop_compass, 'staff': prop_staff}
+PROPS = {'lantern': prop_lantern, 'tablet': prop_tablet, 'compass': prop_compass, 'staff': prop_staff, 'umbrella': prop_umbrella}
 
 
 # ---------------------------------------------------------------- glTF writer
@@ -600,8 +628,11 @@ def build_character(cid):
     for oid, fn in spec['outfits'].items(): skinned('outfit_' + oid, fn())
     for pid in spec['props']:
         mi = w.mesh('prop_' + pid, PROPS[pid]()); add_node(attach_r, name='prop_' + pid, mesh=mi)
+    mi = w.mesh('prop_umbrella', PROPS['umbrella']()); add_node(attach_r, name='prop_umbrella', mesh=mi)     # weather prop, not offered in the Studio
     star = accessory_star(spec['front'], -0.07)
     mi = w.mesh('acc_star', star); add_node(node_of['chest'], name='acc_star', mesh=mi)
+    add_node(node_of['root'], name='sleep_blanket', mesh=w.mesh('sleep_blanket', sleep_blanket(spec['front'])))
+    add_node(node_of['root'], name='sleep_pillow', mesh=w.mesh('sleep_pillow', sleep_pillow(spec['rig']['head'])))
     gltf = dict(asset=dict(version='2.0', generator='haven gen_character.py', copyright='Original work for Haven, MIT licence'),
                 scene=0, scenes=[dict(nodes=scene_nodes)], nodes=nodes, skins=[skin], meshes=w.meshes, materials=w.materials,
                 accessors=w.acc, bufferViews=w.views, buffers=[dict(byteLength=len(w.bin))])

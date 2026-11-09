@@ -156,6 +156,35 @@ class Prefs(ctx: Context) {
         get() = Look.prop(characterId, sp.getString("char_prop", null))
         set(v) { sp.edit().putString("char_prop", Look.prop(characterId, v)).apply() }
 
+    /** 0 = automatic, 1 = always day, 2 = always night. Unknown values read as automatic. */
+    var dayNightMode: Int
+        get() = sp.getInt("daynight_mode", 0).takeIf { it in 0..2 } ?: 0
+        set(v) { sp.edit().putInt("daynight_mode", v.coerceIn(0, 2)).apply() }
+
+    /** Night schedule used when no fresh weather reading decides it: hours 0..23, wrapping past midnight. */
+    var nightFrom: Int
+        get() = sp.getInt("night_from", DayNight.DEFAULT_NIGHT_FROM).coerceIn(0, 23)
+        set(v) { sp.edit().putInt("night_from", v.coerceIn(0, 23)).apply() }
+
+    var nightTo: Int
+        get() = sp.getInt("night_to", DayNight.DEFAULT_NIGHT_TO).coerceIn(0, 23)
+        set(v) { sp.edit().putInt("night_to", v.coerceIn(0, 23)).apply() }
+
+    /** The character sleeps at night. */
+    var sleepAtNight: Boolean
+        get() = sp.getBoolean("sleep_night", true)
+        set(v) { sp.edit().putBoolean("sleep_night", v).apply() }
+
+    /** Rain, snow, storms and cold change the character (umbrella and stance). */
+    var weatherReactions: Boolean
+        get() = sp.getBoolean("weather_reacts", true)
+        set(v) { sp.edit().putBoolean("weather_reacts", v).apply() }
+
+    /** A sleeping character on the screensaver at night. */
+    var saverCharacter: Boolean
+        get() = sp.getBoolean("saver_char", true)
+        set(v) { sp.edit().putBoolean("saver_char", v).apply() }
+
     /** The hidden pendant: unlocked once by the secret in About, then worn or not from the Character Studio. */
     var starUnlocked: Boolean
         get() = sp.getBoolean("star_unlocked", false)

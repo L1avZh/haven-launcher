@@ -235,6 +235,18 @@
     <string name="studio_apply">Terapkan</string>
     <string name="browsing_scope">Menelusuri %1$s</string>
     <string name="state_waiting">Tekan bawah untuk memilih aplikasi</string>
+    <string name="daynight_mode">Siang dan malam</string>
+    <string name="daynight_mode_d">Otomatis memakai cahaya siang kota cuaca jika diketahui, jika tidak jam.</string>
+    <string name="dn_auto">Otomatis</string>
+    <string name="dn_day">Selalu siang</string>
+    <string name="dn_night">Selalu malam</string>
+    <string name="night_from">Malam dimulai</string>
+    <string name="night_to">Malam berakhir</string>
+    <string name="sleep_night">Tidur di malam hari</string>
+    <string name="sleep_night_d">Malam hari karakter berbaring di bawah selimut.</string>
+    <string name="weather_reacts">Reaksi cuaca</string>
+    <string name="weather_reacts_d">Memegang payung dan mengubah sikap saat hujan, salju, badai, dan dingin.</string>
+    <string name="saver_char">Karakter tidur di screensaver</string>
     <plurals name="apps_count">
         <item quantity="other">%d aplikasi</item>
     </plurals>

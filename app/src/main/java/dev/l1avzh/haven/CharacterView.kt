@@ -67,12 +67,14 @@ class CharacterView(ctx: Context) : TextureView(ctx), Choreographer.FrameCallbac
     private class Joint(val entity: Int, val inst: Int, val bind: FloatArray)
     /** One loaded character: its skeleton, eyes and the optional pieces that can be shown or hidden. */
     private class Model(val def: CharacterDef, val asset: FilamentAsset, val joints: Map<String, Joint>, val eyes: List<Joint>,
-                        val outfits: Map<String, Int>, val props: Map<String, Int>, val star: Int, val always: IntArray)
+                        val outfits: Map<String, Int>, val props: Map<String, Int>, val star: Int, val always: IntArray,
+                        val umbrella: Int, val blanket: Int, val pillow: Int)
     private val models = HashMap<String, Model>()
     private var active: Model? = null
 
     private var look = LookState("human", "city", "lantern", false)
     private var pendingLook: LookState? = null
+    private var scenery = SceneLook(Stance.NONE, null, false)
     private var started = false
     private var dirty = true
     private var lastFrameMs = 0L
@@ -106,6 +108,12 @@ class CharacterView(ctx: Context) : TextureView(ctx), Choreographer.FrameCallbac
 
     /** Standing relaxed and looking around because nothing is selected. */
     fun setWaiting(on: Boolean) { if (reactor.waiting != on) { reactor.waiting = on; dirty = true; kick() } }
+
+    /** Weather and day/night staging: a held pose, a temporary prop (the umbrella) and the sleeping setup. The saved look is untouched. */
+    fun setScene(s: SceneLook) {
+        if (s.stance == scenery.stance && s.propOverride == scenery.propOverride && s.sleeping == scenery.sleeping) return
+        scenery = s; reactor.stance = s.stance; applyLook(); frameCamera(); dirty = true; kick()
+    }
 
     fun start() { if (started || failed) return; started = true; lastFrameMs = 0; dirty = true; kick() }
     fun stop() { started = false; Choreographer.getInstance().removeFrameCallback(this) }
@@ -205,8 +213,16 @@ class CharacterView(ctx: Context) : TextureView(ctx), Choreographer.FrameCallbac
     private var aspect = 0.73
     private fun frameCamera() {
         val d = (active?.def ?: Look.def(look.character))
+        // An umbrella needs headroom; a sleeper is lower and smaller, so it is framed lower. The default framing is unchanged.
+        val umbrella = scenery.propOverride == "umbrella"
+        var dist = d.cameraDistance * (if (umbrella) 1.32 else 1.0); var ty = d.cameraTargetY + (if (umbrella) 0.2 else 0.0)
+        if (scenery.sleeping) {
+            // A lying figure is wide and low: come in until it fills the view's width, but never further out than the standing frame.
+            val fit = 1.75 / (2 * Math.tan(Math.toRadians(10.5)) * aspect)
+            dist = fit.coerceIn(2.4, d.cameraDistance); ty = 0.3
+        }
         camera?.setProjection(21.0, aspect, 0.1, 30.0, Camera.Fov.VERTICAL)
-        camera?.lookAt(0.0, d.cameraTargetY + 0.03, d.cameraDistance, 0.0, d.cameraTargetY, 0.0, 0.0, 1.0, 0.0)
+        camera?.lookAt(0.0, ty + 0.03, dist, 0.0, ty, 0.0, 0.0, 1.0, 0.0)
     }
 
     /** Loads every character once; only the selected one is added to the scene. A model that fails to load is simply skipped. */
@@ -227,8 +243,9 @@ class CharacterView(ctx: Context) : TextureView(ctx), Choreographer.FrameCallbac
                 val outfits = def.outfits.associateWith { a.getFirstEntityByName("outfit_$it") }
                 val props = def.props.associateWith { a.getFirstEntityByName("prop_$it") }
                 val star = a.getFirstEntityByName("acc_star")
-                val optional = (outfits.values + props.values + star).toSet()
-                models[def.id] = Model(def, a, joints, listOfNotNull(joint("eye_l"), joint("eye_r")), outfits, props, star, a.entities.filter { it !in optional }.toIntArray())
+                val umbrella = a.getFirstEntityByName("prop_umbrella"); val blanket = a.getFirstEntityByName("sleep_blanket"); val pillow = a.getFirstEntityByName("sleep_pillow")
+                val optional = (outfits.values + props.values + star + umbrella + blanket + pillow).toSet()
+                models[def.id] = Model(def, a, joints, listOfNotNull(joint("eye_l"), joint("eye_r")), outfits, props, star, a.entities.filter { it !in optional }.toIntArray(), umbrella, blanket, pillow)
             } catch (t: Throwable) { Log.w("Haven", "character ${def.id} not loaded: $t") }
         }
         if (models.isEmpty()) throw IllegalStateException("no character model could be loaded")
@@ -240,10 +257,13 @@ class CharacterView(ctx: Context) : TextureView(ctx), Choreographer.FrameCallbac
         val s = scene ?: return
         val want = models[look.character] ?: models.values.first()
         for ((id, m) in models) {
-            if (m !== want) { s.removeEntities(m.always); (m.outfits.values + m.props.values + m.star).forEach { if (it != 0) s.removeEntity(it) }; continue }
+            if (m !== want) { s.removeEntities(m.always); (m.outfits.values + m.props.values + m.star + m.umbrella + m.blanket + m.pillow).forEach { if (it != 0) s.removeEntity(it) }; continue }
             s.addEntities(m.always)
             for ((o, ent) in m.outfits) if (ent != 0) { if (o == look.outfit) s.addEntity(ent) else s.removeEntity(ent) }
-            for ((p, ent) in m.props) if (ent != 0) { if (p == look.prop) s.addEntity(ent) else s.removeEntity(ent) }
+            val shown = if (scenery.sleeping) null else scenery.propOverride ?: look.prop
+            for ((p, ent) in m.props) if (ent != 0) { if (p == shown) s.addEntity(ent) else s.removeEntity(ent) }
+            fun toggle(ent: Int, on: Boolean) { if (ent != 0) { if (on) s.addEntity(ent) else s.removeEntity(ent) } }
+            toggle(m.umbrella, shown == "umbrella"); toggle(m.blanket, scenery.sleeping); toggle(m.pillow, scenery.sleeping)
             if (m.star != 0) { if (look.star) s.addEntity(m.star) else s.removeEntity(m.star) }
         }
         if (active !== want) { active = want; frameCamera() }
@@ -317,7 +337,12 @@ class CharacterView(ctx: Context) : TextureView(ctx), Choreographer.FrameCallbac
             if (name == "hips") { scratch[12] += p.hipsX; scratch[13] += p.hipsY; scratch[14] += p.hipsZ }
             tm.setTransform(j.inst, scratch)
         }
-        m.joints["root"]?.let { j -> compose(j.bind, 0f, p.rootYaw, 0f, scratch); tm.setTransform(j.inst, scratch) }
+        m.joints["root"]?.let { j ->
+            compose(j.bind, 0f, p.rootYaw, p.rootRoll, scratch)
+            if (p.rootScale != 1f) for (k in 0 until 12) scratch[k] *= p.rootScale
+            scratch[12] += p.rootX; scratch[13] += p.rootY
+            tm.setTransform(j.inst, scratch)
+        }
         for (eye in m.eyes) blink(tm, eye, p.eyes)
     }
 

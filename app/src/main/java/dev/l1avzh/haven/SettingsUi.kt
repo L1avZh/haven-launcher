@@ -105,10 +105,12 @@ class SettingsScreen(
             gradientType = GradientDrawable.RADIAL_GRADIENT; setGradientCenter(cx, cy); gradientRadius = s.px(r).toFloat()
             colors = intArrayOf(color, color and 0xFFFFFF)
         }
+        // Day is a brighter blue with a warm sun glow; night is the obsidian ground. Same layout, same contrast for text.
+        val night = Mood.resolve(act, Prefs(act)).night
         background = android.graphics.drawable.LayerDrawable(arrayOf(
-            GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, intArrayOf(T.MIDNIGHT, T.OBSIDIAN)),
-            glow(if (rtl) 0.1f else 0.9f, 0.05f, 0x553A3FB5, 1000f),
-            glow(if (rtl) 0.95f else 0.05f, 1.0f, 0x3338D8F0, 900f),
+            GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, if (night) intArrayOf(T.MIDNIGHT, T.OBSIDIAN) else intArrayOf(0xFF174B86.toInt(), 0xFF07162D.toInt())),
+            glow(if (rtl) 0.1f else 0.9f, 0.05f, if (night) 0x553A3FB5 else 0x66FFC46B, 1000f),
+            glow(if (rtl) 0.95f else 0.05f, 1.0f, if (night) 0x3338D8F0 else 0x4438B6F0, 900f),
         ))
         isFocusable = false
         val root = LinearLayout(act).apply { orientation = LinearLayout.HORIZONTAL }

@@ -235,6 +235,18 @@
     <string name="studio_apply">Áp dụng</string>
     <string name="browsing_scope">Đang xem: %1$s</string>
     <string name="state_waiting">Nhấn xuống để chọn ứng dụng</string>
+    <string name="daynight_mode">Ngày và đêm</string>
+    <string name="daynight_mode_d">Tự động dùng ánh sáng ban ngày của thành phố thời tiết nếu biết, nếu không dùng đồng hồ.</string>
+    <string name="dn_auto">Tự động</string>
+    <string name="dn_day">Luôn ban ngày</string>
+    <string name="dn_night">Luôn ban đêm</string>
+    <string name="night_from">Đêm bắt đầu</string>
+    <string name="night_to">Đêm kết thúc</string>
+    <string name="sleep_night">Ngủ vào ban đêm</string>
+    <string name="sleep_night_d">Ban đêm nhân vật nằm dưới chăn.</string>
+    <string name="weather_reacts">Phản ứng với thời tiết</string>
+    <string name="weather_reacts_d">Cầm ô và đổi tư thế khi mưa, tuyết, bão và lạnh.</string>
+    <string name="saver_char">Nhân vật ngủ trên màn hình chờ</string>
     <plurals name="apps_count">
         <item quantity="other">%d ứng dụng</item>
     </plurals>

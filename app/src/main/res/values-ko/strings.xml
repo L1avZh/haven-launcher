@@ -235,6 +235,18 @@
     <string name="studio_apply">적용</string>
     <string name="browsing_scope">%1$s 둘러보는 중</string>
     <string name="state_waiting">아래 키로 앱 선택</string>
+    <string name="daynight_mode">낮과 밤</string>
+    <string name="daynight_mode_d">자동은 알 수 있으면 날씨 도시의 일조를, 아니면 시계를 사용합니다.</string>
+    <string name="dn_auto">자동</string>
+    <string name="dn_day">항상 낮</string>
+    <string name="dn_night">항상 밤</string>
+    <string name="night_from">밤 시작</string>
+    <string name="night_to">밤 종료</string>
+    <string name="sleep_night">밤에 잠자기</string>
+    <string name="sleep_night_d">밤에는 캐릭터가 담요를 덮고 눕습니다.</string>
+    <string name="weather_reacts">날씨 반응</string>
+    <string name="weather_reacts_d">비, 눈, 폭풍, 추위에 우산을 들고 자세를 바꿉니다.</string>
+    <string name="saver_char">화면 보호기에서 자는 캐릭터</string>
     <plurals name="apps_count">
         <item quantity="other">앱 %d개</item>
     </plurals>

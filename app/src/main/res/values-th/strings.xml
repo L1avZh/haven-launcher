@@ -235,6 +235,18 @@
     <string name="studio_apply">ใช้</string>
     <string name="browsing_scope">กำลังดู: %1$s</string>
     <string name="state_waiting">กดลงเพื่อเลือกแอป</string>
+    <string name="daynight_mode">กลางวันและกลางคืน</string>
+    <string name="daynight_mode_d">อัตโนมัติใช้แสงกลางวันของเมืองสภาพอากาศหากทราบ มิฉะนั้นใช้นาฬิกา</string>
+    <string name="dn_auto">อัตโนมัติ</string>
+    <string name="dn_day">กลางวันเสมอ</string>
+    <string name="dn_night">กลางคืนเสมอ</string>
+    <string name="night_from">เริ่มกลางคืน</string>
+    <string name="night_to">สิ้นสุดกลางคืน</string>
+    <string name="sleep_night">นอนตอนกลางคืน</string>
+    <string name="sleep_night_d">ตอนกลางคืนตัวละครจะนอนห่มผ้า</string>
+    <string name="weather_reacts">ปฏิกิริยาต่อสภาพอากาศ</string>
+    <string name="weather_reacts_d">ถือร่มและเปลี่ยนท่าทางเมื่อฝน หิมะ พายุ และอากาศหนาว</string>
+    <string name="saver_char">ตัวละครนอนหลับบนภาพพักหน้าจอ</string>
     <plurals name="apps_count">
         <item quantity="other">%d แอป</item>
     </plurals>

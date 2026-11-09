@@ -1,3 +1,14 @@
+# Changelog
+
+## Unreleased
+- Day and night: Settings → Appearance → Day and night (Automatic / Always day / Always night) with an editable night window. Automatic prefers the fresh `is_day` flag Open-Meteo returns for the chosen city and falls back to the local clock. Home, Settings, the Studio and the screensaver get a brighter day sky or the deep night sky with a short cross-fade; it reacts to clock, time-zone and weather changes and to the app resuming.
+- Character and weather: with a fresh reading, rain, snow, storms and cold (8 °C or below on the Celsius value) put an umbrella in the hand with a stance for each; no, stale or unconfigured weather changes nothing; the saved prop is restored afterward. At night the character sleeps under a blanket on a pillow (Settings → Character). Works for all three characters and with reduced motion (pose only, no breathing).
+- Screensaver redesign: black base, dimmed live background and sky, clock, date, rule and responsive widget cards, optional sleeping character at night; everything moves together every 25 s.
+- Widgets are now glass cards laid out for 1 to 3 (home) or 1 to 4 (screensaver) widgets with shrink-to-fit text, a progress bar for share widgets and the animated icon for weather. Stored widget lists are unchanged.
+- The weather request now also asks for `is_day`; the cache format gains an optional fifth field and still reads old entries.
+- New settings strings in all 50 languages. New unit tests for day/night, weather classification, scene precedence, stale and missing data, Celsius/Fahrenheit independence, cache and JSON, sleep and stance poses and widget width.
+- The sky is a hardware layer: it keeps the home screen at about 0.1% janky frames on the TV with the character awake.
+
 ## 1.6
 
 - Three characters (Human, Wizard, Robot) with their own outfits and props, a hidden accessory, themed reactions to music and video apps, a centered waiting pose with a localized "Browsing …" label when nothing is selected, and Settings polished with the home screen's tokens (selected states, header icon, fade transition).
@@ -13,8 +24,6 @@
 - Live animated background that follows the focused app's colours.
 - Unbounded display face for the clock and stage title (SIL OFL, `docs/OFL-Unbounded.txt`).
 - New "Stage & Rail" home: typographic app rail with a stage showing artwork for the focused app, Favorites/Recent/Library scopes, Outfit typeface.
-
-# Changelog
 
 ## 1.5
 - "Go to Home" action for custom mappings, and long-press bindings: hold a button while learning it to bind a long press (a quick Back still cancels; hold Back to bind Back).

@@ -3,7 +3,7 @@
 Run from the project root:  python3 tools/gen_i18n.py"""
 import os, re, sys
 sys.path.insert(0, os.path.dirname(__file__))
-import i18n_data_a as A, i18n_data_b as B, i18n_data_c1 as C1, i18n_data_c2 as C2, i18n_data_d1 as D1, i18n_data_d2 as D2, i18n_data_d3 as D3, i18n_data_d4 as D4, i18n_data_e as E1, i18n_data_f as F1, i18n_data_g1 as G1m, i18n_data_g2 as G2m, i18n_data_g3 as G3m, i18n_data_h1 as H1m, i18n_data_h2 as H2m, i18n_data_h3 as H3m
+import i18n_data_a as A, i18n_data_b as B, i18n_data_c1 as C1, i18n_data_c2 as C2, i18n_data_d1 as D1, i18n_data_d2 as D2, i18n_data_d3 as D3, i18n_data_d4 as D4, i18n_data_e as E1, i18n_data_f as F1, i18n_data_g1 as G1m, i18n_data_g2 as G2m, i18n_data_g3 as G3m, i18n_data_h1 as H1m, i18n_data_h2 as H2m, i18n_data_h3 as H3m, i18n_data_i as Im
 
 KEYS_C = "remote_control input_devices button_test button_test_hint tester_note test_key test_code test_device test_usable yes no custom_mappings add_mapping choose_action action_open_app action_search action_settings action_start press_button mapping_saved no_mappings remove reset_mappings reset_done numbers_open_favs back_to_start".split()
 KEYS = """search settings favorites library tag_favorite hold_ok open add_fav remove_fav move_earlier move_later hide app_info
@@ -39,6 +39,8 @@ KEYS_G = 'cat_widgets d_widgets widgets_home widgets_saver w_greeting w_day w_ye
 dataG = {**G1m.G1, **G2m.G2, **G3m.G3}
 KEYS_H = 'cat_character d_character show_character show_character_d character_studio studio_character studio_outfit studio_prop studio_accessory char_human char_wizard char_robot outfit_city outfit_field outfit_archmage outfit_apprentice outfit_plated outfit_stealth prop_lantern prop_tablet prop_compass prop_staff prop_none acc_star acc_locked star_unlocked studio_apply browsing_scope state_waiting'.split()
 dataH = {**H1m.H1, **H2m.H2, **H3m.H3}
+KEYS_I = 'daynight_mode daynight_mode_d dn_auto dn_day dn_night night_from night_to sleep_night sleep_night_d weather_reacts weather_reacts_d saver_char'.split()
+dataI = Im.I
 data = {**A.D, **B.D}; plurals = {**A.P, **B.P}
 
 def esc(s):
@@ -68,6 +70,8 @@ def xml(lang):
     assert '%d' in linesG[KEYS_G.index('minutes_fmt')], f'{lang}: minutes_fmt lacks %d'
     linesH = dataH[lang].split('\n')
     assert len(linesH) == len(KEYS_H), f'{lang}: {len(linesH)} character strings, expected {len(KEYS_H)}'
+    linesI = dataI[lang].split('\n')
+    assert len(linesI) == len(KEYS_I), f'{lang}: {len(linesI)} day/night strings, expected {len(KEYS_I)}'
     out = ['<?xml version="1.0" encoding="utf-8"?>', '<resources>']
     if lang == 'en': out.append('    <string name="app_name" translatable="false">Haven</string>')
     for k, v in zip(KEYS, lines): out.append(f'    <string name="{k}">{esc(v)}</string>')
@@ -77,6 +81,7 @@ def xml(lang):
     for k, v in zip(KEYS_F, linesF): out.append(f'    <string name="{k}">{esc(v)}</string>')
     for k, v in zip(KEYS_G, linesG): out.append(f'    <string name="{k}">{esc(v)}</string>')
     for k, v in zip(KEYS_H, linesH): out.append(f'    <string name="{k}">{esc(v)}</string>')
+    for k, v in zip(KEYS_I, linesI): out.append(f'    <string name="{k}">{esc(v)}</string>')
     out.append('    <plurals name="apps_count">')
     for q, v in plurals[lang].items():
         assert '%d' in v or q in ('one','two','zero'), f'{lang} plural {q}'
@@ -102,11 +107,11 @@ for tag, _, name, _ in LANGS:
 kt += [')', '']
 open('app/src/main/java/dev/l1avzh/haven/Langs.kt','w',encoding='utf-8').write('\n'.join(kt))
 
-rep = ['# Translation status', '', f'{len(KEYS)+len(KEYS_C)+len(KEYS_D)+len(KEYS_E)+len(KEYS_F)+len(KEYS_G)+len(KEYS_H)} strings + 1 plural per language. Source of truth: `tools/i18n_data_*.py` (run `python3 tools/gen_i18n.py`).',
+rep = ['# Translation status', '', f'{len(KEYS)+len(KEYS_C)+len(KEYS_D)+len(KEYS_E)+len(KEYS_F)+len(KEYS_G)+len(KEYS_H)+len(KEYS_I)} strings + 1 plural per language. Source of truth: `tools/i18n_data_*.py` (run `python3 tools/gen_i18n.py`).',
        '', '**No translation has been reviewed by a native speaker.** They are machine-assisted drafts and should be treated as such.',
        'Tier A: common vocabulary, drafted with reasonable confidence. Tier B: lower confidence (smaller corpus / complex morphology); review before public release.', '',
        '| Tag | Language | Direction | Tier | Strings |', '|---|---|---|---|---|']
 for tag, _, name, tier in LANGS:
-    rep.append(f'| {"id" if tag=="in" else tag} | {name} | {"RTL" if tag in RTL else "LTR"} | {tier} | {len(KEYS)+len(KEYS_C)+len(KEYS_D)+len(KEYS_E)+len(KEYS_F)+len(KEYS_G)+len(KEYS_H)}/{len(KEYS)+len(KEYS_C)+len(KEYS_D)+len(KEYS_E)+len(KEYS_F)+len(KEYS_G)+len(KEYS_H)} |')
+    rep.append(f'| {"id" if tag=="in" else tag} | {name} | {"RTL" if tag in RTL else "LTR"} | {tier} | {len(KEYS)+len(KEYS_C)+len(KEYS_D)+len(KEYS_E)+len(KEYS_F)+len(KEYS_G)+len(KEYS_H)+len(KEYS_I)}/{len(KEYS)+len(KEYS_C)+len(KEYS_D)+len(KEYS_E)+len(KEYS_F)+len(KEYS_G)+len(KEYS_H)+len(KEYS_I)} |')
 open('TRANSLATIONS.md','w',encoding='utf-8').write('\n'.join(rep) + '\n')
 print('languages:', len(LANGS), 'strings each:', len(KEYS))

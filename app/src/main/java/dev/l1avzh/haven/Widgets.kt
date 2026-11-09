@@ -37,7 +37,7 @@ object Widgets {
                 Weather.refresh(c) { WidgetStrip.refreshAll() }
                 val h = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
                 Reading(if (w == null) "…" else "${Weather.format(p, w.first)} ${Weather.describe(c, w.second)}", null, true, Weather.displayName(c, p, p.weatherCity - 1),
-                    if (w == null) null else Triple(skyFor(w.second), h in 6..18, w.first >= 28))
+                    if (w == null) null else Triple(skyFor(w.second), !Mood.resolve(c, p).night, w.first >= 28))
             }
         },
         WidgetDef("day", R.string.w_day) { _ ->
@@ -88,46 +88,83 @@ private class Bar(ctx: Context, private val w: Int, private val h: Int) : View(c
     override fun hasOverlappingRendering() = false
 }
 
-/** A row of widgets. Refreshes itself every 30 s while on screen. */
-class WidgetStrip(ctx: Context, s: Scale, ids: List<String>, large: Boolean) : LinearLayout(ctx) {
+/**
+ * A row of widget cards for one to [MAX_HOME]/[MAX_SAVER] widgets. Card width is derived from the space the parent offers and the
+ * number of widgets, so one widget gets a roomy card and four share the row without ever overflowing; long text shrinks to fit
+ * instead of being cut. Each type has its own treatment: weather shows its animated icon, share-style widgets a progress bar,
+ * the greeting and uptime only text. Refreshes itself every 30 s while on screen.
+ */
+class WidgetStrip(ctx: Context, private val s: Scale, ids: List<String>, private val large: Boolean) : LinearLayout(ctx) {
     private val handler = Handler(Looper.getMainLooper())
-    private class Tile(val def: WidgetDef, val label: TextView, val value: TextView, val bar: Bar, val icon: WeatherIcon?)
+    private class Tile(val def: WidgetDef, val card: LinearLayout, val label: TextView, val value: TextView, val bar: Bar, val icon: WeatherIcon?)
     companion object {
+        const val MAX_HOME = 3
+        const val MAX_SAVER = 4
         private val live = java.util.WeakHashMap<WidgetStrip, Unit>()
         fun refreshAll() { live.keys.toList().forEach { it.refresh() } }
+
+        /** Width of one card in a row of [count] inside [avail] pixels: shared evenly, never wider than [maxCard], never negative. */
+        fun cardWidth(avail: Int, count: Int, gap: Int, maxCard: Int): Int =
+            if (count <= 0) 0 else ((avail - gap * (count - 1)) / count).coerceIn(0, maxCard)
     }
     private val tiles = ArrayList<Tile>()
+    private val gap = s.px(if (large) 28 else 20)
+    private val maxCard = s.px(if (large) 440 else 300)
     private val tick = object : Runnable { override fun run() { refresh(); handler.postDelayed(this, 30_000) } }
 
     init {
-        orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
-        ids.mapNotNull { id -> Widgets.ALL.firstOrNull { it.id == id } }.forEachIndexed { i, d ->
+        orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; clipChildren = false
+        val defs = ids.mapNotNull { id -> Widgets.ALL.firstOrNull { it.id == id } }.take(if (large) MAX_SAVER else MAX_HOME)
+        val padH = s.px(if (large) 26 else 18); val padV = s.px(if (large) 22 else 8)
+        defs.forEachIndexed { i, d ->
+            val first = d.read(ctx)
             val label = TextView(ctx).apply {
-                Caps.set(this, d.read(ctx).label ?: ctx.getString(d.nameRes), 0.14f); sizePx(s.px(if (large) 17f else 14f)); setTextColor(T.TEXT_DIM); typeface = Fonts.medium
-                letterSpacing = 0.12f; includeFontPadding = false
+                Caps.set(this, first.label ?: ctx.getString(d.nameRes), 0.14f); sizePx(s.px(if (large) 17f else 13f)); setTextColor(T.TEXT_DIM); typeface = Fonts.medium
+                letterSpacing = 0.12f; includeFontPadding = false; maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
             }
-            val value = TextView(ctx).apply { sizePx(s.px(if (large) 40f else 30f)); setTextColor(T.TEXT); typeface = Fonts.light; includeFontPadding = false; maxLines = 1 }
-            val bar = Bar(ctx, s.px(if (large) 150 else 104), s.px(4))
-            val icon = if (d.id == "weather") WeatherIcon(ctx, s.px(if (large) 96 else 72)) else null
+            val value = TextView(ctx).apply {
+                val big = s.px(if (large) 44f else 27f)
+                typeface = Fonts.light; setTextColor(T.TEXT); includeFontPadding = false
+                maxLines = if (d.id == "weather" || d.id == "greet") 2 else 1
+                sizePx(big)
+                androidx.core.widget.TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(this, s.px(14f).toInt(), big.toInt(), 1, android.util.TypedValue.COMPLEX_UNIT_PX)
+            }
+            val bar = Bar(ctx, s.px(if (large) 160 else 110), s.px(if (large) 4 else 3))
+            val icon = if (d.id == "weather") WeatherIcon(ctx, s.px(if (large) 88 else 50)) else null
             val col = LinearLayout(ctx).apply {
-                orientation = VERTICAL
-                val reading = d.read(ctx)
-                if (reading.showLabel) addView(label)
-                addView(value, LayoutParams(-2, -2).apply { topMargin = s.px(if (reading.showLabel) 4 else 0) })
-                if (reading.fraction != null) addView(bar, LayoutParams(-2, -2).apply { topMargin = s.px(8) })
+                orientation = VERTICAL; gravity = Gravity.CENTER_VERTICAL
+                if (first.showLabel) addView(label, LayoutParams(-1, -2))
+                addView(value, LayoutParams(-1, -2).apply { topMargin = s.px(if (first.showLabel) (if (large) 6 else 2) else 0) })
+                if (first.fraction != null) addView(bar, LayoutParams(-2, -2).apply { topMargin = s.px(if (large) 10 else 6) })
             }
-            val cell = LinearLayout(ctx).apply { gravity = Gravity.CENTER_VERTICAL; if (icon != null) addView(icon, LayoutParams(-2, -2).apply { marginEnd = s.px(14) }); addView(col) }
-            addView(cell, LayoutParams(-2, -2).apply { if (i > 0) marginStart = s.px(if (large) 64 else 44) })
-            tiles.add(Tile(d, label, value, bar, icon))
+            val card = LinearLayout(ctx).apply {
+                orientation = HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; setPadding(padH, padV, padH, padV)
+                background = android.graphics.drawable.GradientDrawable().apply { cornerRadius = s.px(24f).toFloat(); setColor(T.GLASS); setStroke(s.px(1), T.HAIRLINE) }
+                importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
+                if (icon != null) addView(icon, LayoutParams(-2, -2).apply { marginEnd = s.px(14) })
+                addView(col, LayoutParams(0, -2, 1f))
+            }
+            addView(card, LayoutParams(0, -1).apply { if (i > 0) marginStart = gap })
+            tiles.add(Tile(d, card, label, value, bar, icon))
         }
         refresh()
+    }
+
+    /** Hands each card an even share of the offered width, so layouts hold for any widget count, language or font scale. */
+    override fun onMeasure(w: Int, h: Int) {
+        val avail = if (MeasureSpec.getMode(w) == MeasureSpec.UNSPECIFIED) maxCard * tiles.size + gap * tiles.size else MeasureSpec.getSize(w)
+        val each = cardWidth(avail, tiles.size, gap, maxCard)
+        tiles.forEach { (it.card.layoutParams as LayoutParams).apply { width = each; weight = 0f } }
+        super.onMeasure(MeasureSpec.makeMeasureSpec(each * tiles.size + gap * (tiles.size - 1).coerceAtLeast(0), MeasureSpec.EXACTLY), h)
     }
 
     private fun refresh() {
         tiles.forEach { t ->
             val r = try { t.def.read(context) } catch (_: Exception) { return@forEach }
             t.value.text = r.value
+            val name = r.label ?: context.getString(t.def.nameRes)
             r.label?.let { Caps.set(t.label, it, 0.14f) }
+            t.card.contentDescription = if (r.showLabel) "$name: ${r.value}" else r.value
             r.sky?.let { t.icon?.set(it.first, it.second, it.third) }
             t.icon?.visibility = if (r.sky == null) View.GONE else View.VISIBLE
             if (t.def.id == "weather") LiveBackground.ambient = r.sky?.first?.takeIf { it == Sky.RAIN || it == Sky.SNOW || it == Sky.STORM }

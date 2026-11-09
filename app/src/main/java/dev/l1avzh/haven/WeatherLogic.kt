@@ -33,15 +33,17 @@ class RequestGate<K> {
 
 /** The "temp|code|timestamp|cityIndex" last-good reading kept in preferences (format unchanged from earlier versions). */
 object WeatherCache {
-    class Entry(val temp: Double, val code: Int, val stamp: Long, val city: Int)
+    /** [isDay] is the provider's day/night flag for that moment; entries written by older versions have none (null). */
+    class Entry(val temp: Double, val code: Int, val stamp: Long, val city: Int, val isDay: Boolean? = null)
 
-    fun encode(e: Entry) = "${e.temp}|${e.code}|${e.stamp}|${e.city}"
+    fun encode(e: Entry) = "${e.temp}|${e.code}|${e.stamp}|${e.city}" + (e.isDay?.let { "|${if (it) 1 else 0}" } ?: "")
 
     fun decode(raw: String): Entry? {
         val p = raw.split('|')
-        if (p.size != 4) return null
+        if (p.size != 4 && p.size != 5) return null
         val t = p[0].toDoubleOrNull()?.takeIf { it.isFinite() } ?: return null
-        return Entry(t, p[1].toIntOrNull() ?: return null, p[2].toLongOrNull() ?: return null, p[3].toIntOrNull() ?: return null)
+        val day = if (p.size == 5) when (p[4]) { "1" -> true; "0" -> false; else -> return null } else null
+        return Entry(t, p[1].toIntOrNull() ?: return null, p[2].toLongOrNull() ?: return null, p[3].toIntOrNull() ?: return null, day)
     }
 
     /** The entry only counts for the city it was fetched for. */
@@ -51,14 +53,15 @@ object WeatherCache {
 }
 
 object WeatherJson {
-    class Current(val temp: Double, val code: Int)
+    class Current(val temp: Double, val code: Int, val isDay: Boolean?)
 
     /** Parses the provider's "current" block; anything malformed or implausible yields null instead of throwing. */
     fun parseCurrent(body: String): Current? = try {
         val cur = JSONObject(body).getJSONObject("current")
         val t = cur.getDouble("temperature_2m")
         val c = cur.getInt("weather_code")
-        if (t.isFinite() && t in -90.0..65.0 && c in 0..99) Current(t, c) else null
+        val day = if (cur.has("is_day")) when (cur.getInt("is_day")) { 1 -> true; 0 -> false; else -> null } else null
+        if (t.isFinite() && t in -90.0..65.0 && c in 0..99) Current(t, c, day) else null
     } catch (_: JSONException) { null }
 
     /** First geocoding result whose position is near the expected one, or null. */

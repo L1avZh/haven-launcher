@@ -47,6 +47,8 @@ class MainActivity : Activity() {
     private lateinit var frame: FrameLayout
     private lateinit var wallpaperView: View
     private lateinit var glowView: LiveBackground
+    private lateinit var moodView: MoodView
+    private var mood: Mood.State? = null
     private lateinit var header: LinearLayout
     private lateinit var railBox: View
     private lateinit var stageBody: LinearLayout
@@ -128,8 +130,12 @@ class MainActivity : Activity() {
         Fonts.init(this)
         T.init(this, prefs.animLevel, prefs.performance)
         artW = intArrayOf(600, 680, 740)[prefs.cardSize]
+        debugInputs(intent)
+        mood = Mood.resolve(this, prefs)
         buildUi()
         syncCharacter()
+        applyMood(false)
+        registerReceiver(clockReceiver, IntentFilter().apply { addAction(Intent.ACTION_TIME_TICK); addAction(Intent.ACTION_TIME_CHANGED); addAction(Intent.ACTION_TIMEZONE_CHANGED) })
         frame.viewTreeObserver.addOnGlobalFocusChangeListener { _, now -> if (now != null) onFocusMoved(now) }
         registerReceiver(pkgReceiver, IntentFilter().apply {
             addAction(Intent.ACTION_PACKAGE_ADDED); addAction(Intent.ACTION_PACKAGE_REMOVED)
@@ -143,7 +149,7 @@ class MainActivity : Activity() {
 
     override fun onDestroy() {
         character?.destroy(); character = null
-        unregisterReceiver(pkgReceiver)
+        unregisterReceiver(pkgReceiver); unregisterReceiver(clockReceiver)
         main.removeCallbacksAndMessages(null)
         loader.shutdownNow(); icons.close()
         super.onDestroy()
@@ -162,7 +168,7 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
-        T.init(this, prefs.animLevel, prefs.performance); syncCharacter()
+        T.init(this, prefs.animLevel, prefs.performance); syncCharacter(); applyMood(false)
         // Back from another app the user opened from here: a small acknowledgement, nothing more (Haven cannot know what happened there).
         if (wentAway) { wentAway = false; character?.input(CharInput.Returned) }
         if (loaded) render()
@@ -172,6 +178,7 @@ class MainActivity : Activity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        debugInputs(intent); applyMood(true)
         // Home pressed while we are already on top: close any menu and go back to the start.
         dialogs.toList().forEach { it.dismiss() }; dialogs.clear()
         closeEgg(); closeOverlay(); closeSettings()
@@ -181,12 +188,39 @@ class MainActivity : Activity() {
     @Deprecated("Back never leaves the launcher; it returns to the start position.")
     override fun onBackPressed() { if (egg != null) closeEgg() else if (studio != null) studio?.back() else settings?.back() ?: focusStart() }
 
+    // ---------- Day / night and weather ----------
+
+    /** Minute ticks, manual clock changes and time-zone changes all re-ask the same question; nothing is polled. */
+    private val clockReceiver = object : BroadcastReceiver() { override fun onReceive(c: Context, i: Intent) { applyMood(true) } }
+
+    /**
+     * Debug builds only: `--es haven_weather "61|5|1"` (code|celsius|isDay), `--ei haven_daynight 0..2`, or `off` to clear.
+     * A release APK ignores these completely.
+     */
+    private fun debugInputs(i: Intent?) {
+        if (applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE == 0 || i == null) return
+        i.getStringExtra("haven_weather")?.let { prefs.putStr("dbg_weather", if (it == "off") "" else it) }
+        i.getStringExtra("haven_character")?.let { prefs.characterId = it; character?.setLook(prefs.look()) }
+        if (i.getBooleanExtra("haven_saver", false)) main.postDelayed({ startSaver() }, 1500)
+        i.getStringExtra("haven_daynight")?.let { prefs.putStr("dbg_daynight", if (it == "off") "" else it) }
+    }
+
+    /** Recomputes day/night and the weather scene and pushes them to the sky, the character and (if shown) the screensaver. */
+    private fun applyMood(animate: Boolean) {
+        val m = Mood.resolve(this, prefs); val old = mood; mood = m
+        if (prefs.weatherCity > 0) Weather.refresh(this) { if (!isDestroyed) applyMood(true) }
+        if (old != null && old.night == m.night && old.scene.stance == m.scene.stance && old.scene.propOverride == m.scene.propOverride) { moodView.setNight(m.night, false); character?.setScene(m.scene); return }
+        moodView.setNight(m.night, animate)
+        character?.setScene(m.scene)
+        saverView?.setMood(m.night, m.scene)
+    }
+
     private lateinit var widgetHost: FrameLayout
     private fun applyWidgets() {
         widgetHost.removeAllViews()
         val ids = Widgets.parse(prefs.homeWidgets).take(3)
         LiveBackground.ambient = LiveBackground.ambientFor(this, ids)
-        if (ids.isNotEmpty()) widgetHost.addView(WidgetStrip(this, s, ids, false), FrameLayout.LayoutParams(-2, -2, Gravity.CENTER_VERTICAL or Gravity.START))
+        if (ids.isNotEmpty()) widgetHost.addView(WidgetStrip(this, s, ids, false), FrameLayout.LayoutParams(-1, -2, Gravity.CENTER_VERTICAL or Gravity.START))
     }
 
     private var saverView: SaverView? = null
@@ -201,12 +235,13 @@ class MainActivity : Activity() {
 
     private fun startSaver() {
         if (saverView != null || overlay != null) return
-        val v = SaverView(this, s, timeClock.format12Hour, timeClock.format24Hour, DateFormat.getBestDateTimePattern(Lang.locale(this), "EEEdMMM"), Widgets.parse(prefs.saverWidgets))
+        character?.stop()
+        val v = SaverView(this, s, timeClock.format12Hour, timeClock.format24Hour, DateFormat.getBestDateTimePattern(Lang.locale(this), "EEEdMMM"), Widgets.parse(prefs.saverWidgets), if (prefs.saverCharacter && prefs.characterEnabled) prefs.look() else null)
         homeContent.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
-        saverView = v; LiveBackground.ambient = LiveBackground.ambientFor(this, Widgets.parse(prefs.saverWidgets).take(4)); frame.addView(v, -1, -1)
+        saverView = v; mood?.let { m -> v.setMood(m.night, m.scene) }; LiveBackground.ambient = LiveBackground.ambientFor(this, Widgets.parse(prefs.saverWidgets).take(4)); frame.addView(v, -1, -1)
     }
 
-    private fun stopSaver() { saverView?.let { frame.removeView(it) }; saverView = null; homeContent.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_AUTO; LiveBackground.ambient = LiveBackground.ambientFor(this, Widgets.parse(prefs.homeWidgets).take(3)) }
+    private fun stopSaver() { if (saverView != null && settings == null) character?.start(); saverView?.let { frame.removeView(it) }; saverView = null; homeContent.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_AUTO; LiveBackground.ambient = LiveBackground.ambientFor(this, Widgets.parse(prefs.homeWidgets).take(3)) }
 
     override fun dispatchKeyEvent(e: KeyEvent): Boolean {
         if (saverView != null) { if (e.action == KeyEvent.ACTION_DOWN && e.repeatCount == 0) { stopSaver(); armSaver() }; return true }
@@ -436,7 +471,8 @@ class MainActivity : Activity() {
         wallpaperView = View(this).apply { background = wallpaperDrawable() }
         glowView = LiveBackground(this).apply { visibility = if (prefs.glow) View.VISIBLE else View.GONE; setStatic(prefs.performance); setAccent(glowColor) }
         dimView = View(this).apply { setBackgroundColor(dimColor()) }
-        frame.addView(wallpaperView, -1, -1); frame.addView(glowView, -1, -1); frame.addView(dimView, -1, -1)
+        moodView = MoodView(this)
+        frame.addView(wallpaperView, -1, -1); frame.addView(moodView, -1, -1); frame.addView(glowView, -1, -1); frame.addView(dimView, -1, -1)
 
         // The character stands on the start side (left in LTR, right in RTL), on a pool of light, behind all controls.
         platform = View(this).apply {
@@ -447,7 +483,7 @@ class MainActivity : Activity() {
         frame.addView(platform, FrameLayout.LayoutParams(s.px(620), s.px(620), Gravity.START or Gravity.BOTTOM).apply { marginStart = s.px(40); bottomMargin = -s.px(235) })
         if (prefs.characterEnabled) {
             character = CharacterView(this).also {
-                it.setLook(prefs.look()); it.motion = T.motion
+                it.setLook(prefs.look()); it.motion = T.motion; mood?.let { m -> it.setScene(m.scene) }
                 frame.addView(it, FrameLayout.LayoutParams(s.px(700), s.px(960), Gravity.START or Gravity.BOTTOM).apply { bottomMargin = s.px(50) })
             }
         }
@@ -1018,6 +1054,10 @@ class MainActivity : Activity() {
                 { prefs.cardSize }, { prefs.cardSize = it; prefs.reopenSettings = true; main.postDelayed({ recreate() }, T.d(T.MED)) }),
             Choice(g(R.string.screensaver), g(R.string.screensaver_d), SAVER_MINUTES.map { if (it == 0) g(R.string.off) else getString(R.string.minutes_fmt, it) },
                 { prefs.saver }, { prefs.saver = it; armSaver() }),
+            Choice(g(R.string.daynight_mode), g(R.string.daynight_mode_d), listOf(g(R.string.dn_auto), g(R.string.dn_day), g(R.string.dn_night)),
+                { prefs.dayNightMode }, { prefs.dayNightMode = it; applyMood(true) }),
+            Choice(g(R.string.night_from), null, (0..23).map { "%02d:00".format(it) }, { prefs.nightFrom }, { prefs.nightFrom = it; applyMood(true) }),
+            Choice(g(R.string.night_to), null, (0..23).map { "%02d:00".format(it) }, { prefs.nightTo }, { prefs.nightTo = it; applyMood(true) }),
             Toggle(g(R.string.clock), null, { prefs.showClock }, { prefs.showClock = it; clockCol.visibility = if (it) View.VISIBLE else View.INVISIBLE }),
         ) }
         val apps = Category(R.drawable.ic_cat_apps, g(R.string.cat_apps), g(R.string.d_apps)) { listOf(
@@ -1088,6 +1128,9 @@ class MainActivity : Activity() {
         ) }
         val characterCat = Category(R.drawable.ic_character, g(R.string.cat_character), g(R.string.d_character)) { listOf(
             Toggle(g(R.string.show_character), g(R.string.show_character_d), { prefs.characterEnabled }, { prefs.characterEnabled = it; prefs.reopenSettings = true; main.postDelayed({ recreate() }, T.d(T.MED)) }),
+            Toggle(g(R.string.sleep_night), g(R.string.sleep_night_d), { prefs.sleepAtNight }, { prefs.sleepAtNight = it; applyMood(true) }),
+            Toggle(g(R.string.weather_reacts), g(R.string.weather_reacts_d), { prefs.weatherReactions }, { prefs.weatherReactions = it; applyMood(true) }),
+            Toggle(g(R.string.saver_char), null, { prefs.saverCharacter }, { prefs.saverCharacter = it }),
             Action(g(R.string.character_studio), null) { closeSettings(); main.postDelayed({ openStudio() }, T.d(T.FAST + 120)) },
         ) }
         return listOf(general, appearance, characterCat, widgets, apps, remote, language, display, adguard, privacy, about)
