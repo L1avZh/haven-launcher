@@ -159,6 +159,8 @@ object PropGrips {
         "axe" to Grip(-0.50f, 0.10f, -1.00f, -0.10f, 1f),
         "staff" to Grip(-0.30f, 0.10f, -1.10f, -0.20f, 1f),       // planted beside the foot, gripped at chest height
     )
+    /** The umbrella is held by the weather stance, not chosen in the Studio; its arm pose lives here with the other grips (canopy leaning slightly back, over the head). */
+    val UMBRELLA = Grip(-0.60f, -0.06f, -1.20f, -0.05f, 1f)
     fun of(prop: String): Grip? = table[prop]
 }
 
@@ -175,10 +177,12 @@ class Pose {
     var curlR = 0f; var curlL = 0f
     /** How much of the saved prop, the umbrella and the bed is "present": the renderer scales each to this, so they grow and shrink with the pose instead of popping. */
     var propScale = 1f; var umbrellaScale = 0f; var bedScale = 0f
+    /** The prop the right hand is carrying right now (or putting away / taking out), so the renderer never shows a stale one. */
+    var heldProp = "none"
     /** 0 standing .. 1 lying down; the camera widens with it so the whole bed fits. */
     var sleepFrame = 0f
     fun clear() { rot.fill(0f); hipsX = 0f; hipsY = 0f; hipsZ = 0f; rootYaw = 0f; rootRoll = 0f; rootPitch = 0f; rootScale = 1f; rootX = 0f; rootY = 0f; eyes = 1f
-        curlR = 0f; curlL = 0f; propScale = 1f; umbrellaScale = 0f; bedScale = 0f; sleepFrame = 0f }
+        curlR = 0f; curlL = 0f; propScale = 1f; umbrellaScale = 0f; bedScale = 0f; sleepFrame = 0f; heldProp = "none" }
     fun add(joint: String, pitch: Float, yaw: Float, roll: Float) {
         val i = INDEX[joint] ?: return; rot[i*3] += pitch; rot[i*3 + 1] += yaw; rot[i*3 + 2] += roll
     }
@@ -214,7 +218,9 @@ class CharacterAnimator(private val reactor: CharacterReactor) {
 
     // weights derived each frame
     private var umb = 0f      // umbrella weight: the strongest weather stance
-    private var free = 0f     // how much the right arm is busy (prop or umbrella): one-handed gestures use the left arm by this much
+    private var rBusy = 0f    // how much the right arm is owned by a prop or the umbrella; one-handed gestures move to the left arm by this much
+    private var lBusy = 0f    // how much the left arm is owned by the weather pose; gestures on it are dropped by this much
+    private var shownProp = "none"   // the prop the right hand carries now; changes only through an empty hand, so a swap is put-away then take-out
 
     fun update(nowMs: Long, motion: Float): Pose {
         val t = nowMs / 1000.0
@@ -226,10 +232,12 @@ class CharacterAnimator(private val reactor: CharacterReactor) {
         for (s in Stance.values()) stances[s.ordinal] = ease(stances[s.ordinal], if (reactor.stance == s && s != Stance.SLEEP) 1f else 0f, dt, 2.6, snap)
         umb = 0f; for (s in Stance.values()) if (s != Stance.NONE && s != Stance.SLEEP) umb = max(umb, stances[s.ordinal])
         val awake = 1f - smooth(sleep / 0.3f)                      // lying down takes the prop and the arm pose away first
-        val grip = PropGrips.of(reactor.carried)
-        hold = ease(hold, if (grip != null) 1f else 0f, dt, 3.0, snap)
+        if (shownProp != reactor.carried && (hold <= 0.03f || snap)) shownProp = reactor.carried     // a different prop is swapped in only once the hand is empty
+        val grip = PropGrips.of(shownProp)
+        hold = ease(hold, if (grip != null && shownProp == reactor.carried) 1f else 0f, dt, 3.0, snap)
+        pose.heldProp = shownProp
         val carry = hold * (1f - umb) * awake                      // the saved prop is carried only when nothing stronger holds the hand
-        free = max(carry, umb) * awake
+        rBusy = max(carry, umb) * awake; lBusy = umb * awake
         pose.propScale = if (grip != null) carry else 0f
         pose.umbrellaScale = umb * awake
         pose.curlR = max(carry * (grip?.curl ?: 0f), umb * awake); pose.curlL = 0.16f
@@ -308,7 +316,8 @@ class CharacterAnimator(private val reactor: CharacterReactor) {
 
     /** Holding an umbrella with the right arm, plus what the weather does to the rest of the body. */
     private fun stancePose(s: Stance, t: Double, w: Float, motion: Float) {
-        pose.add("upperarm_r", -0.55f * w, 0f, -0.10f * w); pose.add("forearm_r", -1.25f * w, 0f, 0f); pose.add("hand_r", -0.05f * w, 0f, 0f)
+        val u = PropGrips.UMBRELLA
+        pose.add("upperarm_r", u.upper * w, 0f, u.roll * w); pose.add("forearm_r", u.fore * w, 0f, 0f); pose.add("hand_r", u.hand * w, 0f, 0f)
         when (s) {
             Stance.RAIN -> { pose.add("head", -0.1f * w, 0f, 0f); pose.add("upperarm_l", -0.2f * w, 0f, -0.22f * w); pose.add("forearm_l", -0.55f * w, 0f, 0f) }
             Stance.SNOW -> { pose.add("head", -0.18f * w, 0f, 0.05f * w); pose.add("upperarm_l", -0.35f * w, 0f, -0.28f * w); pose.add("forearm_l", -0.5f * w, 0f, 0f) }
@@ -328,14 +337,17 @@ class CharacterAnimator(private val reactor: CharacterReactor) {
         }
     }
 
-    /** One arm. [side] is 'l' or 'r'; a positive [roll] always means "away from the body". */
-    private fun arm(side: Char, up: Float, roll: Float, fore: Float, hand: Float, w: Float) {
-        if (w <= 0f) return
+    /**
+     * One arm of a gesture. [side] is 'l' or 'r'; a positive [roll] always means "away from the body". An arm that the held layers own (the right one while it
+     * carries a prop or the umbrella, the left one while the weather pose uses it) ignores the gesture by that much: gestures never fight a held pose.
+     */
+    private fun arm(side: Char, up: Float, roll: Float, fore: Float, hand: Float, w0: Float) {
+        val w = w0 * (1f - (if (side == 'r') rBusy else lBusy)); if (w <= 0f) return
         val sgn = if (side == 'r') 1f else -1f
         pose.add("upperarm_$side", up * w, 0f, roll * sgn * w); pose.add("forearm_$side", fore * w, 0f, 0f); pose.add("hand_$side", hand * w, 0f, 0f)
     }
-    /** A one-handed gesture: the right hand normally, the free left hand while the right one is busy, blended as that changes. */
-    private fun oneHand(up: Float, roll: Float, fore: Float, hand: Float, w: Float) { arm('r', up, roll, fore, hand, w * (1f - free)); arm('l', up, roll, fore, hand, w * free) }
+    /** A one-handed gesture: the right hand when it is empty, the left (if the weather is not using it) while the right is busy; with both busy it is dropped. */
+    private fun oneHand(up: Float, roll: Float, fore: Float, hand: Float, w: Float) { arm('r', up, roll, fore, hand, w); arm('l', up, roll, fore, hand, w * rBusy) }
 
     /** Relaxed "waiting for a selection": weight on one leg, a free hand at the chin, the head tilted, slow breathing. */
     private fun waitingPose(t: Double, w: Float) {
@@ -376,7 +388,7 @@ class CharacterAnimator(private val reactor: CharacterReactor) {
                 pose.eyes = max(pose.eyes, 1f + 0.35f * e)
             }
             Beat.LONG_PRESS -> {                                    // both hands lift: "options" (a busy hand stays where it is)
-                arm('l', -0.55f, 0.15f, -0.8f, 0f, e); arm('r', -0.55f, 0.15f, -0.8f, 0f, e * (1f - free))
+                arm('l', -0.55f, 0.15f, -0.8f, 0f, e); arm('r', -0.55f, 0.15f, -0.8f, 0f, e)
                 pose.add("head", 0.05f * e, 0f, 0f)
             }
             Beat.PREVIEW -> {                                       // quarter turn to show the outfit off
@@ -393,7 +405,7 @@ class CharacterAnimator(private val reactor: CharacterReactor) {
             }
             Beat.LISTEN -> {                                        // hands to the ears, a small nod to a beat that only the character hears
                 val bob = sin(u * 2 * PI.toFloat() * 3f) * m
-                arm('l', -0.9f, 0.25f, -1.7f, 0f, e); arm('r', -0.9f, 0.25f, -1.7f, 0f, e * (1f - free))
+                arm('l', -0.9f, 0.25f, -1.7f, 0f, e); arm('r', -0.9f, 0.25f, -1.7f, 0f, e)
                 pose.add("head", 0.05f * bob * e, 0f, 0.03f * bob * e); pose.hipsY += 0.006f * bob * e
             }
             Beat.WATCH -> {                                         // turns toward the screen and presents a remote with the free hand
@@ -403,7 +415,7 @@ class CharacterAnimator(private val reactor: CharacterReactor) {
             }
             Beat.LAUNCH_LISTEN -> {                                 // a bigger version of the same gesture as the app opens
                 val bob = sin(u * 2 * PI.toFloat() * 3f) * m
-                arm('l', -1.0f, 0.3f, -1.8f, 0f, e); arm('r', -1.0f, 0.3f, -1.8f, 0f, e * (1f - free))
+                arm('l', -1.0f, 0.3f, -1.8f, 0f, e); arm('r', -1.0f, 0.3f, -1.8f, 0f, e)
                 pose.add("head", 0.08f * bob * e, 0f, 0f); pose.eyes = max(pose.eyes, 1f + 0.2f * e)
             }
             Beat.LAUNCH_WATCH -> {
@@ -417,7 +429,7 @@ class CharacterAnimator(private val reactor: CharacterReactor) {
             }
             Beat.EQUIP -> {                                         // a full turn on the spot while the new look is swapped in
                 pose.rootYaw = (2 * PI.toFloat()) * smooth(u) * m
-                arm('l', -0.1f, 0.3f, 0f, 0f, e); arm('r', -0.1f, 0.3f, 0f, 0f, e * (1f - free))
+                arm('l', -0.1f, 0.3f, 0f, 0f, e); arm('r', -0.1f, 0.3f, 0f, 0f, e)
                 pose.hipsY += 0.015f * sin(u * PI.toFloat()) * m
             }
         }

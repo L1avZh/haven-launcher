@@ -68,24 +68,29 @@ What would raise it further: the paid Quaternius Wizard outfit or any CC0 hat/ro
 
 ## State, pose and prop policy
 
-One animator (`CharacterAnimator`) turns the state into joint rotations, and the renderer derives what is visible from the same weights, so the pose,
-the prop and the scene cannot disagree. Every layer has an eased weight (nothing snaps); `PropPolicyTest` checks the rules below, including that no
-joint moves more than 0.09 rad per 16 ms frame across a rain, sleep, wake and cold sequence.
+One animator (`CharacterAnimator`) composes the pose; the renderer derives what is visible from the same weights, so pose, prop and scene cannot
+disagree. Every layer has an eased weight (nothing snaps). `PropPolicyTest` checks the rules below.
 
-| State (highest priority first) | Right hand | Left hand | Visible |
+**Layers, bottom to top**: idle (breath, weight shift, head drift, blinks, gaze) → waiting pose → carrying the saved prop → weather stance (umbrella) →
+lying in bed → beats (remote and app reactions). Gaze and idle sway fade out as the body lies down.
+
+**Arm ownership** is what stops layers fighting. Each arm has a "busy" weight: the right arm is owned by the carried prop or the umbrella, the left arm by the
+weather stance (its rain/snow/storm/cold pose). A gesture (`arm()`/`oneHand()`) is multiplied by `1 - busy` for the arm it targets:
+
+| Situation | Right arm | Left arm | Gestures (confirm, back, listen, watch, waiting hand, return, ...) |
 |---|---|---|---|
-| Sleeping (also while lying down or getting up) | empty, resting along the body | resting along the body | bed (grows under the standing character, who then lies on their back on it, head on the pillow); no prop, no umbrella, no weather particles |
-| Rain, snow, storm, cold | holds the umbrella (the fist closes on its pole; the saved prop is put away) | free; weather gesture | umbrella; the saved prop is hidden until the weather clears |
-| A saved prop is chosen | carries it; the arm pose is that prop's row in `PropGrips` | free | the prop in the hand |
-| No prop ("none") | relaxed | relaxed | nothing |
+| Empty hands, no weather | free | free | right hand; two-handed ones use both |
+| A prop in the right hand | carries (arm pose from `PropGrips`) | free | one-handed ones move to the left hand, blended as the carry weight changes; the right arm never moves |
+| Rain, snow, storm, cold | holds the umbrella (`PropGrips.UMBRELLA`) | weather pose | arm gestures are dropped; head, spine and eyes still react (nod, glance, bow) |
+| Sleeping, lying down or getting up | rests | rests | all beats are ignored (the reactor refuses them), idle fades out |
 
-* **One-handed gestures** (confirm, "watch", the waiting pose's hand at the chin) use the right hand when it is empty and the free left hand when it is busy,
-  blended by the carry weight, so a prop is never waved around. Two-handed gestures (listen, options) only move a busy hand's partner. The earlier waves
-  (return, confirm hand raised) were replaced by a nod and a small open hand.
-* **Order of events**: going to sleep puts the prop away in the first 15% of the transition, then the bed grows under the standing character (30%),
-  then the character lies down; waking reverses it, and the prop returns only once the character stands. Prop, umbrella and bed scale with their weights.
-* **Reduced motion** shows the held pose directly (carrying, umbrella, lying), without easing, breathing or gestures.
-* **The camera** follows the same weights: it backs off for the umbrella's head-room and widens as the character lies down so the whole bed fits.
+**Props**: the prop in hand is named by the animator (`Pose.heldProp`). Choosing another one in the Studio first lowers the hold weight to zero (the old prop
+shrinks away), then switches, then the new one grows, so a stale prop can never linger and two props are never shown. The umbrella replaces the saved prop
+(crossfade by scale) and the saved prop returns when the weather clears; sleeping puts it away in the first 15% of the transition.
+
+**Order of events when going to sleep**: prop away, then the bed grows under the standing character (30%), then the character lies down; waking reverses it
+and the prop returns last. Reduced motion shows the held pose directly. The camera follows the umbrella and sleep weights. A character change swaps the
+model and re-attaches the props to the new hand; the animator keeps its weights, so the new character is already in the right state.
 
 ## Grips and sockets
 
@@ -109,13 +114,13 @@ a pose from the side (see [day-night.md](day-night.md)).
 |---|---|
 | Focus moves to something | glance (head and chest turn toward its screen position), at most one per 90 ms |
 | A tab, category or screen changes | small chest lift and settle |
-| OK pressed | nod, raised hand, widened eyes (key repeats never restart it) |
-| OK held | both hands lift, once per hold |
-| Back pressed | small step back and an open-hand dismissal |
-| Focus on a music app | hands to the ears and a small nod, at most once every 1.8 s |
-| Focus on a video app | turns toward the screen and presents a remote |
+| OK pressed | nod, widened eyes and a small lift of the free hand (key repeats never restart it) |
+| OK held | both hands lift, once per hold (a busy hand stays where it is) |
+| Back pressed | small step back and an open-hand dismissal with the left hand |
+| Focus on a music app | hands to the ears and a small nod, at most once every 1.8 s (an occupied hand stays put) |
+| Focus on a video app | turns toward the screen and presents a remote with the free hand |
 | Opening a music or video app | a bigger version of the same gesture |
-| Returning to Haven after opening an app | a small wave |
+| Returning to Haven after opening an app | a glad nod and an open free hand (no wave) |
 | Studio: preview / equip / apply / cancel | quarter turn / full turn while the look swaps / bow / shrug |
 | Nothing selected | relaxed waiting pose, eyes wandering |
 

@@ -102,9 +102,9 @@ class SleepAndStanceTest {
     @Test fun coldRaisesTheUmbrellaArmAndReducedMotionKeepsTheStill() {
         val r = CharacterReactor(); val a = CharacterAnimator(r); r.stance = Stance.COLD
         var p = a.update(0, 1f); for (t in 16..4000 step 16) p = a.update(t.toLong(), 1f)
-        assertTrue("forearm raised", -p.get("forearm_r", 0) > 1.2f)
+        assertTrue("forearm raised", -p.get("forearm_r", 0) > 1.1f)
         val calm = CharacterAnimator(r); var q = calm.update(0, 0f); for (t in 16..4000 step 16) q = calm.update(t.toLong(), 0f)
-        assertTrue("reduced motion keeps the pose", -q.get("forearm_r", 0) > 1.2f)
+        assertTrue("reduced motion keeps the pose", -q.get("forearm_r", 0) > 1.1f)
         val s2 = CharacterReactor(); s2.stance = Stance.SLEEP; val z = CharacterAnimator(s2); var sp = z.update(0, 0f); for (t in 16..6000 step 16) sp = z.update(t.toLong(), 0f)
         assertTrue("and still lies down", sp.rootPitch < -1.4f)
     }
@@ -184,6 +184,48 @@ class PropPolicyTest {
         for (t in 2616..3200 step 16) { val pf = af.update(t.toLong(), 1f); val pb = ab.update(t.toLong(), 1f)
             rightMove = maxOf(rightMove, kotlin.math.abs(pb.get("forearm_r", 0) - base)); leftLift = maxOf(leftLift, -pb.get("forearm_l", 0)); freeRight = maxOf(freeRight, -pf.get("forearm_r", 0)) }
         assertTrue("the busy right arm stays put ($rightMove)", rightMove < 0.1f); assertTrue("the left hand lifts instead ($leftLift)", leftLift > 0.5f); assertTrue("an empty right hand does the gesture", freeRight > 0.5f)
+    }
+    private fun arms(p: Pose) = listOf("upperarm_l", "forearm_l", "hand_l", "upperarm_r", "forearm_r", "hand_r").flatMap { j -> (0..2).map { p.get(j, it) } }
+    private fun rainPose(prop: String, beat: (CharacterReactor, Long) -> Unit, waiting: Boolean = false): Pair<List<Float>, List<Float>> {
+        // compare mid-gesture frames: run both worlds in lockstep
+        val rb = CharacterReactor(); rb.carried = prop; rb.stance = Stance.RAIN; rb.waiting = waiting; val ab = CharacterAnimator(rb)
+        val rq = CharacterReactor(); rq.carried = prop; rq.stance = Stance.RAIN; rq.waiting = waiting; val aq = CharacterAnimator(rq)
+        for (t in 0..5000 step 16) { ab.update(t.toLong(), 1f); aq.update(t.toLong(), 1f) }
+        beat(rb, 5000)
+        var maxDiff = 0f; var headMoved = 0f
+        for (t in 5016..5700 step 16) { val pb = ab.update(t.toLong(), 1f); val pq = aq.update(t.toLong(), 1f)
+            arms(pb).zip(arms(pq)).forEach { (x, y) -> maxDiff = maxOf(maxDiff, kotlin.math.abs(x - y)) }; headMoved = maxOf(headMoved, kotlin.math.abs(pb.get("head", 0) - pq.get("head", 0))) }
+        return listOf(maxDiff) to listOf(headMoved)
+    }
+    @Test fun gesturesNeverFightTheWeatherPoseOrTheUmbrellaHand() {
+        for (prop in listOf("none", "sword", "book", "staff", "candle")) for (k in listOf(KeyKind.OK, KeyKind.BACK)) {
+            val (arm, head) = rainPose(prop, { r, now -> r.onInput(CharInput.Key(k), now) })
+            assertTrue("$prop/$k: arms must stay on the rain pose (moved ${arm[0]})", arm[0] < 0.02f)
+            if (k == KeyKind.OK) assertTrue("$prop: the nod remains ($head)", head[0] > 0.02f)
+        }
+        for (ev in listOf<(CharacterReactor, Long) -> Unit>({ r, n -> r.onInput(CharInput.AppFocus(AppKind.MUSIC), n) }, { r, n -> r.onInput(CharInput.AppLaunch(AppKind.VIDEO), n) },
+            { r, n -> r.onInput(CharInput.Returned, n) }, { r, n -> r.onLongPress(n) }, { r, n -> r.onInput(CharInput.Studio(StudioAction.EQUIP), n) })) {
+            val (arm, _) = rainPose("sword", ev); assertTrue("app and studio reactions leave the rain arms alone (${arm[0]})", arm[0] < 0.02f)
+        }
+    }
+    @Test fun waitingDoesNotMoveArmsHeldByWeather() {
+        val on = CharacterReactor().also { it.stance = Stance.RAIN; it.waiting = true }; val off = CharacterReactor().also { it.stance = Stance.RAIN }
+        val a1 = CharacterAnimator(on); val a2 = CharacterAnimator(off); var p1 = a1.update(0, 1f); var p2 = a2.update(0, 1f)
+        for (t in 16..6000 step 16) { p1 = a1.update(t.toLong(), 1f); p2 = a2.update(t.toLong(), 1f) }
+        arms(p1).zip(arms(p2)).forEach { (x, y) -> assertEquals("waiting must not move an arm the weather owns", y, x, 0.02f) }
+    }
+    @Test fun swappingTheSavedPropGoesThroughAnEmptyHand() {
+        val r = CharacterReactor(); r.carried = "sword"; val a = CharacterAnimator(r); run(r, a, 0, 3000)
+        r.carried = "staff"; var sawEmptyBetween = false; var last = "sword"; var bad = false
+        run(r, a, 3000, 6000) { p, _ -> if (p.heldProp != last) { if (p.propScale > 0.08f) bad = true; if (last == "sword" && p.heldProp == "staff") sawEmptyBetween = true; last = p.heldProp } }
+        assertTrue("the new prop appears only once the old one is gone", !bad && sawEmptyBetween)
+        val p = a.update(6100, 1f); assertEquals("staff", p.heldProp); assertTrue(p.propScale > 0.9f)
+    }
+    @Test fun sleepingIgnoresEveryReaction() {
+        val a = CharacterReactor().also { it.stance = Stance.SLEEP }; val b = CharacterReactor().also { it.stance = Stance.SLEEP }
+        val aa = CharacterAnimator(a); val ab = CharacterAnimator(b); for (t in 0..9000 step 16) { aa.update(t.toLong(), 1f); ab.update(t.toLong(), 1f) }
+        b.onInput(CharInput.Key(KeyKind.OK), 9000); b.onInput(CharInput.AppLaunch(AppKind.MUSIC), 9000)
+        for (t in 9016..9500 step 16) arms(aa.update(t.toLong(), 1f)).zip(arms(ab.update(t.toLong(), 1f))).forEach { (x, y) -> assertEquals(x, y, 1e-4f) }
     }
     @Test fun noJointSnapsDuringStateChanges() {
         val r = CharacterReactor(); r.carried = "candle"; val a = CharacterAnimator(r); var prev = a.update(0, 1f); var worst = 0f

@@ -253,11 +253,12 @@ class CharacterView(ctx: Context) : TextureView(ctx), Choreographer.FrameCallbac
     private fun loadModel(def: CharacterDef): Model? {
         val e = engine ?: return null; val loader = assetLoader ?: return null; val rl = resources ?: return null
         val tm = e.transformManager
+        var created: FilamentAsset? = null
         return try {
             val bytes = context.assets.open(def.asset).use { it.readBytes() }
             val buf = ByteBuffer.allocateDirect(bytes.size).put(bytes).apply { flip() }
             val a = loader.createAsset(buf) ?: return null
-            rl.loadResources(a); a.releaseSourceData()
+            created = a; rl.loadResources(a); a.releaseSourceData()
             fun joint(name: String): Joint? { val ent = a.getFirstEntityByName(name); if (ent == 0) return null
                 val inst = tm.getInstance(ent); val m = FloatArray(16); tm.getTransform(inst, m); return Joint(ent, inst, m) }
             val joints = (Pose.JOINTS + "root").mapNotNull { n -> joint(n)?.let { n to it } }.toMap()
@@ -269,21 +270,22 @@ class CharacterView(ctx: Context) : TextureView(ctx), Choreographer.FrameCallbac
                 joint("${f}_0${seg}_${s.first}")?.let { fingers += Finger(it, s.second, fi, seg) }
             Model(def, a, joints, listOfNotNull(joint("eye_l"), joint("eye_r")), outfits, star, a.entities.filter { it !in optional }.toIntArray(), a.getFirstEntityByName("attach_hand_r"), fingers)
                 .also { models[def.id] = it }
-        } catch (t: Throwable) { Log.w("Haven", "character ${def.id} not loaded: $t"); null }
+        } catch (t: Throwable) { created?.let { runCatching { loader.destroyAsset(it) } }; Log.w("Haven", "character ${def.id} not loaded: $t"); null }     // nothing half-loaded is left behind
     }
 
     /** Reads world.glb (props, bed, scenery, weather effects). Null when it cannot be loaded: the character then shows without them. */
     private fun loadWorld(): World? {
         world?.let { return it }
         val e = engine ?: return null; val loader = assetLoader ?: return null; val rl = resources ?: return null
+        var created: FilamentAsset? = null
         return try {
             val bytes = context.assets.open("character/world.glb").use { it.readBytes() }
             val buf = ByteBuffer.allocateDirect(bytes.size).put(bytes).apply { flip() }
             val a = loader.createAsset(buf) ?: return null
-            rl.loadResources(a); a.releaseSourceData()
+            created = a; rl.loadResources(a); a.releaseSourceData()
             val names = Look.ALL_PROPS.filter { it != "none" }.map { "prop_$it" } + listOf("prop_umbrella", "bed", "env_day", "env_snow", "ground_grass", "ground_snow", "env_sun", "env_moon", "fx_rain_0", "fx_rain_1", "fx_snow_0", "fx_snow_1")
             World(a, names.associateWith { a.getFirstEntityByName(it) }).also { world = it }
-        } catch (t: Throwable) { Log.w("Haven", "world not loaded: $t"); null }
+        } catch (t: Throwable) { created?.let { runCatching { loader.destroyAsset(it) } }; Log.w("Haven", "world not loaded: $t"); null }
     }
 
     /** Shows the selected character with its outfit, prop and (if worn) pendant, and the matching scenery. Only that model stays in memory. */
@@ -316,6 +318,7 @@ class CharacterView(ctx: Context) : TextureView(ctx), Choreographer.FrameCallbac
             swapChain?.let { e.destroySwapChain(it) }; swapChain = null
             models.values.forEach { assetLoader?.destroyAsset(it.asset) }; models.clear(); active = null
             world?.let { assetLoader?.destroyAsset(it.asset) }; world = null
+            shown.clear(); framedUmb = -1f; framedSleep = -1f     // entity ids belong to the engine being destroyed
             resources?.destroy(); resources = null
             assetLoader?.destroy(); assetLoader = null
             materials?.destroyMaterials(); materials?.destroy(); materials = null
@@ -378,8 +381,7 @@ class CharacterView(ctx: Context) : TextureView(ctx), Choreographer.FrameCallbac
         fun vis(name: String, on: Boolean): Int { val ent = w.ent[name] ?: 0; if (ent == 0) return 0
             if (on && shown.add(ent)) s.addEntity(ent) else if (!on && shown.remove(ent)) s.removeEntity(ent); return ent }
         fun scaled(name: String, f: Float) { val ent = vis(name, f > 0.02f); if (ent != 0 && f > 0.02f) setS(tm, ent, f) }
-        val prop = look.prop
-        for (n in w.ent.keys) if (n.startsWith("prop_") && n != "prop_umbrella") scaled(n, if (n == "prop_$prop") p.propScale else 0f)
+        for (n in w.ent.keys) if (n.startsWith("prop_") && n != "prop_umbrella") scaled(n, if (n == "prop_${p.heldProp}") p.propScale else 0f)      // the animator names the prop in hand, so a stale one cannot linger
         scaled("prop_umbrella", p.umbrellaScale)
         scaled("bed", p.bedScale)
         val lying = p.sleepFrame > 0.3f; val snowy = envEffect == WeatherEffect.SNOW

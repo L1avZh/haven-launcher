@@ -126,7 +126,7 @@ async function build() {
   }
   { // umbrella: Haven's own mesh from the v1 models (no CC0 umbrella in glTF form was found); the pole runs along -y from the handle, gripped just below the hook
     const s = await source(V1);
-    const ms = doc.getRoot().listMeshes().filter((m) => /umbrella/i.test(m.getName())); const g = group('prop_umbrella'); for (const m of ms) bake(g.mesh, m.listPrimitives(), mulm(mat(1, -Math.PI / 2, 0, 0), mat(1, 0, 0, 0, 0, 0.08, 0))); }
+    const ms = doc.getRoot().listMeshes().filter((m) => /umbrella/i.test(m.getName())); const g = group('prop_umbrella'); for (const m of ms) bake(g.mesh, m.listPrimitives(), mulm(mat(0.85, -Math.PI / 2, 0, 0), mat(1, 0, 0, 0, 0, 0.08, 0))); }
   // ---- bed: the Quaternius twin bed, laid so its long side runs along x (the sleeper lies along x) ----
   { const s = await source(path.join(PROPS, 'Bed_Twin1.gltf')); const g = group('bed'); bake(g.mesh, s.prims, mat(1.0, 0, Math.PI / 2, 0, 0, 0, 0)); }
   // ---- scenery ----
@@ -144,7 +144,7 @@ async function build() {
     bake(g.mesh, (await source(N('Pebble_Round_1'))).prims, mat(0.4, 0, 0.5, 0, 0.18, 0, 0.3)); }
   // ground (grass, snow), sun, moon: Haven's own plain shapes
   const lit = (name, rgb, rough) => doc.createMaterial(name).setBaseColorFactor([...rgb, 1]).setMetallicFactor(0).setRoughnessFactor(rough);
-  for (const [name, rgb] of [['ground_grass', [0.30, 0.52, 0.24]], ['ground_snow', [0.92, 0.94, 0.98]]]) { const d = disc(0.5, 0.03); const n = doc.createNode(name).setMesh(meshFrom(name, d.pos, d.idx, lit(name, rgb, 1))).setTranslation([0, 0, -0.1]); scene.addChild(n); }
+  for (const [name, rgb] of [['ground_grass', [0.30, 0.52, 0.24]], ['ground_snow', [0.92, 0.94, 0.98]]]) { const d = disc(0.44, 0.03); const n = doc.createNode(name).setMesh(meshFrom(name, d.pos, d.idx, lit(name, rgb, 1))).setTranslation([0, 0, -0.1]); scene.addChild(n); }
   { const s = sphere(0.11); scene.addChild(doc.createNode('env_sun').setMesh(meshFrom('env_sun', s.pos, s.idx, unlitMat('sun', [1.0, 0.62, 0.12, 1]))).setTranslation([0.34, 1.85, -0.9])); }
   { const s = sphere(0.1); scene.addChild(doc.createNode('env_moon').setMesh(meshFrom('env_moon', s.pos, s.idx, unlitMat('moon', [0.86, 0.9, 1.0, 1]))).setTranslation([0.34, 1.85, -0.9])); }
   // weather: three scrolling layers each of 3D drops and flakes
