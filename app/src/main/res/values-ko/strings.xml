@@ -247,6 +247,7 @@
     <string name="weather_reacts">날씨 반응</string>
     <string name="weather_reacts_d">비, 눈, 폭풍, 추위에 우산을 들고 자세를 바꿉니다.</string>
     <string name="saver_char">화면 보호기에서 자는 캐릭터</string>
+    <string name="credits_models">3D 캐릭터 모델</string>
     <plurals name="apps_count">
         <item quantity="other">앱 %d개</item>
     </plurals>

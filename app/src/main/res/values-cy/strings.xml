@@ -247,6 +247,7 @@
     <string name="weather_reacts">Ymatebion tywydd</string>
     <string name="weather_reacts_d">Yn dal ymbarél ac yn newid ystum mewn glaw, eira, storm ac oerfel.</string>
     <string name="saver_char">Cymeriad yn cysgu ar yr arbedwr sgrin</string>
+    <string name="credits_models">Modelau cymeriadau 3D</string>
     <plurals name="apps_count">
         <item quantity="zero">%d ap</item>
         <item quantity="one">%d ap</item>

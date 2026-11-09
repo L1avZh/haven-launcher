@@ -247,6 +247,7 @@
     <string name="weather_reacts">Реакции на погоду</string>
     <string name="weather_reacts_d">Держит зонт и меняет позу в дождь, снег, грозу и холод.</string>
     <string name="saver_char">Спящий персонаж на заставке</string>
+    <string name="credits_models">3D-модели персонажей</string>
     <plurals name="apps_count">
         <item quantity="one">%d приложение</item>
         <item quantity="few">%d приложения</item>

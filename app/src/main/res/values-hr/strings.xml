@@ -247,6 +247,7 @@
     <string name="weather_reacts">Reakcije na vrijeme</string>
     <string name="weather_reacts_d">Drži kišobran i mijenja stav po kiši, snijegu, oluji i hladnoći.</string>
     <string name="saver_char">Lik koji spava na čuvaru zaslona</string>
+    <string name="credits_models">3D modeli likova</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplikacija</item>
         <item quantity="few">%d aplikacije</item>

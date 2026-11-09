@@ -247,6 +247,7 @@
     <string name="weather_reacts">Реакции към времето</string>
     <string name="weather_reacts_d">Държи чадър и сменя стойката при дъжд, сняг, буря и студ.</string>
     <string name="saver_char">Спящ герой на скрийнсейвъра</string>
+    <string name="credits_models">3D модели на герои</string>
     <plurals name="apps_count">
         <item quantity="one">%d приложение</item>
         <item quantity="other">%d приложения</item>

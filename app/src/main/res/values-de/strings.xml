@@ -247,6 +247,7 @@
     <string name="weather_reacts">Wetterreaktionen</string>
     <string name="weather_reacts_d">Hält bei Regen, Schnee, Sturm und Kälte einen Regenschirm und ändert die Haltung.</string>
     <string name="saver_char">Schlafende Figur im Bildschirmschoner</string>
+    <string name="credits_models">3D-Charaktermodelle</string>
     <plurals name="apps_count">
         <item quantity="one">%d App</item>
         <item quantity="other">%d Apps</item>

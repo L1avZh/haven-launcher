@@ -247,6 +247,7 @@
     <string name="weather_reacts">Hava tepkileri</string>
     <string name="weather_reacts_d">Yağmur, kar, fırtına ve soğukta şemsiye tutar ve duruşunu değiştirir.</string>
     <string name="saver_char">Ekran koruyucuda uyuyan karakter</string>
+    <string name="credits_models">3B karakter modelleri</string>
     <plurals name="apps_count">
         <item quantity="one">%d uygulama</item>
         <item quantity="other">%d uygulama</item>

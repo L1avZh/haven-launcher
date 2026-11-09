@@ -247,6 +247,7 @@
     <string name="weather_reacts">天气反应</string>
     <string name="weather_reacts_d">在雨、雪、风暴和寒冷中撑伞并改变姿势。</string>
     <string name="saver_char">屏保上的睡觉角色</string>
+    <string name="credits_models">3D 角色模型</string>
     <plurals name="apps_count">
         <item quantity="other">%d 个应用</item>
     </plurals>

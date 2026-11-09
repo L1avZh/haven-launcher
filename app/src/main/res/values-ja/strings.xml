@@ -247,6 +247,7 @@
     <string name="weather_reacts">天気への反応</string>
     <string name="weather_reacts_d">雨・雪・嵐・寒さで傘を持ち、ポーズを変えます。</string>
     <string name="saver_char">スクリーンセーバーで眠るキャラクター</string>
+    <string name="credits_models">3D キャラクターモデル</string>
     <plurals name="apps_count">
         <item quantity="other">%d 個のアプリ</item>
     </plurals>

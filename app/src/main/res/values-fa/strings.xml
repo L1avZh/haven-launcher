@@ -247,6 +247,7 @@
     <string name="weather_reacts">واکنش به آب‌وهوا</string>
     <string name="weather_reacts_d">در باران، برف، طوفان و سرما چتر می‌گیرد و حالتش را تغییر می‌دهد.</string>
     <string name="saver_char">شخصیت خواب روی محافظ صفحه</string>
+    <string name="credits_models">مدل‌های سه‌بعدی شخصیت‌ها</string>
     <plurals name="apps_count">
         <item quantity="one">%d برنامه</item>
         <item quantity="other">%d برنامه</item>

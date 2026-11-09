@@ -247,6 +247,7 @@
     <string name="weather_reacts">Väderreaktioner</string>
     <string name="weather_reacts_d">Håller ett paraply och ändrar hållning vid regn, snö, storm och kyla.</string>
     <string name="saver_char">Sovande figur i skärmsläckaren</string>
+    <string name="credits_models">3D-karaktärsmodeller</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="other">%d appar</item>

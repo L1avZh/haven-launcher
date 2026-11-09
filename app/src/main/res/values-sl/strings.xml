@@ -247,6 +247,7 @@
     <string name="weather_reacts">Odzivi na vreme</string>
     <string name="weather_reacts_d">Drži dežnik in spremeni držo v dežju, snegu, nevihti in mrazu.</string>
     <string name="saver_char">Spečo lik v ohranjevalniku</string>
+    <string name="credits_models">3D modeli likov</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplikacija</item>
         <item quantity="two">%d aplikaciji</item>

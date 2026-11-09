@@ -247,6 +247,7 @@
     <string name="weather_reacts">Időjárási reakciók</string>
     <string name="weather_reacts_d">Esernyőt tart és testtartást vált esőben, hóban, viharban és hidegben.</string>
     <string name="saver_char">Alvó karakter a képernyővédőn</string>
+    <string name="credits_models">3D karaktermodellek</string>
     <plurals name="apps_count">
         <item quantity="one">%d alkalmazás</item>
         <item quantity="other">%d alkalmazás</item>

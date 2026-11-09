@@ -247,6 +247,7 @@
     <string name="weather_reacts">Reaksi cuaca</string>
     <string name="weather_reacts_d">Memegang payung dan mengubah sikap saat hujan, salju, badai, dan dingin.</string>
     <string name="saver_char">Karakter tidur di screensaver</string>
+    <string name="credits_models">Model karakter 3D</string>
     <plurals name="apps_count">
         <item quantity="other">%d aplikasi</item>
     </plurals>

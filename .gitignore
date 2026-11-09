@@ -24,3 +24,8 @@ captures/
 # Generated reports and logs
 *.log
 lint-results*
+
+# third-party character source archives (129 MB + 280 MB, re-downloadable; see assets-source/quaternius/PROVENANCE.md) and their unpacked copy
+assets-source/quaternius/*.zip
+.tmp-extract/
+tools/assets/node_modules/

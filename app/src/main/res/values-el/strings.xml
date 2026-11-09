@@ -247,6 +247,7 @@
     <string name="weather_reacts">Αντιδράσεις στον καιρό</string>
     <string name="weather_reacts_d">Κρατά ομπρέλα και αλλάζει στάση σε βροχή, χιόνι, καταιγίδα και κρύο.</string>
     <string name="saver_char">Κοιμισμένος χαρακτήρας στην προφύλαξη</string>
+    <string name="credits_models">Τρισδιάστατα μοντέλα χαρακτήρων</string>
     <plurals name="apps_count">
         <item quantity="one">%d εφαρμογή</item>
         <item quantity="other">%d εφαρμογές</item>

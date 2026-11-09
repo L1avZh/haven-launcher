@@ -1,0 +1,3 @@
+{ "name": "haven-asset-pipeline", "private": true, "version": "1.0.0", "type": "module",
+  "description": "Converts third-party CC0 character assets into Haven's runtime GLBs (see docs/assets/README.md)",
+  "dependencies": { "@gltf-transform/core": "4.1.1", "@gltf-transform/extensions": "4.1.1", "@gltf-transform/functions": "4.1.1", "sharp": "0.33.5" } }

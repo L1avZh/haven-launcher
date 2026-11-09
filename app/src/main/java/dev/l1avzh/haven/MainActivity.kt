@@ -1123,6 +1123,7 @@ class MainActivity : Activity() {
             Info(g(R.string.app_name), null, getString(R.string.ver_build, appInfo?.versionName ?: "", nf.format(buildNumber(appInfo)))),
             TapRow(g(R.string.developer), "L1avZh", 7, { prefs.starUnlocked }, g(R.string.star_unlocked)) { unlockStar() },
             Info(g(R.string.licenses), g(R.string.licenses_d)),
+            Info(g(R.string.credits_models), null, "Quaternius · CC0 1.0"),
             Secret(g(R.string.egg_hint)) { showEgg() },
             if (eggRevealed) Info(g(R.string.egg_sequence), null) else Action(g(R.string.egg_reveal), null) { eggRevealed = true; settings?.refresh() },
         ) }

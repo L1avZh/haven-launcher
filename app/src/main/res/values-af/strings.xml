@@ -247,6 +247,7 @@
     <string name="weather_reacts">Weerreaksies</string>
     <string name="weather_reacts_d">Hou \'n sambreel vas en verander houding in reën, sneeu, storm en koue.</string>
     <string name="saver_char">Slapende karakter op die skermbeskermer</string>
+    <string name="credits_models">3D-karaktermodelle</string>
     <plurals name="apps_count">
         <item quantity="one">%d toepassing</item>
         <item quantity="other">%d toepassings</item>

@@ -247,6 +247,7 @@
     <string name="weather_reacts">Reazioni al meteo</string>
     <string name="weather_reacts_d">Tiene un ombrello e cambia postura con pioggia, neve, temporale e freddo.</string>
     <string name="saver_char">Personaggio che dorme nello screensaver</string>
+    <string name="credits_models">Modelli di personaggi 3D</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="many">%d di app</item>

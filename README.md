@@ -26,7 +26,8 @@ I built and tested it on a Xiaomi TV Box S (3rd Gen) running Android 14. Other A
 
 ## Screenshots
 
-Every image here is a capture from a physical Xiaomi TV Box S (3rd Gen) running Android 14 over HDMI; no emulator was used. They show a
+Every image here is a capture from a physical Xiaomi TV Box S (3rd Gen) running Android 14 over HDMI; no emulator was used. All of them were retaken
+with the CC0 character models described below (the Settings pages, `widgets.png` and `easter-egg.png` are unchanged UI and come from earlier captures). They show a
 controlled app list (Plex and Netflix as favorites) and no private data: the weather widget was off and no city is visible.
 The Day/Night setting was set to *Always day* or *Always night* for the captures, and the rain, snow, storm and cold scenes were captured on a
 debug build with a forced weather reading (see [docs/day-night.md](docs/day-night.md)), because the TV's real weather was neither. A release
@@ -35,7 +36,7 @@ build ignores that override. `widgets.png` and `easter-egg.png` come from the pr
 | | |
 |---|---|
 | ![Home in day mode: the human character stands on the left, Plex is focused in the middle, three widget cards sit above the app list](docs/images/screenshots/home.png) | ![Home at night: the robot character lies asleep under a blanket on a pillow, stars in the sky](docs/images/screenshots/home-night-sleep.png) |
-| Day: a brighter blue sky with a warm sun glow | Night: the character sleeps under a blanket (the Robot here) and stars come out |
+| Day: a brighter blue sky with a warm sun glow (the Human, in the Peasant outfit) | Night: the character sleeps under a blanket (the Robot, an armored android) and stars come out |
 | ![The wizard holds an umbrella in the rain](docs/images/screenshots/weather-rain.png) | ![The robot holds an umbrella with one hand raised in the cold](docs/images/screenshots/weather-cold.png) |
 | Rain: an umbrella and a hand out to check (forced reading) | Cold, 8 °C or below: umbrella up and the other arm pulled in (forced reading) |
 | ![The human holds an umbrella in snow with a palm held out](docs/images/screenshots/weather-snow.png) | ![The human leans into a storm under an umbrella](docs/images/screenshots/weather-storm.png) |
@@ -44,8 +45,10 @@ build ignores that override. `widgets.png` and `easter-egg.png` come from the pr
 | Screensaver at night: four widgets and a sleeping character that drifts with the clock | Screensaver by day: the same layout, a bluer sky |
 | ![Home with one widget card](docs/images/screenshots/widgets-1.png) | ![Home with two widget cards](docs/images/screenshots/widgets-2.png) |
 | One widget: a single card | Two widgets (three is the home maximum, as in the first image) |
-| ![Waiting state: the character stands in the middle and the active source is named](docs/images/screenshots/scope.png) | ![Home with the wizard character](docs/images/screenshots/home-wizard.png) |
-| Nothing selected: the character waits in the middle and the source is named | Another character, with the focused app on the stage |
+| ![Waiting state: the character stands in the middle and the active source is named](docs/images/screenshots/scope.png) | ![Home with the wizard character, a hooded mage in indigo with a staff](docs/images/screenshots/home-wizard.png) |
+| Nothing selected: the character waits in the middle and the source is named | The Wizard, with the focused app on the stage |
+| ![Home with the robot character, an armored android in silver metal](docs/images/screenshots/home-robot.png) | |
+| The Robot (an armored android) | |
 | ![Appearance settings page in day mode, showing the Day and night rows](docs/images/screenshots/settings.png) | ![Character settings page: sleep at night, weather reactions, sleeping character on the screensaver](docs/images/screenshots/settings-character.png) |
 | Settings in day mode, with the Day and night rows | Character settings |
 | ![Widgets settings page](docs/images/screenshots/widgets.png) | ![The hidden signature](docs/images/screenshots/easter-egg.png) |
@@ -64,7 +67,7 @@ build ignores that override. `widgets.png` and `easter-egg.png` come from the pr
 - **Weather and night behavior for the character**: at night it lies down under a blanket and sleeps (switch off in Settings → Character). By day, with a fresh weather reading, rain, snow, storms and cold (8 °C or below, always judged on the Celsius value whatever unit the widget shows) make it hold an umbrella, with a stance for each. Missing, stale or unconfigured weather changes nothing. Night wins over weather, so a sleeping character never holds an umbrella. The prop you chose in the Studio comes back when the weather clears. Rules in [docs/day-night.md](docs/day-night.md).
 - **Widgets**: choose what appears on the home screen (up to 3) and on the screensaver (up to 4); each is a glass card whose width is shared evenly for any count, with long text shrinking instead of overflowing (weather has its animated icon, share-type widgets a progress bar): greeting, weather, share of the day, share of the year, moon illumination, free storage, free memory, uptime. Everything except weather is computed on the device. Weather is opt-in: pick a city in Settings and Haven fetches the current temperature and sky from open-meteo.com over HTTPS every 30 minutes. Only that city's coordinates are sent (no key, no account, no device identifier, no location access). In a non-English language, Haven also asks open-meteo's geocoding service once for the city's name in that language and caches it. The icon is animated, and rain, snow and storms also fall across the whole background.
 - **Screensaver**: after 2 to 20 minutes without input (or off), a black base with a dimmed live background and the day or night sky, the clock, the date, a thin rule and your widget cards. At night a small sleeping character lies beside the clock (optional). The whole block, character included, moves every 25 seconds and fades while it moves, to spare OLED panels. Any button wakes it. It lives inside Haven and changes no system setting.
-- **Characters**: three original rigged 3D characters (Human, Wizard, Robot), rendered with Filament, share the same pose system (including the umbrella, the blanket and the sleeping pose). The character glances at whatever has focus, acknowledges OK and Back, and makes a brief themed gesture when you highlight or open a music or video app (it does not know whether anything is playing). When nothing is selected it stands in the middle in a waiting pose and the screen names the source you are browsing: Favorites, Recent or Library. The Character Studio picks the character, its outfit and its prop; the look is saved locally. There is also a hidden accessory. Everything is local, hides itself if it cannot render, and can be turned off in Settings → Character. See [docs/character.md](docs/character.md).
+- **Characters**: three rigged 3D characters (Human, Wizard, Robot) made from CC0 models by Quaternius, rendered with Filament, share the same pose system (including the umbrella, the blanket and the sleeping pose). The character glances at whatever has focus, acknowledges OK and Back, and makes a brief themed gesture when you highlight or open a music or video app (it does not know whether anything is playing). When nothing is selected it stands in the middle in a waiting pose and the screen names the source you are browsing: Favorites, Recent or Library. The Character Studio picks the character, its outfit and its prop; the look is saved locally. There is also a hidden accessory. Everything is local, hides itself if it cannot render, and can be turned off in Settings → Character. See [docs/character.md](docs/character.md).
 - **Typefaces**: Outfit for the interface, Unbounded for the clock and big titles, Space Grotesk, Manrope, Sora and Urbanist for app names. All bundled, all SIL Open Font License (see `docs/OFL-*.txt`).
 - **App management**: favorites, hide apps without uninstalling them, reorder favorites, show or hide system apps, sort A to Z or newest first, refresh the list. New and removed apps are picked up automatically.
 - **Settings**: a full-screen page with ten categories (General, Appearance, Widgets, Applications, Remote control, Language & region, Display & animation, AdGuard, Privacy & security, About & credits). Everything is reachable with a D-pad, OK and Back.
@@ -136,7 +139,8 @@ app/src/main/java/dev/l1avzh/haven/
   Lang.kt           per-app language and script-aware text helpers
   Langs.kt          generated language list
 app/src/main/res/   strings for 50 languages, vector icons, locale config
-tools/              translation data and generator, haven-home.sh
+tools/              translation data and generator, haven-home.sh, assets/ (character model pipeline)
+assets-source/      third-party source asset provenance and licenses (zips not committed)
 docs/               guides and images
 ```
 
@@ -148,7 +152,7 @@ docs/               guides and images
 - There is no floating Home button. An overlay can't be reached with a D-pad without taking input away from the app underneath.
 - City names in the weather picker are English; the widget shows the name in the app's language once it has been fetched.
 - Screenshots for the remaining settings pages, the Character Studio and right-to-left layouts are not included.
-- The characters are procedurally generated, stylized figures built from primitives and flat-colored materials. They are readable and rigged, but they are **not** at the level of hand-sculpted, textured production characters; getting there needs modelling and texturing work that this project's tools cannot do (see "What would raise the bar" in [docs/character.md](docs/character.md)).
+- The characters are real PBR-textured game models, a big step up from the earlier procedural figures, but they still do **not** match the film-grade reference image I was given. The Wizard is a hooded mage because the free pack has no hat or robe, the Robot is armor on a human body, the eyes do not blink, and the props and pendant are Haven's own simple meshes (see "Quality: where it stands" in [docs/character.md](docs/character.md)).
 - Day and night follow the weather city's own sunrise and sunset only while a fresh reading exists; otherwise the clock window is used, which is not astronomical.
 - The weather scenes in the screenshots were produced with a debug-only forced reading. The live path (real Open-Meteo reading to the same scene) is covered by unit tests, and I observed night and the clock-driven sleep on the TV itself; I did not wait for real rain, snow or cold in the city.
 - Older revisions of this repository's history still contain earlier screenshots.
@@ -164,7 +168,7 @@ docs/               guides and images
 
 ## License
 
-MIT, see [LICENSE](LICENSE). Dependencies: AndroidX RecyclerView, the Kotlin standard library and Google Filament (3D rendering), all Apache License 2.0 (Filament's text in `licenses/`). Bundled fonts (Outfit, Unbounded, Space Grotesk, Manrope, Sora, Urbanist): SIL Open Font License 1.1, texts in `docs/`. AdGuard is a trademark of its owner and this project is not affiliated with it. App names and artwork shown in screenshots belong to their owners.
+MIT, see [LICENSE](LICENSE). Dependencies: AndroidX RecyclerView, the Kotlin standard library and Google Filament (3D rendering), all Apache License 2.0 (Filament's text in `licenses/`). Bundled fonts (Outfit, Unbounded, Space Grotesk, Manrope, Sora, Urbanist): SIL Open Font License 1.1, texts in `docs/`. The 3D character models (heads, hair, outfits) are by [Quaternius](https://quaternius.com), **CC0 1.0 Universal** (public domain), modified by this project; they are not MIT-licensed. Sources, exact files, changes and hashes: [docs/assets/ASSET_CREDITS.md](docs/assets/ASSET_CREDITS.md) and `assets-source/quaternius/PROVENANCE.md`. AdGuard is a trademark of its owner and this project is not affiliated with it. App names and artwork shown in screenshots belong to their owners.
 
 ## Credits
 

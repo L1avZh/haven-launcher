@@ -247,6 +247,7 @@
     <string name="weather_reacts">வானிலை எதிர்வினைகள்</string>
     <string name="weather_reacts_d">மழை, பனி, புயல், குளிரில் குடை பிடித்து நிலையை மாற்றும்.</string>
     <string name="saver_char">திரைக்காப்பில் தூங்கும் கதாபாத்திரம்</string>
+    <string name="credits_models">3D கதாபாத்திர மாதிரிகள்</string>
     <plurals name="apps_count">
         <item quantity="one">%d பயன்பாடு</item>
         <item quantity="other">%d பயன்பாடுகள்</item>

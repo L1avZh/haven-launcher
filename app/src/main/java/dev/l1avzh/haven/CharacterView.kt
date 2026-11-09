@@ -225,47 +225,53 @@ class CharacterView(ctx: Context) : TextureView(ctx), Choreographer.FrameCallbac
         camera?.lookAt(0.0, ty + 0.03, dist, 0.0, ty, 0.0, 0.0, 1.0, 0.0)
     }
 
-    /** Loads every character once; only the selected one is added to the scene. A model that fails to load is simply skipped. */
+    /** Creates the loaders only; a character's model is read when it is first needed and released when another is chosen. */
     private fun loadModels(e: Engine) {
         val provider = UbershaderProvider(e); materials = provider
-        val loader = AssetLoader(e, provider, EntityManager.get()); assetLoader = loader
-        val rl = ResourceLoader(e); resources = rl
-        val tm = e.transformManager
-        for (def in Look.CHARACTERS) {
-            try {
-                val bytes = context.assets.open(def.asset).use { it.readBytes() }
-                val buf = ByteBuffer.allocateDirect(bytes.size).put(bytes).apply { flip() }
-                val a = loader.createAsset(buf) ?: continue
-                rl.loadResources(a); a.releaseSourceData()
-                fun joint(name: String): Joint? { val ent = a.getFirstEntityByName(name); if (ent == 0) return null
-                    val inst = tm.getInstance(ent); val m = FloatArray(16); tm.getTransform(inst, m); return Joint(ent, inst, m) }
-                val joints = (Pose.JOINTS + "root").mapNotNull { n -> joint(n)?.let { n to it } }.toMap()
-                val outfits = def.outfits.associateWith { a.getFirstEntityByName("outfit_$it") }
-                val props = def.props.associateWith { a.getFirstEntityByName("prop_$it") }
-                val star = a.getFirstEntityByName("acc_star")
-                val umbrella = a.getFirstEntityByName("prop_umbrella"); val blanket = a.getFirstEntityByName("sleep_blanket"); val pillow = a.getFirstEntityByName("sleep_pillow")
-                val optional = (outfits.values + props.values + star + umbrella + blanket + pillow).toSet()
-                models[def.id] = Model(def, a, joints, listOfNotNull(joint("eye_l"), joint("eye_r")), outfits, props, star, a.entities.filter { it !in optional }.toIntArray(), umbrella, blanket, pillow)
-            } catch (t: Throwable) { Log.w("Haven", "character ${def.id} not loaded: $t") }
-        }
-        if (models.isEmpty()) throw IllegalStateException("no character model could be loaded")
+        assetLoader = AssetLoader(e, provider, EntityManager.get())
+        resources = ResourceLoader(e)
         applyLook()
+        if (models.isEmpty()) throw IllegalStateException("no character model could be loaded")
     }
 
-    /** Shows the selected character with its outfit, prop and (if worn) pendant; everything else stays out of the scene. */
+    /** Reads one character's GLB. Returns null (and logs) when it cannot be loaded, so the caller can fall back. */
+    private fun loadModel(def: CharacterDef): Model? {
+        val e = engine ?: return null; val loader = assetLoader ?: return null; val rl = resources ?: return null
+        val tm = e.transformManager
+        return try {
+            val bytes = context.assets.open(def.asset).use { it.readBytes() }
+            val buf = ByteBuffer.allocateDirect(bytes.size).put(bytes).apply { flip() }
+            val a = loader.createAsset(buf) ?: return null
+            rl.loadResources(a); a.releaseSourceData()
+            fun joint(name: String): Joint? { val ent = a.getFirstEntityByName(name); if (ent == 0) return null
+                val inst = tm.getInstance(ent); val m = FloatArray(16); tm.getTransform(inst, m); return Joint(ent, inst, m) }
+            val joints = (Pose.JOINTS + "root").mapNotNull { n -> joint(n)?.let { n to it } }.toMap()
+            val outfits = def.outfits.associateWith { a.getFirstEntityByName("outfit_$it") }
+            val props = def.props.associateWith { a.getFirstEntityByName("prop_$it") }
+            val star = a.getFirstEntityByName("acc_star")
+            val umbrella = a.getFirstEntityByName("prop_umbrella"); val blanket = a.getFirstEntityByName("sleep_blanket"); val pillow = a.getFirstEntityByName("sleep_pillow")
+            val optional = (outfits.values + props.values + star + umbrella + blanket + pillow).toSet()
+            Model(def, a, joints, listOfNotNull(joint("eye_l"), joint("eye_r")), outfits, props, star, a.entities.filter { it !in optional }.toIntArray(), umbrella, blanket, pillow)
+                .also { models[def.id] = it }
+        } catch (t: Throwable) { Log.w("Haven", "character ${def.id} not loaded: $t"); null }
+    }
+
+    /** Shows the selected character with its outfit, prop and (if worn) pendant. Only that model stays in memory. */
     private fun applyLook() {
         val s = scene ?: return
-        val want = models[look.character] ?: models.values.first()
-        for ((id, m) in models) {
-            if (m !== want) { s.removeEntities(m.always); (m.outfits.values + m.props.values + m.star + m.umbrella + m.blanket + m.pillow).forEach { if (it != 0) s.removeEntity(it) }; continue }
-            s.addEntities(m.always)
-            for ((o, ent) in m.outfits) if (ent != 0) { if (o == look.outfit) s.addEntity(ent) else s.removeEntity(ent) }
-            val shown = if (scenery.sleeping) null else scenery.propOverride ?: look.prop
-            for ((p, ent) in m.props) if (ent != 0) { if (p == shown) s.addEntity(ent) else s.removeEntity(ent) }
-            fun toggle(ent: Int, on: Boolean) { if (ent != 0) { if (on) s.addEntity(ent) else s.removeEntity(ent) } }
-            toggle(m.umbrella, shown == "umbrella"); toggle(m.blanket, scenery.sleeping); toggle(m.pillow, scenery.sleeping)
-            if (m.star != 0) { if (look.star) s.addEntity(m.star) else s.removeEntity(m.star) }
+        val want = models[look.character] ?: loadModel(Look.def(look.character))
+            ?: Look.CHARACTERS.firstNotNullOfOrNull { models[it.id] ?: loadModel(it) } ?: return
+        for (m in models.values.toList()) if (m !== want) {
+            s.removeEntities(m.always); (m.outfits.values + m.props.values + m.star + m.umbrella + m.blanket + m.pillow).forEach { if (it != 0) s.removeEntity(it) }
+            assetLoader?.destroyAsset(m.asset); models.remove(m.def.id)
         }
+        s.addEntities(want.always)
+        for ((o, ent) in want.outfits) if (ent != 0) { if (o == look.outfit) s.addEntity(ent) else s.removeEntity(ent) }
+        val shown = if (scenery.sleeping) null else scenery.propOverride ?: look.prop
+        for ((p, ent) in want.props) if (ent != 0) { if (p == shown) s.addEntity(ent) else s.removeEntity(ent) }
+        fun toggle(ent: Int, on: Boolean) { if (ent != 0) { if (on) s.addEntity(ent) else s.removeEntity(ent) } }
+        toggle(want.umbrella, shown == "umbrella"); toggle(want.blanket, scenery.sleeping); toggle(want.pillow, scenery.sleeping)
+        if (want.star != 0) { if (look.star) s.addEntity(want.star) else s.removeEntity(want.star) }
         if (active !== want) { active = want; frameCamera() }
     }
 

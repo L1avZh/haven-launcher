@@ -247,6 +247,7 @@
     <string name="weather_reacts">వాతావరణ స్పందనలు</string>
     <string name="weather_reacts_d">వర్షం, మంచు, తుఫాను, చలిలో గొడుగు పట్టి భంగిమ మారుస్తుంది.</string>
     <string name="saver_char">స్క్రీన్‌సేవర్‌లో నిద్రపోతున్న పాత్ర</string>
+    <string name="credits_models">3D పాత్ర నమూనాలు</string>
     <plurals name="apps_count">
         <item quantity="one">%d యాప్</item>
         <item quantity="other">%d యాప్‌లు</item>

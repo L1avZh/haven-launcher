@@ -247,6 +247,7 @@
     <string name="weather_reacts">Reaccions al temps</string>
     <string name="weather_reacts_d">Sosté un paraigua i canvia de postura amb pluja, neu, tempesta i fred.</string>
     <string name="saver_char">Personatge adormit al protector de pantalla</string>
+    <string name="credits_models">Models de personatges 3D</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplicació</item>
         <item quantity="many">%d d’aplicacions</item>

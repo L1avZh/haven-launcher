@@ -247,6 +247,7 @@
     <string name="weather_reacts">موسم کے ردعمل</string>
     <string name="weather_reacts_d">بارش، برف، طوفان اور سردی میں چھتری تھامتا اور انداز بدلتا ہے۔</string>
     <string name="saver_char">اسکرین سیور پر سوتا کردار</string>
+    <string name="credits_models">تھری ڈی کردار کے ماڈل</string>
     <plurals name="apps_count">
         <item quantity="one">%d ایپ</item>
         <item quantity="other">%d ایپس</item>

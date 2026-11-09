@@ -1,15 +1,17 @@
 # Haven's 3D characters
 
-Three original, rigged and skinned 3D characters are rendered on the home screen with Google's Filament: **Human**, **Wizard** and
-**Robot**. They react to the remote, change outfit and prop in the Character Studio, and the look is kept between restarts.
+Three rigged and skinned 3D characters (**Human**, **Wizard** and **Robot**), built from CC0 models by Quaternius, are rendered on the home screen with
+Google's Filament. They react to the remote, change outfit and prop in the Character Studio, and the look is kept between restarts.
 Everything is local: no accounts, no downloads, no extra permissions.
 
 ## What is in the box
 
 | Piece | Where |
 |---|---|
-| Models (GLB, 783 to 839 KiB each) | `app/src/main/assets/character/{human,wizard,robot}.glb` |
-| Model generator (Python standard library only) | `tools/character/gen_character.py` |
+| Models (GLB, 1.7 to 3.6 MiB each) | `app/src/main/assets/character/{human,wizard,robot}.glb` |
+| Model build pipeline (Node, from the CC0 downloads) | `tools/assets/build.mjs`, see [assets/README.md](assets/README.md) |
+| Credits and provenance | [assets/ASSET_CREDITS.md](assets/ASSET_CREDITS.md), `assets-source/quaternius/PROVENANCE.md` |
+| v1 procedural generator (props only now) | `tools/character/gen_character.py` |
 | Roster, input-to-reaction mapping, poses | `CharacterLogic.kt` (pure Kotlin, unit tested) |
 | App kind classification | `AppKinds.kt` (pure Kotlin, unit tested) |
 | Renderer and lifecycle | `CharacterView.kt` (the only file that touches Filament) |
@@ -18,62 +20,48 @@ Everything is local: no accounts, no downloads, no extra permissions.
 
 ## The models
 
-Each character has its own base mesh and skeleton proportions, built from primitives (ellipsoids, tapered tubes, boxes and rings) and
-skinned to the same 17-joint rig, so one pose system drives all three:
+All three share one skeleton (Quaternius' UE-style humanoid rig, 65 joints including fingers), so one pose system drives them. Haven drives 19 named
+joints and the rest follow.
 
-* **Human**: natural proportions, a face (eyes, nose, lips, ears, brows), hair, hands with fingers, and two outfits (*City coat*, *Field jacket*).
-* **Wizard**: beard, long hair, robe and hat, and two outfits (*Archmage*, *Apprentice*); the *Staff* prop is his.
-* **Robot**: armored chassis with ribs, piston rods, a visor light bar and three-finger hands, and two outfits (*Plated*, *Stealth*).
+* **Human**: Universal Base Characters head with gray hair and beard, in the *City* (Male Peasant: linen shirt, trousers, boots) or *Field* (Male Ranger:
+  hooded leather and cloth jerkin, bracers, boots) outfit.
+* **Wizard**: the same head with long white hair and beard, in indigo-tinted versions of the Ranger (*Archmage*, hooded) and Peasant
+  (*Apprentice*) outfits, with a staff. **There is no wizard hat or full robe**: the free pack contains neither (the Wizard outfit is in the paid
+  tier), so this is a hooded sorcerer rather than a classic wizard.
+* **Robot**: an armored android: the same head and the Ranger armor pieces without the hood, in solid metal (*Plated* silver, *Stealth* black) with
+  glowing eyes. It is a recolored, re-materialed use of the same CC0 meshes, not a separate model.
 
-Props (Lantern, Tablet, Compass, Staff) hang from the named node `attach_hand_r`. They are decoration only. Every model also carries a `prop_umbrella`
-(same node, shown by the weather rules instead of the saved prop), and `sleep_blanket` and `sleep_pillow` (under `root`, shown while sleeping); see
-[day-night.md](day-night.md).
+Props (Lantern, Tablet, Compass, Staff), the umbrella, the blanket, the pillow and the star pendant are **Haven's own simple procedural
+meshes** (see [assets/ASSET_CREDITS.md](assets/ASSET_CREDITS.md)); they hang from `attach_hand_r`, `sleep_*` under `root` and `chest`. They are
+visibly simpler than the characters. No suitable CC0 props were integrated.
 
-**Asset contract** (identical for every character): joint names `root hips spine chest neck head clavicle_l/r upperarm_l/r forearm_l/r hand_l/r
-thigh_l/r shin_l/r foot_l/r`; nodes `body`, `eye_l`, `eye_r`, `attach_hand_r`, `attach_hand_l`, `acc_star`, `prop_umbrella`, `sleep_blanket`, `sleep_pillow`; `outfit_<id>` skinned
-meshes and `prop_<id>` meshes. `Look.CHARACTERS` lists which ids exist for each character and how the camera frames it. A model that fails to load is
-skipped; if none loads the character hides itself and the launcher carries on.
+**Asset contract** (identical for every character, checked by `AssetContractTest`): joint nodes `root hips spine chest neck head clavicle_l/r
+upperarm_l/r forearm_l/r hand_l/r thigh_l/r shin_l/r foot_l/r` with **identity rotations** (translation-only, so Haven's pose deltas act on world
+axes; `build.mjs` bakes the T-pose into an arms-hanging bind pose to get there); nodes `attach_hand_r`, `attach_hand_l`, `acc_star`, `prop_umbrella`,
+`sleep_blanket`, `sleep_pillow`; `outfit_<id>` and `prop_<id>` nodes for every id in `Look.CHARACTERS`; the head, eyes and brows as always-visible
+skinned meshes. `Look.CHARACTERS` lists which ids exist per character and how the camera frames it. A model that fails to load is skipped (the next
+character that loads is used); if none loads the character hides itself and the launcher carries on. Only the selected character's model is
+kept in memory; choosing another one releases the previous model.
 
-Regenerate or edit the models:
+Regenerate the models: see [assets/README.md](assets/README.md).
 
-    python3 tools/character/gen_character.py
+## Quality: where it stands
 
-## Quality: where it stands, and what would raise it
+The reference image (a professionally sculpted and painted wizard) is **not matched**. What changed is that the characters are now real, skinned,
+PBR-textured production models (about 13k triangles for the body, authored normal and roughness maps, real hair, hands with fingers, eyes) from a
+single creator and pack family, instead of procedural primitives, and they read as one consistent cast. They are still stylized game-ready
+characters, not film-grade sculpts, and some limits are visible:
 
-**Honest assessment.** A reference image of a professionally sculpted, textured, lit wizard was given as the quality target. These characters do
-**not** reach it, and this change did not make them reach it. They are procedurally generated from primitives (ellipsoids, tapered tubes, boxes,
-rings) in a Python script and use flat-colored PBR materials with no painted textures, no normal maps, no hair cards, no cloth simulation and no
-facial blend shapes. That cannot be bridged by tuning numbers: it needs sculpting, retopology, UV unwrapping and texture painting in a DCC tool
-(Blender, ZBrush, Substance Painter), and there is no such tool or artist in this environment.
+* No wizard hat or robe (paid-only), so the Wizard is a hooded mage; the Robot is armor on a human body, not a purpose-built robot.
+* Textures are reduced to 1024 px (color) and 512 px (normal) for the TV box, which softens skin and cloth detail.
+* **The eyes do not blink and are not closed while sleeping**: the source eyes are part of the skinned head, so Haven's blink (a scale of eye nodes) has
+  nothing to act on. The sleeping pose, blanket and breathing still work.
+* Props and the pendant are simpler than the characters.
 
-What was improved within the limits of the method, for all three characters: distinct silhouettes and proportions per character, faces, hair and
-hands on the human and wizard, an articulated robot chassis, per-character camera framing, a shared 17-joint rig and pose system, and (new) an
-umbrella, a blanket and a pillow with matching weather and sleep poses. The result is stylized and readable at TV distance and consistent with the
-launcher's look, but it is below the reference.
+What would raise it further: the paid Quaternius Wizard outfit or any CC0 hat/robe set rigged to the same skeleton (drop it into `build.mjs` as another
+`outfit_<id>` group), CC0 props in the same style, and eyelid blend shapes or a closed-eyes texture swap.
 
-**Asset-production requirement** (what to commission or build to close the gap). Deliver three GLB 2.0 files that drop into
-`app/src/main/assets/character/` without code changes:
-
-* The rig contract above, unchanged: the same 17 joint names, T-pose or A-pose bind with the arms hanging, the node names listed above, a single
-  skin, at most 4 joint influences per vertex.
-* Mesh budget: about 25k to 40k triangles per character including outfit and prop (the mid-range Mali-G310 on the target TV box renders the current
-  models, about 20k triangles, at 30 fps with room to spare); at most 4 materials per character.
-* Textures: base color, normal and a packed occlusion/roughness/metal map, 1024 px or 2048 px, ETC2 or KTX2 Basis if the pipeline supports it, so the
-  APK grows by no more than a few MB per character.
-* Facial detail: eyes as separate nodes `eye_l` and `eye_r` (the blink is a scale of those nodes), hair and beard as meshes on the head joint.
-* Optional but useful: blend shapes for blink and a mouth, and baked umbrella, blanket and pillow meshes under the same node names.
-* Licence: original work or CC0/CC-BY with attribution recorded in `docs/` and `LICENSE`; no assets from sources whose terms forbid redistribution.
-  The current models are original and MIT.
-
-Until then the honest claim is "stylized procedural characters".
-
-**Provenance and licences.** Generated by `tools/character/gen_character.py` (standard library only) from original geometry; no third-party
-meshes, textures or animations are used. Filament is Apache 2.0.
-
-**Size, load and memory, measured on the TV box** (Xiaomi TV Box S 3rd Gen, release build): release APK 12.0 MiB (the three characters are about
-2.4 MiB of that; Filament's native libraries dominate); the whole home screen with the character awake runs at 0.08% janky frames over 20 s with a
-median GPU time of 13 ms; total PSS about 160 to 210 MiB with the engine, the three models and the home screen. `assets/character/warden.glb`
-is a leftover from the first single-character version, is not referenced by any code and could be deleted to save about 0.8 MiB of APK.
+**Size, load and memory, measured on the TV box** (Xiaomi TV Box S 3rd Gen): see the figures at the end of this document.
 
 ## Reacting to the remote
 
@@ -123,3 +111,19 @@ In every state except "an app is focused" the character glides to the middle of 
   `licenses/LICENSE-Filament-Apache-2.0.txt`. Native libraries for `armeabi-v7a` and `arm64-v8a` only.
   1.69.5 is used rather than the newest release because newer ones require compileSdk 37.
 * The character models: original work, MIT like the rest of Haven.
+
+## Measured on the TV box
+
+Xiaomi TV Box S (3rd Gen), Android 14, release build, 2026-11-09:
+
+| | Before (procedural v1) | Now (Quaternius-based) |
+|---|---|---|
+| `human.glb` / `wizard.glb` / `robot.glb` | 805 / 839 / 783 KiB | 3.3 / 3.6 / 1.7 MiB |
+| Release APK | 11.95 MiB | 16.05 MiB (+4.1 MiB) |
+| Frames over 20 s on the home screen | 1206, 1 janky (0.08%), GPU median 13 ms | 1205, 1 janky (0.08%), GPU median 12 ms |
+| Total PSS with the home screen up | about 165 to 210 MiB | about 240 MiB (one model loaded; loading all three at once measured about 365 MiB, which is why only the selected one is kept) |
+
+The frame figures are for the sleeping Human; the awake and umbrella poses were checked visually on the same build but their frame times were
+measured only on debug builds, which are not comparable. `assets/character/warden.glb` (0.8 MiB) is an unreferenced leftover from the first
+single-character version and could be deleted.
+

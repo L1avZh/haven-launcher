@@ -247,6 +247,7 @@
     <string name="weather_reacts">Reaksi cuaca</string>
     <string name="weather_reacts_d">Memegang payung dan menukar postur ketika hujan, salji, ribut dan sejuk.</string>
     <string name="saver_char">Watak tidur pada penyelamat skrin</string>
+    <string name="credits_models">Model watak 3D</string>
     <plurals name="apps_count">
         <item quantity="other">%d apl</item>
     </plurals>

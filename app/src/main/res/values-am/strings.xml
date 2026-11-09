@@ -247,6 +247,7 @@
     <string name="weather_reacts">የአየር ሁኔታ ምላሾች</string>
     <string name="weather_reacts_d">በዝናብ፣ በበረዶ፣ በማዕበል እና በቅዝቃዜ ጃንጥላ ይይዛል አቋሙንም ይቀይራል።</string>
     <string name="saver_char">በስክሪን ማቆያ ላይ የሚተኛ ገጸ ባሕሪ</string>
+    <string name="credits_models">የ3D ገጸ ባህሪ ሞዴሎች</string>
     <plurals name="apps_count">
         <item quantity="one">%d መተግበሪያ</item>
         <item quantity="other">%d መተግበሪያዎች</item>

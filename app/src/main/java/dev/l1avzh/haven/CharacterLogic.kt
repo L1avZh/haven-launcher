@@ -21,8 +21,8 @@ class CharacterDef(
 object Look {
     val CHARACTERS = listOf(
         CharacterDef("human", listOf("city", "field"), listOf("lantern", "tablet", "compass", "none"), "city", "lantern", 0.95, 5.3),
-        CharacterDef("wizard", listOf("archmage", "apprentice"), listOf("staff", "lantern", "compass", "none"), "archmage", "staff", 1.08, 6.9),
-        CharacterDef("robot", listOf("plated", "stealth"), listOf("tablet", "compass", "lantern", "none"), "plated", "tablet", 1.0, 5.6),
+        CharacterDef("wizard", listOf("archmage", "apprentice"), listOf("staff", "lantern", "compass", "none"), "archmage", "staff", 0.97, 5.4),
+        CharacterDef("robot", listOf("plated", "stealth"), listOf("tablet", "compass", "lantern", "none"), "plated", "tablet", 0.95, 5.35),
     )
     const val DEFAULT_CHARACTER = "human"
     val ALL_PROPS = CHARACTERS.flatMap { it.props }.distinct()

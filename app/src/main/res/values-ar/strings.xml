@@ -247,6 +247,7 @@
     <string name="weather_reacts">تفاعلات الطقس</string>
     <string name="weather_reacts_d">تحمل مظلة وتغيّر وقفتها في المطر والثلج والعواصف والبرد.</string>
     <string name="saver_char">شخصية نائمة على شاشة التوقف</string>
+    <string name="credits_models">نماذج الشخصيات ثلاثية الأبعاد</string>
     <plurals name="apps_count">
         <item quantity="zero">لا تطبيقات</item>
         <item quantity="one">تطبيق واحد</item>

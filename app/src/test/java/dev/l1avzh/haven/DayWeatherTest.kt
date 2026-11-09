@@ -109,3 +109,34 @@ class SleepAndStanceTest {
         assertTrue("and still lies down", sp.rootRoll > 1.4f)
     }
 }
+
+/** The runtime GLBs must keep Haven's rig and node contract (see docs/character.md); this reads their JSON chunk, no renderer needed. */
+class AssetContractTest {
+    private fun gltf(id: String): org.json.JSONObject {
+        val f = java.io.File("src/main/assets/character/$id.glb")
+        val b = java.nio.ByteBuffer.wrap(f.readBytes()).order(java.nio.ByteOrder.LITTLE_ENDIAN)
+        assertEquals(0x46546C67, b.getInt(0))                       // "glTF"
+        val len = b.getInt(12); val json = ByteArray(len); b.position(20); b.get(json)
+        return org.json.JSONObject(String(json, Charsets.UTF_8))
+    }
+    private fun names(g: org.json.JSONObject) = (0 until g.getJSONArray("nodes").length()).map { g.getJSONArray("nodes").getJSONObject(it).optString("name") }.toSet()
+
+    @Test fun everyCharacterKeepsTheRigAndTheNamedNodes() {
+        for (def in Look.CHARACTERS) {
+            val n = names(gltf(def.id))
+            for (j in Pose.JOINTS + "root") assertTrue("${def.id} lacks joint $j", j in n)
+            for (x in listOf("attach_hand_r", "attach_hand_l", "acc_star", "prop_umbrella", "sleep_blanket", "sleep_pillow")) assertTrue("${def.id} lacks $x", x in n)
+            for (o in def.outfits) assertTrue("${def.id} lacks outfit_$o", "outfit_$o" in n)
+            for (p in def.props) if (p != "none") assertTrue("${def.id} lacks prop_$p", "prop_$p" in n)
+        }
+    }
+    @Test fun jointsAreRotationFreeSoPoseDeltasActOnWorldAxes() {
+        for (def in Look.CHARACTERS) {
+            val g = gltf(def.id); val arr = g.getJSONArray("nodes")
+            for (i in 0 until arr.length()) { val nd = arr.getJSONObject(i); if (nd.optString("name") in Pose.JOINTS) assertFalse("${def.id}/${nd.optString("name")} has a rotation", nd.has("rotation")) }
+        }
+    }
+    @Test fun noExtensionsBeyondWhatFilamentLoads() {
+        for (def in Look.CHARACTERS) assertTrue(gltf(def.id).optJSONArray("extensionsRequired") == null)
+    }
+}
