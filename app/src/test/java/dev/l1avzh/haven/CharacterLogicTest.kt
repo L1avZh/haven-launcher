@@ -4,21 +4,151 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class LookTest {
-    @Test fun knownIdsPassThrough() {
-        Look.OUTFITS.forEach { assertEquals(it, Look.outfit(it)) }
-        Look.PROPS.forEach { assertEquals(it, Look.prop(it)) }
-    }
-
-    @Test fun missingOrUnknownIdsFallBackToDefaults() {
-        listOf(null, "", "ghost", "COURIER", " courier").forEach { assertEquals(Look.DEFAULT_OUTFIT, Look.outfit(it)) }
-        listOf(null, "", "sword", "None").forEach { assertEquals(Look.DEFAULT_PROP, Look.prop(it)) }
-    }
-
-    @Test fun idsAreUniqueAndStable() {
+    @Test fun rosterIdsAreStable() {
         // These strings are saved in preferences; changing them would silently reset users' choices.
-        assertEquals(listOf("courier", "runner", "astral"), Look.OUTFITS)
-        assertEquals(listOf("lantern", "tablet", "compass", "none"), Look.PROPS)
-        assertEquals(Look.OUTFITS.size, Look.OUTFITS.toSet().size)
+        assertEquals(listOf("human", "wizard", "robot"), Look.CHARACTERS.map { it.id })
+        assertEquals(listOf("city", "field"), Look.def("human").outfits)
+        assertEquals(listOf("archmage", "apprentice"), Look.def("wizard").outfits)
+        assertEquals(listOf("plated", "stealth"), Look.def("robot").outfits)
+        assertEquals("human", Look.DEFAULT_CHARACTER)
+        assertEquals(Look.CHARACTERS.size, Look.CHARACTERS.map { it.id }.toSet().size)
+    }
+
+    @Test fun everyCharacterHasItsAssetAndValidDefaults() {
+        Look.CHARACTERS.forEach {
+            assertEquals("character/${it.id}.glb", it.asset)
+            assertTrue(it.defaultOutfit in it.outfits); assertTrue(it.defaultProp in it.props); assertTrue("none" in it.props)
+        }
+    }
+
+    @Test fun unknownCharacterFallsBackToTheDefault() {
+        listOf(null, "", "warden", "HUMAN").forEach { assertEquals("human", Look.character(it)) }
+    }
+
+    @Test fun outfitsAndPropsAreValidatedAgainstTheirCharacter() {
+        assertEquals("archmage", Look.outfit("wizard", "archmage"))
+        assertEquals("city", Look.outfit("human", "archmage"))              // another character's outfit
+        assertEquals("city", Look.outfit("human", "courier"))               // an id written by an older version
+        assertEquals("plated", Look.outfit("robot", null))
+        assertEquals("staff", Look.prop("wizard", "staff"))
+        assertEquals("lantern", Look.prop("human", "staff"))                // the staff belongs to the wizard
+        assertEquals("tablet", Look.prop("robot", "sword"))
+    }
+
+    @Test fun theStarIsOnlyWornOnceUnlocked() {
+        assertFalse(LookState.of("human", "city", "lantern", star = true, starUnlocked = false).star)
+        assertTrue(LookState.of("human", "city", "lantern", star = true, starUnlocked = true).star)
+        assertFalse(LookState.of("human", "city", "lantern", star = false, starUnlocked = true).star)
+    }
+
+    @Test fun anInvalidSavedLookStillProducesAValidOne() {
+        val l = LookState.of("zzz", "archmage", "staff", star = true, starUnlocked = false)
+        assertEquals(LookState("human", "city", "lantern", false), l)
+    }
+}
+
+class AppKindsTest {
+    @Test fun spotifyOnTvAndOnPhones() {
+        assertEquals(AppKind.MUSIC, AppKinds.classify("com.spotify.tv.android", "Spotify"))
+        assertEquals(AppKind.MUSIC, AppKinds.classify("com.spotify.music", "Spotify"))
+    }
+
+    @Test fun youtubeMusicIsMusicButYouTubeIsVideo() {
+        assertEquals(AppKind.MUSIC, AppKinds.classify("com.google.android.youtube.tvmusic", "YouTube Music"))
+        assertEquals(AppKind.VIDEO, AppKinds.classify("com.google.android.youtube.tv", "YouTube"))
+    }
+
+    @Test fun videoServicesAcrossPackageVariants() {
+        listOf("com.netflix.ninja" to "Netflix", "com.netflix.mediaclient" to "Netflix", "com.plexapp.android" to "Plex",
+            "com.amazon.amazonvideo.livingroom" to "Prime Video", "com.amazon.avod.thirdpartyclient" to "Prime Video", "com.disney.disneyplus" to "Disney+")
+            .forEach { (p, l) -> assertEquals(p, AppKind.VIDEO, AppKinds.classify(p, l)) }
+    }
+
+    @Test fun theAppsOwnDeclaredCategoryIsUsedWhenThePackageIsUnknown() {
+        assertEquals(AppKind.MUSIC, AppKinds.classify("com.example.player", "Player", AppKinds.CATEGORY_AUDIO))
+        assertEquals(AppKind.VIDEO, AppKinds.classify("com.example.player", "Player", AppKinds.CATEGORY_VIDEO))
+        assertEquals(AppKind.OTHER, AppKinds.classify("com.example.player", "Player", -1))
+    }
+
+    @Test fun labelsHelpWhenNothingElseDoes() {
+        assertEquals(AppKind.MUSIC, AppKinds.classify("com.x.y", "Cool Music"))
+        assertEquals(AppKind.MUSIC, AppKinds.classify("com.x.y", "מוזיקה"))
+        assertEquals(AppKind.VIDEO, AppKinds.classify("com.x.y", "Movies Anywhere"))
+        assertEquals(AppKind.VIDEO, AppKinds.classify("com.x.y", "NextGEN IPTV"))
+    }
+
+    @Test fun everyOtherAppStaysOther() {
+        listOf("com.android.tv.settings" to "Settings", "com.android.vending" to "Play Store", "com.android.gallery3d" to "Gallery",
+            "com.adguard.android" to "AdGuard", "dev.l1avzh.haven" to "Haven").forEach { (p, l) -> assertEquals(p, AppKind.OTHER, AppKinds.classify(p, l)) }
+    }
+
+    @Test fun wordsAreMatchedWholeSoPlayStoreIsNotMusic() {
+        assertEquals(AppKind.OTHER, AppKinds.classify("com.android.vending", "Play Store"))
+        assertEquals(AppKind.OTHER, AppKinds.classify("com.x.y", "Gamestream helper"))
+    }
+}
+
+class AppReactionTest {
+    @Test fun focusingAMusicOrVideoAppStartsAThemedBeat() {
+        val m = CharacterReactor(); m.onInput(CharInput.AppFocus(AppKind.MUSIC), 1000); assertEquals(Beat.LISTEN, m.active(1100)!!.beat)
+        val v = CharacterReactor(); v.onInput(CharInput.AppFocus(AppKind.VIDEO), 1000); assertEquals(Beat.WATCH, v.active(1100)!!.beat)
+    }
+
+    @Test fun otherAppsKeepTheGenericReaction() {
+        val c = CharacterReactor(); c.onInput(CharInput.AppFocus(AppKind.OTHER), 1000)
+        assertNull(c.active(1100))
+        c.onInput(CharInput.Focus(0.5f, 0f), 1200); assertEquals(Beat.NAVIGATE, c.active(1250)!!.beat)
+    }
+
+    @Test fun scrollingPastManyMusicAppsDoesNotKeepRestartingTheGesture() {
+        val c = CharacterReactor(); c.onInput(CharInput.AppFocus(AppKind.MUSIC), 1000)
+        val p0 = c.active(1100)!!.progress
+        c.onInput(CharInput.AppFocus(AppKind.MUSIC), 1300); c.onInput(CharInput.AppFocus(AppKind.MUSIC), 1500)
+        assertTrue(c.active(1600)!!.progress > p0)
+    }
+
+    @Test fun launchingIsStrongerThanFocusingAndThanConfirm() {
+        val c = CharacterReactor(); c.onInput(CharInput.AppFocus(AppKind.VIDEO), 1000)
+        c.onInput(CharInput.Key(KeyKind.OK), 1100)
+        assertEquals(Beat.CONFIRM, c.active(1150)!!.beat)
+        c.onInput(CharInput.AppLaunch(AppKind.VIDEO), 1200)
+        assertEquals(Beat.LAUNCH_WATCH, c.active(1250)!!.beat)
+    }
+
+    @Test fun launchingAGenericAppAddsNothingBeyondConfirm() {
+        val c = CharacterReactor(); c.onInput(CharInput.Key(KeyKind.OK), 1000); c.onInput(CharInput.AppLaunch(AppKind.OTHER), 1100)
+        assertEquals(Beat.CONFIRM, c.active(1150)!!.beat)
+    }
+
+    @Test fun returningFromAnotherAppIsASmallWave() {
+        val c = CharacterReactor(); c.onInput(CharInput.Returned, 0); assertEquals(Beat.RETURN, c.active(10)!!.beat)
+    }
+
+    @Test fun reducedMotionSuppressesThemedBeatsToo() {
+        val c = CharacterReactor(enabled = false)
+        c.onInput(CharInput.AppFocus(AppKind.MUSIC), 0); c.onInput(CharInput.AppLaunch(AppKind.VIDEO), 0); c.onInput(CharInput.Returned, 0)
+        assertNull(c.active(50))
+    }
+
+    @Test fun listeningRaisesBothHandsAndWatchingTurnsTheBody() {
+        val r1 = CharacterReactor(); val a1 = CharacterAnimator(r1); a1.update(0, 1f); r1.onInput(CharInput.AppFocus(AppKind.MUSIC), 1000)
+        var armL = 0f; var armR = 0f
+        for (t in 1000..2500 step 16) { val p = a1.update(t.toLong(), 1f); armL = maxOf(armL, -p.get("forearm_l", 0)); armR = maxOf(armR, -p.get("forearm_r", 0)) }
+        assertTrue(armL > 1f && armR > 1f)
+        val r2 = CharacterReactor(); val a2 = CharacterAnimator(r2); a2.update(0, 1f); r2.onInput(CharInput.AppFocus(AppKind.VIDEO), 1000)
+        var yaw = 0f
+        for (t in 1000..2300 step 16) yaw = minOf(yaw, a2.update(t.toLong(), 1f).rootYaw)
+        assertTrue(yaw < -0.15f)
+    }
+
+    @Test fun waitingRaisesAHandAndLetsTheEyesWanderButNotInReducedMotion() {
+        val r = CharacterReactor(); val a = CharacterAnimator(r); r.waiting = true
+        var p = a.update(0, 1f); var minGaze = 1f; var maxGaze = -1f
+        for (t in 16..6000 step 16) { p = a.update(t.toLong(), 1f); minGaze = minOf(minGaze, p.get("head", 1)); maxGaze = maxOf(maxGaze, p.get("head", 1)) }
+        assertTrue("the hand rests near the chin", -p.get("forearm_r", 0) > 1f)
+        assertTrue("the head looks around", maxGaze - minGaze > 0.2f)
+        val still = CharacterAnimator(r).update(1000, 0f)
+        assertTrue(still.rot.all { it == 0f })
     }
 }
 

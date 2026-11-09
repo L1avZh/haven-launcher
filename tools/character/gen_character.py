@@ -1,17 +1,15 @@
 #!/usr/bin/env python3
-"""Generates the Haven "Warden" character as a rigged, skinned glTF binary (GLB), using only the Python standard library.
+"""Generates Haven's three rigged characters (human, wizard, robot) as skinned glTF binaries (GLB), using only the Python
+standard library. All geometry is original: ellipsoids, tapered tubes, boxes and rings, skinned to a 17-joint skeleton
+whose proportions differ per character. No third-party models, textures or licences are involved.
 
-Everything here is original geometry built from primitives (ellipsoids, tapered tubes, boxes, rings) and skinned to a
-19-joint skeleton, so there are no third-party models, textures or licences involved.
+    python3 tools/character/gen_character.py        ->  app/src/main/assets/character/{human,wizard,robot}.glb
 
-    python3 tools/character/gen_character.py            ->  app/src/main/assets/character/warden.glb
-
-Scene contract used by the app (node names):
+Asset contract (identical for every character, so the app can pose any of them):
   joints:  root hips spine chest neck head clavicle_l/r upperarm_l/r forearm_l/r hand_l/r thigh_l/r shin_l/r foot_l/r
-  attach:  attach_hand_r / attach_hand_l (empty nodes under the hands, where hand-held props are parented)
-  body:    body, eye_l, eye_r
-  outfits: outfit_courier, outfit_runner, outfit_astral   (each skinned to the same skeleton)
-  props:   prop_lantern, prop_tablet, prop_compass       (parented to attach_hand_r)
+  nodes:   body, eye_l, eye_r (under head), attach_hand_r / attach_hand_l, acc_star (under chest; the hidden pendant)
+  outfits: outfit_<id> skinned meshes (ids per character, see CHARACTERS below)
+  props:   prop_<id> meshes parented to attach_hand_r
 """
 import json, math, os, struct, sys
 
@@ -29,29 +27,36 @@ def mirror(p): return (-p[0], p[1], p[2])
 def smooth(x):
     x = max(0.0, min(1.0, x)); return x*x*(3-2*x)
 
-# ---------------------------------------------------------------- skeleton
-# name: (parent, world position in the bind pose). Rest pose: no joint rotation, a relaxed A-pose.
-J = {}
-ORDER = []
-def joint(name, parent, pos):
-    J[name] = (parent, pos); ORDER.append(name)
 
-joint('root', None, (0.0, 0.0, 0.0))
-joint('hips', 'root', (0.0, 0.95, 0.0))
-joint('spine', 'hips', (0.0, 1.08, 0.0))
-joint('chest', 'spine', (0.0, 1.27, 0.0))
-joint('neck', 'chest', (0.0, 1.50, 0.0))
-joint('head', 'neck', (0.0, 1.60, 0.0))
-for side, m in (('l', 1), ('r', -1)):
-    joint('clavicle_' + side, 'chest', (0.09*m, 1.46, 0.0))
-    joint('upperarm_' + side, 'clavicle_' + side, (0.21*m, 1.45, 0.0))
-    joint('forearm_' + side, 'upperarm_' + side, (0.43*m, 1.20, 0.02))
-    joint('hand_' + side, 'forearm_' + side, (0.55*m, 0.95, 0.07))
-    joint('thigh_' + side, 'hips', (0.095*m, 0.92, 0.0))
-    joint('shin_' + side, 'thigh_' + side, (0.115*m, 0.50, 0.015))
-    joint('foot_' + side, 'shin_' + side, (0.12*m, 0.10, 0.0))
-JI = {n: i for i, n in enumerate(ORDER)}
+# ---------------------------------------------------------------- skeleton (switchable per character)
+J = {}; ORDER = []; JI = {}; H = {}
 def P(n): return J[n][1]
+
+def use_rig(r):
+    """r: dict of key heights and limb numbers. Rebuilds the module-level skeleton tables."""
+    J.clear(); ORDER.clear(); H.clear(); H.update(r)
+    def joint(name, parent, pos): J[name] = (parent, pos); ORDER.append(name)
+    joint('root', None, (0.0, 0.0, 0.0))
+    joint('hips', 'root', (0.0, r['hip'], 0.0))
+    joint('spine', 'hips', (0.0, r['spine'], 0.0))
+    joint('chest', 'spine', (0.0, r['chest'], 0.0))
+    joint('neck', 'chest', (0.0, r['neck'], 0.0))
+    joint('head', 'neck', (0.0, r['head'], 0.0))
+    for side, m in (('l', 1), ('r', -1)):
+        sy = r['sh_y']; sx = r['sx']
+        joint('clavicle_' + side, 'chest', (r['cl'] * m, sy + 0.01, 0.0))
+        up = (sx * m, sy, 0.0)
+        el = (up[0] + math.sin(r['a1']) * r['ua'] * m, up[1] - math.cos(r['a1']) * r['ua'], 0.02)
+        wr = (el[0] + math.sin(r['a2']) * r['fa'] * m, el[1] - math.cos(r['a2']) * r['fa'], 0.07)
+        joint('upperarm_' + side, 'clavicle_' + side, up)
+        joint('forearm_' + side, 'upperarm_' + side, el)
+        joint('hand_' + side, 'forearm_' + side, wr)
+        hx = r['hx'] * m
+        joint('thigh_' + side, 'hips', (hx, r['hip'] - 0.03, 0.0))
+        joint('shin_' + side, 'thigh_' + side, (hx + 0.02 * m, r['knee'], 0.015))
+        joint('foot_' + side, 'shin_' + side, (hx + 0.025 * m, r['ankle'], 0.0))
+    JI.clear(); JI.update({n: i for i, n in enumerate(ORDER)})
+
 
 # ---------------------------------------------------------------- geometry
 class Prim:
@@ -77,11 +82,11 @@ class Prim:
         self.idx += [a, b, c]
         if self.double: self.idx += [a, c, b]
 
-    def ellipsoid(self, c, r, wf, seg=18, ring=12):
+    def ellipsoid(self, c, r, wf, seg=18, ring=12, th0=0.0, th1=math.pi):
         rx, ry, rz = r
         base = len(self.pos)
         for i in range(ring + 1):
-            th = math.pi * i / ring
+            th = th0 + (th1 - th0) * i / ring
             for j in range(seg + 1):
                 ph = 2 * math.pi * j / seg
                 d = (math.sin(th) * math.cos(ph), math.cos(th), math.sin(th) * math.sin(ph))
@@ -149,36 +154,32 @@ class Prim:
                 a0 = base + i*(sides+1) + j; a1 = a0 + sides + 1
                 self._tri(a0, a1, a0+1); self._tri(a0+1, a1, a1+1)
 
+
 # ---------------------------------------------------------------- skin weights
 def bone(j0, j1, blend=0.45):
-    """Weights for a point on the segment from joint j0 to its child j1: the far end eases into the child joint."""
     p0, p1 = P(j0), P(j1); ax = sub(p1, p0); L2 = max(dot(ax, ax), 1e-9)
     def f(p):
         t = dot(sub(p, p0), ax) / L2
         s = smooth((t - (1 - blend)) / blend)
         return [(j0, 1 - 0.5*s), (j1, 0.5*s)] if t > 0 else [(j0, 1.0)]
     return f
-def fixed(*pairs):
-    return lambda p: list(pairs)
+def fixed(*pairs): return lambda p: list(pairs)
 def one(j): return lambda p: [(j, 1.0)]
 def between(ja, jb): return lambda p: [(ja, 0.5), (jb, 0.5)]
 def torso_w(p):
-    y = p[1]
-    if y < 1.00: return [('hips', 1.0)]
-    if y < 1.14: s = smooth((y-1.00)/0.14); return [('hips', 1-s), ('spine', s)]
-    if y < 1.30: s = smooth((y-1.14)/0.16); return [('spine', 1-s), ('chest', s)]
-    if y < 1.50: return [('chest', 1.0)]
-    s = smooth((y-1.50)/0.10); return [('chest', 1-s), ('neck', s)]
-def side_leg_w(side):
-    thigh, shin = 'thigh_' + side, 'shin_' + side
-    return lambda p: bone(thigh, shin)(p)
+    y = p[1]; hip, sp, ch, nk = H['hip'], H['spine'], H['chest'], H['neck']
+    if y < hip + 0.05: return [('hips', 1.0)]
+    if y < sp + 0.06: s = smooth((y - hip - 0.05) / (sp + 0.01 - hip)); return [('hips', 1-s), ('spine', s)]
+    if y < ch + 0.03: s = smooth((y - sp - 0.06) / (ch - sp)); return [('spine', 1-s), ('chest', s)]
+    if y < nk: return [('chest', 1.0)]
+    s = smooth((y - nk) / 0.10); return [('chest', 1-s), ('neck', s)]
 def hip_leg_blend(side):
-    """Skirts and coats hang from the hips but follow the leg on their own side as they go down."""
     thigh = 'thigh_' + side
     def f(p):
-        s = smooth((0.92 - p[1]) / 0.35)
+        s = smooth((H['hip'] - p[1]) / 0.35)
         return [('hips', 1 - 0.8*s), (thigh, 0.8*s)]
     return f
+
 
 # ---------------------------------------------------------------- materials
 MATS = {}
@@ -186,152 +187,346 @@ def mat(name, base, metal=0.0, rough=0.6, emissive=None, double=False):
     MATS[name] = dict(name=name, pbrMetallicRoughness=dict(baseColorFactor=[*base, 1.0], metallicFactor=metal, roughnessFactor=rough),
                       doubleSided=double, **({'emissiveFactor': list(emissive)} if emissive else {}))
 
-mat('suit', (0.09, 0.10, 0.13), 0.25, 0.55)
-mat('suit_light', (0.20, 0.22, 0.28), 0.3, 0.45)
-mat('visor', (0.015, 0.02, 0.03), 0.7, 0.18)
-mat('eye', (0.2, 0.9, 1.0), 0.0, 0.4, (0.25, 0.95, 1.0))
-mat('courier_cloth', (0.10, 0.13, 0.36), 0.0, 0.7, double=True)
-mat('courier_trim', (0.1, 0.8, 0.9), 0.0, 0.4, (0.15, 0.8, 0.95))
-mat('courier_dark', (0.05, 0.06, 0.12), 0.2, 0.55)
-mat('runner_white', (0.86, 0.88, 0.92), 0.1, 0.42, double=True)
-mat('runner_orange', (1.0, 0.42, 0.08), 0.1, 0.5)
-mat('runner_dark', (0.12, 0.13, 0.16), 0.5, 0.4)
-mat('astral_cloth', (0.30, 0.17, 0.58), 0.0, 0.65, double=True)
-mat('astral_gold', (0.95, 0.74, 0.25), 0.9, 0.28)
-mat('astral_glow', (1.0, 0.85, 0.5), 0.0, 0.4, (1.0, 0.8, 0.35))
-mat('lantern_glass', (1.0, 0.72, 0.30), 0.0, 0.2, (1.0, 0.62, 0.2))
-mat('prop_metal', (0.55, 0.57, 0.62), 0.9, 0.3)
-mat('tablet_body', (0.07, 0.08, 0.1), 0.6, 0.3)
-mat('tablet_screen', (0.2, 0.7, 1.0), 0.0, 0.3, (0.1, 0.55, 0.95))
-mat('compass_core', (0.6, 1.0, 0.8), 0.0, 0.3, (0.3, 1.0, 0.7))
+# human
+mat('h_skin', (0.78, 0.58, 0.46), 0.0, 0.55); mat('h_lips', (0.62, 0.34, 0.33), 0.0, 0.45); mat('h_hair', (0.09, 0.06, 0.045), 0.0, 0.5)
+mat('h_under', (0.88, 0.88, 0.9), 0.0, 0.7); mat('h_trousers', (0.11, 0.12, 0.16), 0.0, 0.7); mat('h_shoe', (0.07, 0.07, 0.08), 0.1, 0.4)
+mat('h_eyewhite', (0.92, 0.92, 0.9), 0.0, 0.3); mat('h_iris', (0.16, 0.27, 0.36), 0.0, 0.3)
+mat('h_coat', (0.15, 0.16, 0.2), 0.0, 0.75, double=True); mat('h_coat_trim', (0.75, 0.62, 0.35), 0.8, 0.35); mat('h_coat_dark', (0.06, 0.06, 0.08), 0.2, 0.5)
+mat('h_field', (0.36, 0.42, 0.3), 0.0, 0.8, double=True); mat('h_field_orange', (0.95, 0.45, 0.12), 0.0, 0.6); mat('h_scarf', (0.7, 0.18, 0.14), 0.0, 0.85, double=True)
+# wizard
+mat('w_skin', (0.84, 0.68, 0.58), 0.0, 0.55); mat('w_beard', (0.92, 0.92, 0.94), 0.0, 0.8); mat('w_tunic', (0.28, 0.3, 0.38), 0.0, 0.75)
+mat('w_boot', (0.25, 0.15, 0.09), 0.0, 0.5); mat('w_eye', (0.15, 0.3, 0.5), 0.0, 0.3)
+mat('w_robe', (0.17, 0.12, 0.45), 0.0, 0.7, double=True); mat('w_robe2', (0.32, 0.2, 0.62), 0.0, 0.7, double=True); mat('w_gold', (0.95, 0.76, 0.28), 0.9, 0.28)
+mat('w_green', (0.2, 0.42, 0.28), 0.0, 0.8, double=True); mat('w_brown', (0.4, 0.27, 0.16), 0.0, 0.7, double=True)
+mat('w_wood', (0.35, 0.22, 0.12), 0.0, 0.6); mat('w_crystal', (0.5, 0.8, 1.0), 0.0, 0.2, (0.25, 0.6, 1.0))
+# robot
+mat('r_frame', (0.18, 0.2, 0.24), 0.45, 0.45); mat('r_joint', (0.34, 0.37, 0.42), 0.5, 0.4); mat('r_visor', (0.01, 0.015, 0.02), 0.8, 0.15)
+mat('r_glow', (0.2, 0.9, 1.0), 0.0, 0.3, (0.25, 0.95, 1.0)); mat('r_cable', (0.03, 0.03, 0.04), 0.0, 0.6)
+mat('r_plate', (0.88, 0.9, 0.93), 0.15, 0.35); mat('r_plate_orange', (1.0, 0.44, 0.08), 0.15, 0.4); mat('r_plate_dark', (0.14, 0.15, 0.19), 0.3, 0.4)
+mat('r_stealth', (0.09, 0.1, 0.13), 0.3, 0.4); mat('r_line', (0.1, 0.8, 1.0), 0.0, 0.3, (0.1, 0.7, 1.0))
+# props and accessory
+mat('lantern_glass', (1.0, 0.72, 0.30), 0.0, 0.2, (1.0, 0.62, 0.2)); mat('prop_metal', (0.55, 0.57, 0.62), 0.9, 0.3)
+mat('tablet_body', (0.07, 0.08, 0.1), 0.6, 0.3); mat('tablet_screen', (0.2, 0.7, 1.0), 0.0, 0.3, (0.1, 0.55, 0.95))
+mat('compass_core', (0.6, 1.0, 0.8), 0.0, 0.3, (0.3, 1.0, 0.7)); mat('star_gold', (0.98, 0.8, 0.32), 0.95, 0.22, (0.25, 0.18, 0.04))
 
-# ---------------------------------------------------------------- body
-def build_body():
-    body = Prim('suit'); trim = Prim('suit_light'); visor = Prim('visor')
-    # pelvis, waist, chest
-    body.ellipsoid((0, 0.98, 0), (0.155, 0.12, 0.105), torso_w)
-    body.tube((0, 1.00, 0), (0, 1.27, 0), 0.135, 0.15, torso_w, seg=18, rings=8, sx=1.1, sz=0.78)
-    body.ellipsoid((0, 1.38, -0.005), (0.185, 0.17, 0.115), torso_w)
-    body.tube((0, 1.45, 0), (0, 1.52, 0), 0.052, 0.045, torso_w)
-    # neck and head
-    body.tube(P('neck'), P('head'), 0.048, 0.044, between('neck', 'head'), seg=12, rings=2)
-    body.ellipsoid((0, 1.725, 0.005), (0.098, 0.122, 0.108), one('head'), seg=22, ring=16)
-    body.ellipsoid((0, 1.668, 0.03), (0.074, 0.068, 0.076), one('head'), seg=16, ring=10)     # jaw
-    # ear pods and a swept crest give the head its silhouette
-    for m in (1, -1):
-        trim.tube((0.098*m, 1.735, 0.0), (0.118*m, 1.735, 0.0), 0.038, 0.038, one('head'), seg=16, rings=1, caps=True)
-    trim.ellipsoid((0, 1.80, -0.075), (0.016, 0.075, 0.04), one('head'), seg=10, ring=8)
-    trim.ellipsoid((0, 1.86, -0.12), (0.014, 0.05, 0.03), one('head'), seg=10, ring=8)
-    # visor band across the eyes
-    visor.ellipsoid((0, 1.735, 0.048), (0.092, 0.038, 0.072), one('head'), seg=20, ring=10)
-    # arms and legs
+def T0(p): return []                      # unskinned: no weights
+def sk(p): return p
+
+# ---------------------------------------------------------------- shared limb builders
+def limbs(prims, r_up, r_fore, r_th, r_sh, mat_arm, mat_leg, hand_fn, foot_fn, joint_r=1.0, joint_mat=None):
+    """Arms and legs as tapered tubes between the rig's joints, with the given radii."""
     for s, m in (('l', 1), ('r', -1)):
         up, fo, ha = 'upperarm_' + s, 'forearm_' + s, 'hand_' + s
-        body.ellipsoid(add(P('clavicle_' + s), (0.0, 0.0, 0.0)), (0.07, 0.055, 0.06), fixed(('chest', 0.6), ('clavicle_' + s, 0.4)))
-        body.ellipsoid(P(up), (0.062, 0.062, 0.062), between('clavicle_' + s, up))
-        body.tube(P(up), P(fo), 0.052, 0.042, bone(up, fo), seg=12, rings=6)
-        body.ellipsoid(P(fo), (0.044, 0.044, 0.044), between(up, fo))
-        body.tube(P(fo), P(ha), 0.042, 0.034, bone(fo, ha), seg=12, rings=6)
-        trim.ellipsoid(P(ha), (0.038, 0.055, 0.032), one(ha), seg=12, ring=8)                 # hand
-        trim.ellipsoid(add(P(ha), (0.026*m, 0.0, 0.03)), (0.016, 0.034, 0.016), one(ha), seg=8, ring=6)   # thumb
-        th, sh, fo_ = 'thigh_' + s, 'shin_' + s, 'foot_' + s
-        body.ellipsoid(P(th), (0.075, 0.075, 0.075), between('hips', th))
-        body.tube(P(th), P(sh), 0.072, 0.052, bone(th, sh), seg=14, rings=8)
-        body.ellipsoid(P(sh), (0.054, 0.054, 0.054), between(th, sh))
-        body.tube(P(sh), P(fo_), 0.052, 0.036, bone(sh, fo_), seg=14, rings=8)
-        trim.ellipsoid((P(fo_)[0], 0.055, 0.045), (0.05, 0.05, 0.12), one(fo_), seg=14, ring=10)  # boot
-    return [body, trim, visor]
+        prims[mat_arm].ellipsoid(P(up), (r_up*1.1,)*3, between('clavicle_' + s, up))
+        prims[mat_arm].tube(P(up), P(fo), r_up, r_fore*1.12, bone(up, fo), seg=14, rings=6)
+        (prims[joint_mat or mat_arm]).ellipsoid(P(fo), (r_fore*1.15*joint_r,)*3, between(up, fo))
+        prims[mat_arm].tube(P(fo), P(ha), r_fore*1.1, r_fore*0.8, bone(fo, ha), seg=14, rings=6)
+        hand_fn(prims, s, m)
+        th, sh, ft = 'thigh_' + s, 'shin_' + s, 'foot_' + s
+        prims[mat_leg].ellipsoid(P(th), (r_th*1.05,)*3, between('hips', th))
+        prims[mat_leg].tube(P(th), P(sh), r_th, r_sh*1.1, bone(th, sh), seg=16, rings=8)
+        (prims[joint_mat or mat_leg]).ellipsoid(P(sh), (r_sh*1.12*joint_r,)*3, between(th, sh))
+        prims[mat_leg].tube(P(sh), P(ft), r_sh*1.05, r_sh*0.7, bone(sh, ft), seg=14, rings=8)
+        foot_fn(prims, s, m)
 
-def build_eyes():
+def hand_human(prims, s, m, mat='h_skin', scale=1.0):
+    ha = 'hand_' + s; c = P(ha); k = scale
+    prims[mat].ellipsoid((c[0] + 0.004*m, c[1] - 0.045*k, c[2] + 0.01), (0.036*k, 0.055*k, 0.02*k), one(ha), seg=12, ring=8)
+    for i, dx in enumerate((-0.022, -0.007, 0.007, 0.022)):
+        L = (0.05, 0.058, 0.054, 0.044)[i] * k
+        prims[mat].tube((c[0] + dx*m*k, c[1] - 0.085*k, c[2] + 0.012), (c[0] + dx*m*k, c[1] - 0.085*k - L, c[2] + 0.02), 0.0072*k, 0.0058*k, one(ha), seg=8, rings=2)
+    prims[mat].tube((c[0] + 0.03*m*k, c[1] - 0.03*k, c[2] + 0.02), (c[0] + 0.045*m*k, c[1] - 0.075*k, c[2] + 0.04), 0.009*k, 0.0075*k, one(ha), seg=8, rings=2)
+
+def foot_shoe(prims, s, m, mat='h_shoe', length=0.13, width=0.05, h=0.045):
+    ft = 'foot_' + s; c = P(ft)
+    prims[mat].ellipsoid((c[0], h*0.9, 0.045), (width, h, length), one(ft), seg=14, ring=10)
+
+def eye_node(prim_white, prim_iris, x, y, z, m, rw=(0.013, 0.01, 0.009), ri=0.0065):
+    prim_white.ellipsoid((0, 0, 0), rw, lambda p: [], seg=12, ring=8)
+    prim_iris.ellipsoid((0, 0, rw[2] * 0.78), (ri, ri, 0.004), lambda p: [], seg=10, ring=6)
+
+# ---------------------------------------------------------------- HUMAN
+def human_body():
+    pr = {k: Prim(k) for k in ('h_skin', 'h_under', 'h_trousers', 'h_hair', 'h_lips', 'h_shoe')}
+    hip, sp, ch, nk, hd = H['hip'], H['spine'], H['chest'], H['neck'], H['head']
+    pr['h_trousers'].ellipsoid((0, hip + 0.02, 0), (0.15, 0.115, 0.105), torso_w)
+    pr['h_under'].tube((0, hip + 0.06, 0), (0, ch, 0), 0.128, 0.148, torso_w, seg=20, rings=8, sx=1.12, sz=0.76)
+    pr['h_under'].ellipsoid((0, ch + 0.09, -0.005), (0.178, 0.155, 0.105), torso_w, seg=20, ring=12)
+    pr['h_skin'].tube((0, nk - 0.02, 0), (0, hd + 0.03, 0), 0.046, 0.043, between('neck', 'head'), seg=14, rings=3)
+    hc = (0, hd + 0.115, 0.004)
+    pr['h_skin'].ellipsoid(hc, (0.092, 0.113, 0.099), one('head'), seg=26, ring=20)
+    pr['h_skin'].ellipsoid((0, hc[1] - 0.068, 0.034), (0.07, 0.056, 0.07), one('head'), seg=16, ring=10)            # jaw and chin
+    pr['h_skin'].ellipsoid((0, hc[1] - 0.012, 0.099), (0.015, 0.027, 0.02), one('head'), seg=10, ring=8)             # nose
+    pr['h_skin'].ellipsoid((0, hc[1] - 0.034, 0.1), (0.022, 0.012, 0.014), one('head'), seg=10, ring=8)              # nose base
+    pr['h_lips'].ellipsoid((0, hc[1] - 0.064, 0.09), (0.03, 0.0085, 0.013), one('head'), seg=12, ring=6)
+    for m in (1, -1):
+        pr['h_skin'].ellipsoid((0.09*m, hc[1] - 0.012, 0.0), (0.011, 0.028, 0.02), one('head'), seg=10, ring=8)       # ears
+        pr['h_hair'].tube((0.014*m, hc[1] + 0.047, 0.095), (0.056*m, hc[1] + 0.056, 0.084), 0.0065, 0.0055, one('head'), seg=8, rings=2)   # brows
+    pr['h_hair'].ellipsoid((0, hc[1] + 0.012, -0.008), (0.099, 0.118, 0.108), one('head'), seg=24, ring=16, th0=0.0, th1=1.0)           # top cap
+    pr['h_hair'].ellipsoid((0, hc[1] + 0.07, 0.05), (0.086, 0.038, 0.052), one('head'), seg=16, ring=8)             # fringe
+    pr['h_hair'].ellipsoid((0, hc[1] - 0.012, -0.062), (0.088, 0.105, 0.058), one('head'), seg=18, ring=12)         # back of the head
+    for m in (1, -1): pr['h_hair'].ellipsoid((0.083*m, hc[1] + 0.012, 0.02), (0.014, 0.05, 0.05), one('head'), seg=10, ring=8)  # sideburns
+    limbs(pr, 0.047, 0.037, 0.074, 0.054, 'h_under', 'h_trousers', lambda p, s, m: hand_human(p, s, m), lambda p, s, m: foot_shoe(p, s, m))
+    return list(pr.values())
+
+def human_eyes():
+    hd = H['head']; hy = 0.115 + 0.006
     out = {}
     for s, m in (('l', 1), ('r', -1)):
-        e = Prim('eye', skinned=False)
-        # eyes live under the head joint, so their positions are local to it
-        e.ellipsoid((0.036*m, 0.135, 0.124), (0.020, 0.011, 0.006), lambda p: [], seg=10, ring=8)
-        out['eye_' + s] = e
+        w = Prim('h_eyewhite', skinned=False); i = Prim('h_iris', skinned=False); eye_node(w, i, 0, 0, 0, m)
+        out['eye_' + s] = ([w, i], (0.034*m, hy, 0.093))
     return out
 
-# ---------------------------------------------------------------- outfits
-def outfit_courier():
-    cloth = Prim('courier_cloth', double=True); trim = Prim('courier_trim'); dark = Prim('courier_dark')
-    cloth.tube((0, 0.98, 0), (0, 1.27, 0), 0.165, 0.185, torso_w, seg=20, rings=8, sx=1.1, sz=0.82)
-    cloth.ellipsoid((0, 1.38, -0.005), (0.205, 0.185, 0.135), torso_w, seg=20, ring=12)
+def human_coat():
+    cl = Prim('h_coat', double=True); tr = Prim('h_coat_trim'); dk = Prim('h_coat_dark'); hip, ch = H['hip'], H['chest']
+    cl.tube((0, hip + 0.04, 0), (0, ch, 0), 0.158, 0.172, torso_w, seg=22, rings=8, sx=1.12, sz=0.82)
+    cl.ellipsoid((0, ch + 0.09, -0.005), (0.2, 0.17, 0.125), torso_w, seg=22, ring=14)
     for s, m in (('l', 1), ('r', -1)):
         up, fo, ha = 'upperarm_' + s, 'forearm_' + s, 'hand_' + s
-        cloth.tube(P(up), P(fo), 0.068, 0.056, bone(up, fo), seg=12, rings=6)
-        cloth.tube(P(fo), add(P(ha), (0.0, 0.03, 0.0)), 0.058, 0.052, bone(fo, ha), seg=12, rings=6)
-        cloth.ellipsoid(P(fo), (0.058, 0.058, 0.058), between(up, fo))
-        trim.tube(add(P(fo), mul(norm(sub(P(ha), P(fo))), 0.17)), add(P(fo), mul(norm(sub(P(ha), P(fo))), 0.2)), 0.056, 0.056, bone(fo, ha, 0.3), seg=14, rings=1)
-        th, sh = 'thigh_' + s, 'shin_' + s
-        cloth.tube((0.095*m, 0.98, 0), (0.115*m, 0.46, 0.015), 0.115, 0.098, hip_leg_blend(s), seg=14, rings=8)
-    cloth.ellipsoid((0, 0.96, -0.01), (0.2, 0.09, 0.15), hip_leg_blend('l'), seg=18, ring=8)
-    trim.tube((0, 0.985, 0), (0, 1.03, 0), 0.172, 0.172, one('hips'), seg=20, rings=1, sx=1.1, sz=0.82)    # belt
-    dark.torus((0, 1.52, 0.0), 0.075, 0.026, (0, 1, 0), one('neck'), seg=22, sides=8)                       # collar
-    trim.tube((0.0, 1.43, 0.17), (0.0, 1.05, 0.15), 0.008, 0.008, torso_w, seg=6, rings=6)                  # front seam
-    return [cloth, trim, dark]
+        cl.tube(P(up), P(fo), 0.062, 0.054, bone(up, fo), seg=14, rings=6); cl.ellipsoid(P(fo), (0.056,)*3, between(up, fo))
+        cl.tube(P(fo), add(P(ha), (0, 0.025, 0)), 0.055, 0.047, bone(fo, ha), seg=14, rings=6)
+        tr.tube(add(P(ha), (0, 0.045, 0)), add(P(ha), (0, 0.032, 0)), 0.05, 0.05, bone(fo, ha, 0.2), seg=14, rings=1)          # cuff
+        cl.tube((H['hx']*m, hip + 0.02, 0), (H['hx']*m + 0.02*m, H['knee'] + 0.06, 0.015), 0.112, 0.095, hip_leg_blend(s), seg=16, rings=8)  # coat skirt
+        dk.ellipsoid(add(P(up), (0.0, 0.03, 0.0)), (0.09, 0.05, 0.085), between('clavicle_' + s, up), seg=12, ring=8)         # shoulder yoke
+    tr.tube((0, hip + 0.045, 0), (0, hip + 0.085, 0), 0.164, 0.164, one('hips'), seg=22, rings=1, sx=1.12, sz=0.82)           # belt
+    dk.torus((0, H['neck'] + 0.005, 0.0), 0.078, 0.028, (0, 1, 0), one('neck'), seg=22, sides=8)                              # raised collar
+    for m in (1, -1): dk.ellipsoid((0.045*m, ch + 0.16, 0.115), (0.04, 0.09, 0.012), torso_w, seg=10, ring=8)                 # lapels
+    for k in range(4): tr.ellipsoid((0.0, hip + 0.13 + k*0.075, 0.153), (0.012, 0.012, 0.007), torso_w, seg=8, ring=6)        # buttons
+    return [cl, tr, dk]
 
-def outfit_runner():
-    white = Prim('runner_white', double=True); orange = Prim('runner_orange'); dark = Prim('runner_dark')
-    white.tube((0, 1.06, 0), (0, 1.27, 0), 0.155, 0.172, torso_w, seg=20, rings=6, sx=1.1, sz=0.8)
-    white.ellipsoid((0, 1.38, -0.005), (0.2, 0.17, 0.128), torso_w, seg=20, ring=12)
-    orange.tube((0, 1.265, 0.0), (0, 1.30, 0.0), 0.186, 0.186, torso_w, seg=20, rings=1, sx=1.1, sz=0.8)     # chest band
+def human_field():
+    jk = Prim('h_field', double=True); org = Prim('h_field_orange'); sc = Prim('h_scarf', double=True); dk = Prim('h_coat_dark')
+    hip, ch = H['hip'], H['chest']
+    jk.tube((0, hip + 0.02, 0), (0, ch, 0), 0.15, 0.168, torso_w, seg=22, rings=6, sx=1.12, sz=0.82)
+    jk.ellipsoid((0, ch + 0.09, -0.005), (0.198, 0.165, 0.122), torso_w, seg=22, ring=14)
+    org.tube((0, hip + 0.02, 0), (0, hip + 0.045, 0), 0.157, 0.157, one('hips'), seg=22, rings=1, sx=1.12, sz=0.82)           # hem band
     for s, m in (('l', 1), ('r', -1)):
         up, fo, ha = 'upperarm_' + s, 'forearm_' + s, 'hand_' + s
-        dark.ellipsoid(add(P(up), (0.03*m, 0.045, 0.0)), (0.1, 0.07, 0.09), between('clavicle_' + s, up), seg=16, ring=10)   # pauldron
-        orange.ellipsoid(add(P(up), (0.05*m, 0.06, 0.0)), (0.07, 0.025, 0.07), between('clavicle_' + s, up), seg=14, ring=8)
-        white.tube(P(up), P(fo), 0.06, 0.05, bone(up, fo), seg=12, rings=6)
-        dark.tube(add(P(fo), mul(norm(sub(P(ha), P(fo))), 0.05)), add(P(ha), mul(norm(sub(P(fo), P(ha))), 0.04)), 0.052, 0.045, bone(fo, ha), seg=12, rings=4)
-        orange.tube(add(P(fo), mul(norm(sub(P(ha), P(fo))), 0.14)), add(P(fo), mul(norm(sub(P(ha), P(fo))), 0.165)), 0.054, 0.054, bone(fo, ha, 0.3), seg=14, rings=1)
-        th, sh, ft = 'thigh_' + s, 'shin_' + s, 'foot_' + s
-        white.tube(P(th), add(P(th), mul(sub(P(sh), P(th)), 0.8)), 0.085, 0.07, bone(th, sh), seg=14, rings=6)
-        dark.ellipsoid(add(P(sh), (0.0, 0.01, 0.055)), (0.06, 0.075, 0.05), between(th, sh), seg=14, ring=10)           # knee pad
-        dark.tube(add(P(sh), mul(sub(P(ft), P(sh)), 0.45)), P(ft), 0.06, 0.056, bone(sh, ft), seg=14, rings=4)
-        orange.ellipsoid((P(ft)[0], 0.05, 0.06), (0.054, 0.04, 0.12), one(ft), seg=14, ring=8)
-    orange.tube((0, 0.98, 0), (0, 1.02, 0), 0.16, 0.16, one('hips'), seg=20, rings=1, sx=1.1, sz=0.8)
-    return [white, orange, dark]
+        jk.tube(P(up), P(fo), 0.058, 0.05, bone(up, fo), seg=14, rings=6); jk.ellipsoid(P(fo), (0.052,)*3, between(up, fo))
+        jk.tube(P(fo), add(P(ha), (0, 0.04, 0)), 0.051, 0.043, bone(fo, ha), seg=14, rings=6)
+        org.ellipsoid(add(P(up), (0.0, 0.06, 0.0)), (0.07, 0.022, 0.07), between('clavicle_' + s, up), seg=12, ring=6)       # shoulder tab
+        dk.tube((H['hx']*m, H['knee'] + 0.1, 0.01), (H['hx']*m + 0.02*m, H['knee'] - 0.12, 0.015), 0.082, 0.074, bone('thigh_' + s, 'shin_' + s), seg=14, rings=4)   # knee guards
+    sc.torus((0, H['neck'] + 0.02, 0.0), 0.07, 0.035, (0, 1, 0), one('neck'), seg=22, sides=8)                                 # scarf ring
+    sc.tube((0.05, H['neck'] - 0.02, 0.07), (0.07, ch - 0.12, 0.14), 0.03, 0.026, torso_w, seg=10, rings=4)                    # hanging tail
+    dk.ellipsoid((0, ch + 0.06, -0.14), (0.1, 0.13, 0.05), torso_w, seg=14, ring=10)                                           # backpack
+    return [jk, org, sc, dk]
 
-def outfit_astral():
-    cloth = Prim('astral_cloth', double=True); gold = Prim('astral_gold'); glow = Prim('astral_glow')
-    cloth.tube((0, 1.00, 0), (0, 1.27, 0), 0.16, 0.18, torso_w, seg=22, rings=6, sx=1.1, sz=0.82)
-    cloth.ellipsoid((0, 1.38, -0.005), (0.205, 0.18, 0.13), torso_w, seg=20, ring=12)
+# ---------------------------------------------------------------- WIZARD
+def wizard_body():
+    pr = {k: Prim(k) for k in ('w_skin', 'w_tunic', 'w_beard', 'w_boot')}
+    hip, sp, ch, nk, hd = H['hip'], H['spine'], H['chest'], H['neck'], H['head']
+    pr['w_tunic'].ellipsoid((0, hip + 0.02, 0), (0.15, 0.11, 0.105), torso_w)
+    pr['w_tunic'].tube((0, hip + 0.05, 0), (0, ch, 0), 0.128, 0.145, torso_w, seg=20, rings=8, sx=1.1, sz=0.78)
+    pr['w_tunic'].ellipsoid((0, ch + 0.09, -0.005), (0.176, 0.15, 0.105), torso_w, seg=20, ring=12)
+    pr['w_skin'].tube((0, nk - 0.02, 0), (0, hd + 0.03, 0), 0.046, 0.043, between('neck', 'head'), seg=14, rings=3)
+    hc = (0, hd + 0.115, 0.004)
+    pr['w_skin'].ellipsoid(hc, (0.093, 0.116, 0.1), one('head'), seg=26, ring=20)
+    pr['w_skin'].ellipsoid((0, hc[1] - 0.07, 0.03), (0.07, 0.05, 0.068), one('head'), seg=14, ring=8)
+    pr['w_skin'].ellipsoid((0, hc[1] - 0.015, 0.1), (0.019, 0.034, 0.026), one('head'), seg=12, ring=8)              # larger nose
+    for m in (1, -1):
+        pr['w_skin'].ellipsoid((0.09*m, hc[1] - 0.012, 0.0), (0.011, 0.03, 0.02), one('head'), seg=10, ring=8)
+        pr['w_beard'].tube((0.012*m, hc[1] + 0.05, 0.096), (0.062*m, hc[1] + 0.066, 0.08), 0.011, 0.008, one('head'), seg=8, rings=2)   # bushy brows
+    # beard: mustache, then a long tapered fall over the chest
+    pr['w_beard'].ellipsoid((0, hc[1] - 0.05, 0.092), (0.048, 0.016, 0.02), one('head'), seg=14, ring=8)
+    pr['w_beard'].ellipsoid((0, hc[1] - 0.085, 0.07), (0.072, 0.06, 0.05), one('head'), seg=16, ring=10)
+    pr['w_beard'].tube((0, hc[1] - 0.09, 0.07), (0, nk - 0.28, 0.1), 0.07, 0.012, fixed(('head', 0.4), ('chest', 0.6)), seg=16, rings=8)
+    pr['w_beard'].ellipsoid((0, nk - 0.28, 0.1), (0.02, 0.025, 0.02), fixed(('chest', 1.0)), seg=8, ring=6)
+    # hair: swept back and long
+    pr['w_beard'].ellipsoid((0, hc[1] + 0.012, -0.012), (0.099, 0.12, 0.108), one('head'), seg=24, ring=16, th0=0.0, th1=1.05)
+    pr['w_beard'].tube((0, hc[1] + 0.02, -0.075), (0, nk - 0.2, -0.085), 0.09, 0.05, fixed(('head', 0.5), ('chest', 0.5)), seg=16, rings=8)
+    limbs(pr, 0.046, 0.036, 0.072, 0.054, 'w_tunic', 'w_tunic', lambda p, s, m: hand_human(p, s, m, 'w_skin'), lambda p, s, m: foot_shoe(p, s, m, 'w_boot', 0.14, 0.052, 0.05))
+    return list(pr.values())
+
+def wizard_eyes():
+    hy = 0.115 + 0.006; out = {}
     for s, m in (('l', 1), ('r', -1)):
-        cloth.tube((0.07*m, 1.0, 0), (0.12*m, 0.12, 0.0), 0.15, 0.22, hip_leg_blend(s), seg=16, rings=10)          # robe skirt, flaring
-        up, fo, ha = 'upperarm_' + s, 'forearm_' + s, 'hand_' + s
-        cloth.tube(P(up), P(fo), 0.07, 0.075, bone(up, fo), seg=12, rings=6)
-        cloth.tube(P(fo), add(P(ha), (0.07*m, -0.12, 0.0)), 0.078, 0.13, bone(fo, ha, 0.2), seg=14, rings=6)       # wide hanging sleeve
-        gold.tube(add(P(fo), (0.0, 0.0, 0.0)), add(P(fo), mul(norm(sub(P(ha), P(fo))), 0.03)), 0.078, 0.078, bone(fo, ha, 0.2), seg=14, rings=1)
-    # a cape that hangs behind the shoulders and follows the spine
-    cloth.box((0, 1.12, -0.17), (0.2, 0.38, 0.012), lambda p: [('chest', 0.6), ('spine', 0.4)] if p[1] > 1.1 else [('spine', 0.6), ('hips', 0.4)])
-    gold.torus((0, 1.52, 0.0), 0.095, 0.02, (0, 1, 0), one('neck'), seg=24, sides=8)                            # gorget
-    gold.tube((0, 1.0, 0), (0, 1.04, 0), 0.172, 0.172, one('hips'), seg=22, rings=1, sx=1.1, sz=0.82)
-    glow.torus((0, 1.80, -0.14), 0.16, 0.012, (0, 0.25, 1), one('head'), seg=40, sides=8)                        # halo behind the head
-    return [cloth, gold, glow]
+        w = Prim('h_eyewhite', skinned=False); i = Prim('w_eye', skinned=False); eye_node(w, i, 0, 0, 0, m, rw=(0.012, 0.0095, 0.009), ri=0.006)
+        out['eye_' + s] = ([w, i], (0.034*m, hy, 0.094))
+    return out
 
-# ---------------------------------------------------------------- props (parented to attach_hand_r, local space)
+def hat(cl_main, cl_trim, tall=0.5, brim=0.19, droop=0.0):
+    hd = H['head']; base = hd + 0.2
+    top = Prim(cl_main, double=True); trim = Prim(cl_trim)
+    top.tube((0, base + 0.01, 0), (0, base + tall * 0.55, -0.01), 0.108, 0.07, one('head'), seg=22, rings=6)
+    top.tube((0, base + tall * 0.55, -0.01), (0, base + tall * 0.98, -0.045 - droop), 0.07, 0.012, one('head'), seg=18, rings=6)
+    top.ellipsoid((0, base + tall * 0.99, -0.047 - droop), (0.017, 0.017, 0.017), one('head'), seg=8, ring=6)
+    top.tube((0, base - 0.075, 0), (0, base + 0.012, 0), brim, 0.11, one('head'), seg=28, rings=3)                             # brim
+    trim.tube((0, base - 0.012, 0), (0, base + 0.042, 0), 0.11, 0.106, one('head'), seg=24, rings=1)                          # band
+    return [top, trim]
+
+def wizard_archmage():
+    rb = Prim('w_robe', double=True); r2 = Prim('w_robe2', double=True); gd = Prim('w_gold')
+    hip, ch, nk = H['hip'], H['chest'], H['neck']
+    rb.tube((0, hip + 0.04, 0), (0, ch, 0), 0.16, 0.18, torso_w, seg=24, rings=8, sx=1.1, sz=0.82)
+    rb.ellipsoid((0, ch + 0.09, -0.005), (0.205, 0.17, 0.13), torso_w, seg=22, ring=14)
+    for s, m in (('l', 1), ('r', -1)):
+        up, fo, ha = 'upperarm_' + s, 'forearm_' + s, 'hand_' + s
+        rb.tube((H['hx']*m*0.8, hip + 0.04, 0), (0.12*m, 0.06, 0.01), 0.16, 0.27, hip_leg_blend(s), seg=18, rings=12)       # flared skirt
+        r2.tube((H['hx']*m*0.8, hip - 0.35, 0), (0.12*m, 0.06, 0.012), 0.2, 0.285, hip_leg_blend(s), seg=18, rings=8)         # layered under-skirt
+        gd.tube((0.12*m, 0.075, 0.012), (0.12*m, 0.045, 0.012), 0.285, 0.29, hip_leg_blend(s), seg=24, rings=1)               # hem
+        rb.tube(P(up), P(fo), 0.07, 0.078, bone(up, fo), seg=14, rings=6)
+        r2.tube(P(fo), add(P(ha), (0.09*m, -0.14, 0)), 0.082, 0.15, bone(fo, ha, 0.25), seg=16, rings=8)                    # wide hanging sleeve
+        gd.tube(add(P(fo), (0, 0, 0)), add(P(fo), mul(norm(sub(P(ha), P(fo))), 0.03)), 0.084, 0.084, bone(fo, ha, 0.2), seg=16, rings=1)
+        gd.ellipsoid(add(P(up), (0.03*m, 0.045, 0)), (0.095, 0.05, 0.09), between('clavicle_' + s, up), seg=14, ring=8)       # mantle plates
+    rb.box((0, hip + 0.3, -0.19), (0.19, 0.46, 0.012), lambda p: [('chest', 0.6), ('spine', 0.4)] if p[1] > hip + 0.2 else [('spine', 0.6), ('hips', 0.4)])  # cape
+    gd.tube((0, hip + 0.045, 0), (0, hip + 0.085, 0), 0.172, 0.172, one('hips'), seg=24, rings=1, sx=1.1, sz=0.82)            # sash
+    gd.torus((0, nk + 0.005, 0), 0.095, 0.02, (0, 1, 0), one('neck'), seg=24, sides=8)                                       # gorget
+    return [rb, r2, gd] + hat('w_robe', 'w_gold', 0.52, 0.2)
+
+def wizard_apprentice():
+    rb = Prim('w_green', double=True); br = Prim('w_brown', double=True); gd = Prim('w_gold')
+    hip, ch, nk = H['hip'], H['chest'], H['neck']
+    rb.tube((0, hip + 0.04, 0), (0, ch, 0), 0.152, 0.172, torso_w, seg=22, rings=8, sx=1.1, sz=0.8)
+    rb.ellipsoid((0, ch + 0.09, -0.005), (0.198, 0.165, 0.126), torso_w, seg=20, ring=12)
+    for s, m in (('l', 1), ('r', -1)):
+        up, fo, ha = 'upperarm_' + s, 'forearm_' + s, 'hand_' + s
+        rb.tube((H['hx']*m*0.8, hip + 0.04, 0), (0.12*m, H['knee'] - 0.02, 0.01), 0.15, 0.2, hip_leg_blend(s), seg=16, rings=8)
+        rb.tube(P(up), P(fo), 0.062, 0.058, bone(up, fo), seg=12, rings=6)
+        rb.tube(P(fo), add(P(ha), (0, 0.04, 0)), 0.06, 0.064, bone(fo, ha), seg=12, rings=6)
+    br.tube((0, hip + 0.05, 0), (0, hip + 0.1, 0), 0.165, 0.165, one('hips'), seg=22, rings=1, sx=1.1, sz=0.8)                 # leather belt
+    gd.ellipsoid((0, hip + 0.075, 0.15), (0.028, 0.026, 0.012), one('hips'), seg=10, ring=6)                                  # buckle
+    br.ellipsoid((0.15, hip + 0.02, 0.06), (0.05, 0.07, 0.04), one('hips'), seg=12, ring=8)                                   # pouch
+    br.torus((0, nk + 0.01, 0), 0.09, 0.032, (0, 1, 0), one('neck'), seg=22, sides=8)                                         # cowl
+    return [rb, br, gd] + hat('w_brown', 'w_green', 0.4, 0.17, droop=0.07)
+
+# ---------------------------------------------------------------- ROBOT
+def robot_body():
+    fr = Prim('r_frame'); jt = Prim('r_joint'); vs = Prim('r_visor'); gl = Prim('r_glow'); cb = Prim('r_cable')
+    hip, sp, ch, nk, hd = H['hip'], H['spine'], H['chest'], H['neck'], H['head']
+    fr.ellipsoid((0, hip + 0.02, 0), (0.17, 0.1, 0.115), torso_w)
+    fr.tube((0, hip + 0.05, 0), (0, ch, 0), 0.1, 0.12, torso_w, seg=16, rings=6, sx=1.0, sz=0.8)                                # spine column
+    for k in range(5): jt.torus((0, hip + 0.1 + k*0.05, 0), 0.105 + 0.004*k, 0.012, (0, 1, 0), torso_w, seg=20, sides=6)      # ribs
+    fr.ellipsoid((0, ch + 0.1, -0.005), (0.215, 0.17, 0.13), torso_w, seg=20, ring=14)
+    gl.ellipsoid((0, ch + 0.07, 0.123), (0.04, 0.04, 0.02), one('chest'), seg=14, ring=8)                                      # core light
+    jt.torus((0, ch + 0.07, 0.115), 0.052, 0.01, (0, 0, 1), one('chest'), seg=22, sides=6)
+    jt.tube((0, nk - 0.03, 0), (0, hd + 0.04, 0), 0.05, 0.045, between('neck', 'head'), seg=12, rings=3)
+    for m in (1, -1): cb.tube((0.03*m, nk - 0.02, -0.03), (0.07*m, ch + 0.02, -0.06), 0.008, 0.008, torso_w, seg=6, rings=4)
+    hc = (0, hd + 0.115, 0.0)
+    fr.ellipsoid(hc, (0.105, 0.12, 0.115), one('head'), seg=26, ring=20)                                                         # helmet
+    vs.ellipsoid((0, hc[1] + 0.005, 0.045), (0.088, 0.058, 0.082), one('head'), seg=20, ring=12)                                # faceplate
+    gl.ellipsoid((0, hc[1] + 0.003, 0.118), (0.062, 0.011, 0.01), one('head'), seg=14, ring=8)                                  # visor light bar
+    for m in (1, -1):
+        jt.tube((0.104*m, hc[1], 0.0), (0.128*m, hc[1], 0.0), 0.042, 0.042, one('head'), seg=18, rings=1, caps=True)          # ear modules
+        gl.torus((0.128*m, hc[1], 0.0), 0.028, 0.005, (1, 0, 0), one('head'), seg=18, sides=6)
+    fr.tube((0, hc[1] + 0.1, -0.02), (0, hc[1] + 0.145, -0.07), 0.02, 0.012, one('head'), seg=10, rings=3)                    # crest
+    def hand(prims, s, m):
+        ha = 'hand_' + s; c = P(ha)
+        jt.ellipsoid((c[0], c[1] - 0.04, c[2] + 0.01), (0.04, 0.05, 0.035), one(ha), seg=12, ring=8)
+        for dx in (-0.02, 0.0, 0.02): fr.tube((c[0] + dx, c[1] - 0.08, c[2] + 0.015), (c[0] + dx, c[1] - 0.14, c[2] + 0.03), 0.009, 0.006, one(ha), seg=8, rings=2)
+        fr.tube((c[0] + 0.035*m, c[1] - 0.03, c[2] + 0.02), (c[0] + 0.055*m, c[1] - 0.08, c[2] + 0.04), 0.009, 0.007, one(ha), seg=8, rings=2)
+    def foot(prims, s, m):
+        ft = 'foot_' + s; c = P(ft)
+        fr.ellipsoid((c[0], 0.05, 0.055), (0.06, 0.05, 0.15), one(ft), seg=14, ring=10)
+        jt.ellipsoid((c[0], 0.085, 0.0), (0.05, 0.035, 0.05), one(ft), seg=10, ring=6)
+    pr = {'r_frame': fr, 'r_joint': jt}
+    limbs(pr, 0.058, 0.046, 0.085, 0.062, 'r_frame', 'r_frame', hand, foot, joint_r=1.15, joint_mat='r_joint')
+    for s in ('l', 'r'):                                                                                                       # piston rods beside the limbs
+        for a, b in (('upperarm_' + s, 'forearm_' + s), ('thigh_' + s, 'shin_' + s)):
+            pa, pb = P(a), P(b); off = (0.0, 0.0, -0.05)
+            cb.tube(add(pa, off), add(pb, off), 0.01, 0.01, bone(a, b), seg=8, rings=4)
+    return [fr, jt, vs, gl, cb]
+
+def robot_eyes():
+    out = {}                                                                          # the visor bar is the "eyes"; two small lamps that blink
+    for s, m in (('l', 1), ('r', -1)):
+        e = Prim('r_glow', skinned=False); e.ellipsoid((0, 0, 0), (0.022, 0.011, 0.008), lambda p: [], seg=10, ring=6)
+        out['eye_' + s] = ([e], (0.034*m, 0.122, 0.126))
+    return out
+
+def robot_plated():
+    pl = Prim('r_plate'); og = Prim('r_plate_orange'); dk = Prim('r_plate_dark'); hip, ch, nk = H['hip'], H['chest'], H['neck']
+    pl.ellipsoid((0, ch + 0.11, 0.03), (0.215, 0.15, 0.115), torso_w, seg=22, ring=12, th0=0.0, th1=0.98)                      # chest shell
+    pl.ellipsoid((0, ch + 0.11, 0.04), (0.19, 0.12, 0.11), torso_w, seg=20, ring=10)
+    og.ellipsoid((0, ch + 0.0, 0.12), (0.11, 0.022, 0.05), torso_w, seg=14, ring=6)
+    dk.tube((0, hip + 0.03, 0), (0, hip + 0.1, 0), 0.178, 0.178, one('hips'), seg=22, rings=1, sx=1.05, sz=0.82)
+    pl.ellipsoid((0, hip + 0.07, 0.0), (0.185, 0.05, 0.14), one('hips'), seg=20, ring=8)
+    for s, m in (('l', 1), ('r', -1)):
+        up, fo, ha, th, sh = 'upperarm_' + s, 'forearm_' + s, 'hand_' + s, 'thigh_' + s, 'shin_' + s
+        pl.ellipsoid(add(P(up), (0.04*m, 0.05, 0)), (0.13, 0.085, 0.12), between('clavicle_' + s, up), seg=18, ring=10)         # pauldron
+        og.ellipsoid(add(P(up), (0.05*m, 0.085, 0)), (0.09, 0.02, 0.09), between('clavicle_' + s, up), seg=14, ring=6)
+        pl.tube(add(P(up), mul(sub(P(fo), P(up)), 0.35)), add(P(up), mul(sub(P(fo), P(up)), 0.8)), 0.068, 0.06, bone(up, fo), seg=14, rings=3)
+        pl.tube(add(P(fo), mul(sub(P(ha), P(fo)), 0.15)), add(P(fo), mul(sub(P(ha), P(fo)), 0.85)), 0.058, 0.05, bone(fo, ha), seg=14, rings=3)
+        og.tube(add(P(fo), mul(sub(P(ha), P(fo)), 0.12)), add(P(fo), mul(sub(P(ha), P(fo)), 0.17)), 0.06, 0.06, bone(fo, ha, 0.3), seg=14, rings=1)
+        pl.tube(add(P(th), mul(sub(P(sh), P(th)), 0.18)), add(P(th), mul(sub(P(sh), P(th)), 0.82)), 0.095, 0.078, bone(th, sh), seg=16, rings=4)
+        dk.ellipsoid(add(P(sh), (0.0, 0.01, 0.07)), (0.07, 0.085, 0.06), between(th, sh), seg=14, ring=10)                      # knee armour
+        pl.tube(add(P(sh), mul(sub(P('foot_' + s), P(sh)), 0.3)), add(P(sh), mul(sub(P('foot_' + s), P(sh)), 0.9)), 0.075, 0.062, bone(sh, 'foot_' + s), seg=14, rings=3)
+    pl.ellipsoid((0, H['head'] + 0.115, 0.0), (0.112, 0.128, 0.122), one('head'), seg=24, ring=14, th0=0.0, th1=0.7)               # helmet armour
+    og.tube((0, H['head'] + 0.2, -0.04), (0, H['head'] + 0.245, -0.09), 0.026, 0.014, one('head'), seg=10, rings=3)
+    return [pl, og, dk]
+
+def robot_stealth():
+    sh = Prim('r_stealth'); ln = Prim('r_line'); hip, ch, nk = H['hip'], H['chest'], H['neck']
+    sh.tube((0, hip + 0.05, 0), (0, ch, 0), 0.138, 0.158, torso_w, seg=22, rings=6, sx=1.05, sz=0.82)
+    sh.ellipsoid((0, ch + 0.11, 0.0), (0.222, 0.17, 0.132), torso_w, seg=22, ring=14)
+    ln.tube((0.0, ch + 0.2, 0.128), (0.0, hip + 0.1, 0.12), 0.006, 0.006, torso_w, seg=6, rings=8)
+    for m in (1, -1): ln.tube((0.08*m, ch + 0.17, 0.12), (0.06*m, hip + 0.12, 0.115), 0.005, 0.005, torso_w, seg=6, rings=8)
+    for s, m in (('l', 1), ('r', -1)):
+        up, fo, ha, th, sk_ = 'upperarm_' + s, 'forearm_' + s, 'hand_' + s, 'thigh_' + s, 'shin_' + s
+        sh.tube(P(up), P(fo), 0.07, 0.063, bone(up, fo), seg=14, rings=5); sh.tube(P(fo), add(P(ha), (0, 0.03, 0)), 0.062, 0.054, bone(fo, ha), seg=14, rings=5)
+        ln.tube(add(P(up), (0.0, -0.03, 0.065)), add(P(fo), (0.0, 0.03, 0.058)), 0.004, 0.004, bone(up, fo), seg=6, rings=6)
+        sh.tube((H['hx']*m, hip - 0.02, 0), (H['hx']*m + 0.02*m, H['knee'] - 0.02, 0.015), 0.098, 0.08, hip_leg_blend(s), seg=16, rings=6)
+        ln.tube(add(P(th), (0.0, -0.05, 0.095)), add(P(sk_), (0.0, 0.05, 0.075)), 0.004, 0.004, bone(th, sk_), seg=6, rings=6)
+        sh.ellipsoid(add(P(up), (0.03*m, 0.04, 0)), (0.11, 0.07, 0.1), between('clavicle_' + s, up), seg=16, ring=10)
+    sh.ellipsoid((0, H['head'] + 0.115, 0.0), (0.11, 0.126, 0.12), one('head'), seg=22, ring=12, th0=0.0, th1=0.62)
+    ln.tube((0, H['head'] + 0.24, -0.02), (0, H['head'] + 0.24, -0.1), 0.006, 0.006, one('head'), seg=6, rings=2)
+    return [sh, ln]
+
+# ---------------------------------------------------------------- props and the hidden accessory
 def prop_lantern():
     glass = Prim('lantern_glass', skinned=False); metal = Prim('prop_metal', skinned=False)
-    nowt = lambda p: []
-    glass.tube((0, -0.19, 0), (0, -0.07, 0), 0.052, 0.06, nowt, seg=16, rings=3, caps=True)
-    metal.tube((0, -0.21, 0), (0, -0.19, 0), 0.05, 0.052, nowt, seg=16, rings=1, caps=True)
-    metal.tube((0, -0.07, 0), (0, -0.045, 0), 0.065, 0.02, nowt, seg=16, rings=2, caps=True)
-    metal.torus((0, -0.02, 0), 0.022, 0.006, (0, 0, 1), nowt, seg=16, sides=6)
+    glass.tube((0, -0.19, 0), (0, -0.07, 0), 0.052, 0.06, T0, seg=16, rings=3, caps=True)
+    metal.tube((0, -0.21, 0), (0, -0.19, 0), 0.05, 0.052, T0, seg=16, rings=1, caps=True)
+    metal.tube((0, -0.07, 0), (0, -0.045, 0), 0.065, 0.02, T0, seg=16, rings=2, caps=True)
+    metal.torus((0, -0.02, 0), 0.022, 0.006, (0, 0, 1), T0, seg=16, sides=6)
     return [glass, metal]
 
 def prop_tablet():
     body = Prim('tablet_body', skinned=False); screen = Prim('tablet_screen', skinned=False)
-    nowt = lambda p: []
-    body.box((0, 0.02, 0.0), (0.095, 0.135, 0.008), nowt)
-    screen.box((0, 0.02, 0.0085), (0.083, 0.122, 0.001), nowt)
+    body.box((0, 0.02, 0.0), (0.095, 0.135, 0.008), T0); screen.box((0, 0.02, 0.0085), (0.083, 0.122, 0.001), T0)
     return [body, screen]
 
 def prop_compass():
     core = Prim('compass_core', skinned=False); metal = Prim('prop_metal', skinned=False)
-    nowt = lambda p: []
-    core.ellipsoid((0, 0.045, 0.0), (0.035, 0.035, 0.035), nowt, seg=16, ring=10)
-    metal.torus((0, 0.045, 0.0), 0.062, 0.006, (0, 1, 0), nowt, seg=28, sides=6)
-    metal.torus((0, 0.045, 0.0), 0.062, 0.006, (1, 0, 0), nowt, seg=28, sides=6)
-    metal.torus((0, 0.045, 0.0), 0.062, 0.006, (0.7, 0, 0.7), nowt, seg=28, sides=6)
+    core.ellipsoid((0, 0.045, 0.0), (0.035, 0.035, 0.035), T0, seg=16, ring=10)
+    for ax in ((0, 1, 0), (1, 0, 0), (0.7, 0, 0.7)): metal.torus((0, 0.045, 0.0), 0.062, 0.006, ax, T0, seg=28, sides=6)
     return [core, metal]
+
+def prop_staff():
+    wood = Prim('w_wood', skinned=False); gold = Prim('w_gold', skinned=False); cr = Prim('w_crystal', skinned=False)
+    wood.tube((0, -0.78, 0), (0, 0.62, 0), 0.017, 0.022, T0, seg=12, rings=8)
+    gold.tube((0, -0.8, 0), (0, -0.76, 0), 0.02, 0.019, T0, seg=12, rings=1, caps=True)
+    for a in (0.0, 2.09, 4.19): gold.tube((0.03*math.cos(a), 0.6, 0.03*math.sin(a)), (0.055*math.cos(a), 0.74, 0.055*math.sin(a)), 0.007, 0.005, T0, seg=6, rings=3)   # claws
+    gold.torus((0, 0.62, 0), 0.03, 0.007, (0, 1, 0), T0, seg=18, sides=6)
+    cr.ellipsoid((0, 0.7, 0), (0.035, 0.05, 0.035), T0, seg=14, ring=10)
+    return [wood, gold, cr]
+
+def accessory_star(front_z, y):
+    """The hidden pendant: two interlaced triangles on a chain, built in chest-local space."""
+    gold = Prim('star_gold', skinned=False)
+    R = 0.046; cz = front_z
+    def v(a): return (R * math.cos(a), y + R * math.sin(a), cz)
+    for base in (math.pi / 2, -math.pi / 2):
+        pts = [v(base + k * 2 * math.pi / 3) for k in range(3)]
+        for k in range(3): gold.tube(pts[k], pts[(k + 1) % 3], 0.0034, 0.0034, T0, seg=8, rings=1)
+        for p in pts: gold.ellipsoid(p, (0.0048,) * 3, T0, seg=8, ring=6)
+    gold.torus((0, y + R + 0.012, cz), 0.008, 0.0026, (0, 0, 1), T0, seg=12, sides=6)
+    for m in (1, -1): gold.tube((0.0, y + R + 0.02, cz), (0.07 * m, y + R + 0.2, cz - 0.045), 0.0018, 0.0018, T0, seg=6, rings=6)
+    return [gold]
+
+# ---------------------------------------------------------------- character specs
+CHARACTERS = {
+    'human': dict(rig=dict(hip=0.93, spine=1.06, chest=1.25, neck=1.47, head=1.57, sh_y=1.42, sx=0.185, cl=0.09, ua=0.29, fa=0.26, a1=0.28, a2=0.18, hx=0.09, knee=0.50, ankle=0.08),
+                  body=human_body, eyes=human_eyes, outfits={'city': human_coat, 'field': human_field},
+                  props=['lantern', 'tablet', 'compass'], front=0.14, hand=(0.0, -0.045, 0.04)),
+    'wizard': dict(rig=dict(hip=0.95, spine=1.08, chest=1.28, neck=1.50, head=1.60, sh_y=1.45, sx=0.19, cl=0.09, ua=0.29, fa=0.27, a1=0.3, a2=0.2, hx=0.09, knee=0.51, ankle=0.08),
+                   body=wizard_body, eyes=wizard_eyes, outfits={'archmage': wizard_archmage, 'apprentice': wizard_apprentice},
+                   props=['staff', 'lantern', 'compass'], front=0.16, hand=(0.0, -0.045, 0.04)),
+    'robot': dict(rig=dict(hip=0.98, spine=1.12, chest=1.33, neck=1.58, head=1.68, sh_y=1.52, sx=0.27, cl=0.11, ua=0.31, fa=0.29, a1=0.3, a2=0.2, hx=0.12, knee=0.52, ankle=0.10),
+                  body=robot_body, eyes=robot_eyes, outfits={'plated': robot_plated, 'stealth': robot_stealth},
+                  props=['tablet', 'compass', 'lantern'], front=0.19, hand=(0.0, -0.06, 0.05)),
+}
+PROPS = {'lantern': prop_lantern, 'tablet': prop_tablet, 'compass': prop_compass, 'staff': prop_staff}
+
 
 # ---------------------------------------------------------------- glTF writer
 class Writer:
@@ -379,47 +574,34 @@ class Writer:
             out.append(dict(attributes=attrs, indices=ia, material=mt, mode=4))
         self.meshes.append(dict(name=name, primitives=out)); return len(self.meshes) - 1
 
-def build():
-    w = Writer()
-    nodes = []
-    # joint nodes: local translation = world - parent world
-    node_of = {}
+
+# ---------------------------------------------------------------- build one character into a GLB
+def build_character(cid):
+    spec = CHARACTERS[cid]; use_rig(spec['rig'])
+    w = Writer(); nodes = []; node_of = {}
     for n in ORDER:
-        parent, pos = J[n]
-        loc = pos if parent is None else sub(pos, P(parent))
+        parent, pos = J[n]; loc = pos if parent is None else sub(pos, P(parent))
         node_of[n] = len(nodes); nodes.append(dict(name=n, translation=[round(c, 6) for c in loc]))
     for n in ORDER:
         parent = J[n][0]
         if parent: nodes[node_of[parent]].setdefault('children', []).append(node_of[n])
-    # attachment points and eyes
     def add_node(parent, **kw):
-        nodes.append(kw); i = len(nodes) - 1
-        nodes[parent].setdefault('children', []).append(i); return i
-    attach_r = add_node(node_of['hand_r'], name='attach_hand_r', translation=[0.0, -0.045, 0.045], rotation=[0.0, 0.0, 0.0, 1.0])
-    add_node(node_of['hand_l'], name='attach_hand_l', translation=[0.0, -0.045, 0.045])
-    head_pos = P('head')
-    eyes = build_eyes()
-    for k, e in eyes.items():
-        mi = w.mesh(k, [e]); add_node(node_of['head'], name=k, mesh=mi)
-        # the eye geometry was built in world space for convenience; shift it into head-local space
-        nodes[-1]['translation'] = [0.0, 0.0, 0.0]
-    # (eye vertices are already authored head-local in build_eyes, so no extra offset is needed)
-
-    # skin
+        nodes.append(kw); i = len(nodes) - 1; nodes[parent].setdefault('children', []).append(i); return i
+    attach_r = add_node(node_of['hand_r'], name='attach_hand_r', translation=list(spec['hand']))
+    add_node(node_of['hand_l'], name='attach_hand_l', translation=list(spec['hand']))
+    for k, (prims, pos) in spec['eyes']().items():
+        mi = w.mesh(k, prims); add_node(node_of['head'], name=k, mesh=mi, translation=[round(c, 5) for c in pos])
     ibm = b''.join(struct.pack('<16f', 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, -P(n)[0], -P(n)[1], -P(n)[2], 1) for n in ORDER)
-    ibm_acc = w._accessor(ibm, 5126, len(ORDER), 'MAT4')
-    skin = dict(name='warden_skin', inverseBindMatrices=ibm_acc, joints=[node_of[n] for n in ORDER], skeleton=node_of['root'])
-
+    skin = dict(name=cid + '_skin', inverseBindMatrices=w._accessor(ibm, 5126, len(ORDER), 'MAT4'), joints=[node_of[n] for n in ORDER], skeleton=node_of['root'])
     scene_nodes = [node_of['root']]
     def skinned(name, prims):
         mi = w.mesh(name, prims); nodes.append(dict(name=name, mesh=mi, skin=0)); scene_nodes.append(len(nodes) - 1)
-    skinned('body', build_body())
-    skinned('outfit_courier', outfit_courier())
-    skinned('outfit_runner', outfit_runner())
-    skinned('outfit_astral', outfit_astral())
-    for name, fn in (('prop_lantern', prop_lantern), ('prop_tablet', prop_tablet), ('prop_compass', prop_compass)):
-        mi = w.mesh(name, fn()); add_node(attach_r, name=name, mesh=mi)
-
+    skinned('body', spec['body']())
+    for oid, fn in spec['outfits'].items(): skinned('outfit_' + oid, fn())
+    for pid in spec['props']:
+        mi = w.mesh('prop_' + pid, PROPS[pid]()); add_node(attach_r, name='prop_' + pid, mesh=mi)
+    star = accessory_star(spec['front'], -0.07)
+    mi = w.mesh('acc_star', star); add_node(node_of['chest'], name='acc_star', mesh=mi)
     gltf = dict(asset=dict(version='2.0', generator='haven gen_character.py', copyright='Original work for Haven, MIT licence'),
                 scene=0, scenes=[dict(nodes=scene_nodes)], nodes=nodes, skins=[skin], meshes=w.meshes, materials=w.materials,
                 accessors=w.acc, bufferViews=w.views, buffers=[dict(byteLength=len(w.bin))])
@@ -427,13 +609,11 @@ def build():
     while len(js) % 4: js += b' '
     bn = bytes(w.bin)
     while len(bn) % 4: bn += b'\0'
-    glb = struct.pack('<4sII', b'glTF', 2, 12 + 8 + len(js) + 8 + len(bn)) + struct.pack('<I4s', len(js), b'JSON') + js + struct.pack('<I4s', len(bn), b'BIN\0') + bn
-    return glb, gltf
+    return struct.pack('<4sII', b'glTF', 2, 12 + 8 + len(js) + 8 + len(bn)) + struct.pack('<I4s', len(js), b'JSON') + js + struct.pack('<I4s', len(bn), b'BIN\0') + bn
 
 if __name__ == '__main__':
-    glb, gltf = build()
-    out = os.path.join(os.path.dirname(__file__), '..', '..', 'app', 'src', 'main', 'assets', 'character', 'warden.glb')
-    out = os.path.abspath(out); os.makedirs(os.path.dirname(out), exist_ok=True)
-    open(out, 'wb').write(glb)
-    tris = sum(len(a) for a in [])  # placeholder to keep the summary simple
-    print('wrote', out, len(glb) // 1024, 'KiB;', len(gltf['nodes']), 'nodes,', len(gltf['meshes']), 'meshes,', len(gltf['materials']), 'materials')
+    out = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'app', 'src', 'main', 'assets', 'character'))
+    os.makedirs(out, exist_ok=True)
+    for cid in CHARACTERS:
+        glb = build_character(cid); open(os.path.join(out, cid + '.glb'), 'wb').write(glb)
+        print(cid, len(glb) // 1024, 'KiB')

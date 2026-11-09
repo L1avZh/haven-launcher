@@ -1,5 +1,6 @@
 ## 1.6
 
+- Three characters (Human, Wizard, Robot) with their own outfits and props, a hidden accessory, themed reactions to music and video apps, a centered waiting pose with a localized "Browsing …" label when nothing is selected, and Settings polished with the home screen's tokens (selected states, header icon, fade transition).
 - New home composition: a rigged 3D character ("the Warden") on the start side, the stage in the middle and the app rail at the end. Character Studio for outfits and props, input-driven reactions, saved locally. Adds Filament (about +10 MB, native libraries for armeabi-v7a and arm64-v8a).
 - "Haven Aurora" visual pass: obsidian ground with cyan/violet aurora light that blends with the focused app's accent, glass tabs and capsule focus on the rail, a lit artwork card with a soft halo, restyled settings and menus, press feedback on OK, and a slide-in when the scope changes.
 - Fast D-pad bursts on the app rail now land exactly where expected, and a crash when focus reached a scope tab mid-scroll is fixed.

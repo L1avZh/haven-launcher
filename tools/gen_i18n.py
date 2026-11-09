@@ -37,7 +37,7 @@ KEYS_F = 'recent no_recent'.split()
 dataF = F1.Ff
 KEYS_G = 'cat_widgets d_widgets widgets_home widgets_saver w_greeting w_day w_year w_moon w_storage w_memory w_uptime greet_morning greet_afternoon greet_evening greet_night screensaver screensaver_d minutes_fmt w_weather weather_city weather_city_d weather_unit weather_unset weather_pick celsius fahrenheit wx_clear wx_partly wx_cloudy wx_fog wx_rain wx_snow wx_storm priv_net_weather priv_perm_internet'.split()
 dataG = {**G1m.G1, **G2m.G2, **G3m.G3}
-KEYS_H = 'cat_character d_character show_character show_character_d character_studio studio_outfit studio_prop outfit_courier outfit_runner outfit_astral prop_lantern prop_tablet prop_compass prop_none studio_apply'.split()
+KEYS_H = 'cat_character d_character show_character show_character_d character_studio studio_character studio_outfit studio_prop studio_accessory char_human char_wizard char_robot outfit_city outfit_field outfit_archmage outfit_apprentice outfit_plated outfit_stealth prop_lantern prop_tablet prop_compass prop_staff prop_none acc_star acc_locked star_unlocked studio_apply browsing_scope state_waiting'.split()
 dataH = {**H1m.H1, **H2m.H2, **H3m.H3}
 data = {**A.D, **B.D}; plurals = {**A.P, **B.P}
 

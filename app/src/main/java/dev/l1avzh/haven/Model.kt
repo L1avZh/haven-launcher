@@ -5,7 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 
-data class AppEntry(val component: ComponentName, val label: String, val installed: Long = 0L) {
+data class AppEntry(val component: ComponentName, val label: String, val installed: Long = 0L, val kind: AppKind = AppKind.OTHER) {
     val key: String get() = component.flattenToShortString()
     val pkg: String get() = component.packageName
     /** A shortcut tile that is not an installed app (the AdGuard "get it" entry). */
@@ -144,13 +144,34 @@ class Prefs(ctx: Context) {
         get() = sp.getBoolean("char_enabled", true)
         set(v) { sp.edit().putBoolean("char_enabled", v).apply() }
 
+    var characterId: String
+        get() = Look.character(sp.getString("char_id", null))
+        set(v) { sp.edit().putString("char_id", Look.character(v)).apply() }
+
     var characterOutfit: String
-        get() = Look.outfit(sp.getString("char_outfit", null))
-        set(v) { sp.edit().putString("char_outfit", Look.outfit(v)).apply() }
+        get() = Look.outfit(characterId, sp.getString("char_outfit", null))
+        set(v) { sp.edit().putString("char_outfit", Look.outfit(characterId, v)).apply() }
 
     var characterProp: String
-        get() = Look.prop(sp.getString("char_prop", null))
-        set(v) { sp.edit().putString("char_prop", Look.prop(v)).apply() }
+        get() = Look.prop(characterId, sp.getString("char_prop", null))
+        set(v) { sp.edit().putString("char_prop", Look.prop(characterId, v)).apply() }
+
+    /** The hidden pendant: unlocked once by the secret in About, then worn or not from the Character Studio. */
+    var starUnlocked: Boolean
+        get() = sp.getBoolean("star_unlocked", false)
+        set(v) { sp.edit().putBoolean("star_unlocked", v).apply() }
+
+    var starWorn: Boolean
+        get() = sp.getBoolean("star_worn", false)
+        set(v) { sp.edit().putBoolean("star_worn", v).apply() }
+
+    fun look() = LookState.of(characterId, sp.getString("char_outfit", null), sp.getString("char_prop", null), starWorn, starUnlocked)
+
+    /** Saves a whole look in one go; the outfit and prop are validated against the chosen character. */
+    fun saveLook(l: LookState) {
+        sp.edit().putString("char_id", Look.character(l.character)).putString("char_outfit", Look.outfit(l.character, l.outfit))
+            .putString("char_prop", Look.prop(l.character, l.prop)).putBoolean("star_worn", l.star && starUnlocked).apply()
+    }
 
     var showSystemApps: Boolean
         get() = sp.getBoolean("show_system_apps", true)
@@ -196,7 +217,9 @@ object AppRepo {
         }
         val list = (tv + phone).filter { showSystem || !isSystem(it) }.map {
             val t0 = try { pm.getPackageInfo(it.activityInfo.packageName, 0).firstInstallTime } catch (_: Exception) { 0L }
-            AppEntry(ComponentName(it.activityInfo.packageName, it.activityInfo.name), it.loadLabel(pm).toString(), t0)
+            val label = it.loadLabel(pm).toString()
+            val cat = if (android.os.Build.VERSION.SDK_INT >= 26) it.activityInfo.applicationInfo.category else -1
+            AppEntry(ComponentName(it.activityInfo.packageName, it.activityInfo.name), label, t0, AppKinds.classify(it.activityInfo.packageName, label, cat))
         }.distinctBy { it.key }
         return if (sort == 1) list.sortedByDescending { it.installed } else list.sortedBy { it.label.lowercase() }
     }

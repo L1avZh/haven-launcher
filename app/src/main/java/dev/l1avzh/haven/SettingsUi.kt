@@ -31,6 +31,11 @@ class Choice(
 ) : Item()
 class Action(override val title: String, override val desc: String?, val value: (() -> String?)? = null, val run: () -> Unit) : Item()
 class Info(override val title: String, override val desc: String?, val value: String? = null) : Item()
+/**
+ * A row that looks like an Info row but counts deliberate OK presses: [taps] of them, each at least a moment apart and
+ * all within a short window, so neither a held key nor ordinary browsing can trigger it. [onReveal] runs once.
+ */
+class TapRow(override val title: String, val value: String, val taps: Int, val done: () -> Boolean, val unlockedText: String, val onReveal: () -> Unit) : Item()
 /** The quiet Easter-egg entry: a faint mark with a hint. Three OK presses in a row reveal the signature. */
 class Secret(override val title: String, val onReveal: () -> Unit) : Item()
 
@@ -87,6 +92,7 @@ class SettingsScreen(
     private val main = Handler(Looper.getMainLooper())
     private val catViews = mutableListOf<View>()
     private val panelTitle = TextView(act); private val panelDesc = TextView(act)
+    private val panelIcon = ImageView(act).apply { importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }
     private val rows = LinearLayout(act).apply { orientation = LinearLayout.VERTICAL }
     private val panelScroll = ScrollView(act)
     private var selected = startAt.coerceIn(0, cats.lastIndex)
@@ -126,7 +132,10 @@ class SettingsScreen(
         val right = LinearLayout(act).apply { orientation = LinearLayout.VERTICAL; setPaddingRelative(s.px(64), s.px(64), s.px(88), s.px(40)) }
         panelTitle.apply { sizePx(s.px(42f)); setTextColor(T.TEXT); typeface = Fonts.display; textAlignment = TEXT_ALIGNMENT_VIEW_START }
         panelDesc.apply { sizePx(s.px(T.LABEL + 4)); setTextColor(T.TEXT_DIM); textAlignment = TEXT_ALIGNMENT_VIEW_START }
-        right.addView(panelTitle); right.addView(panelDesc, LinearLayout.LayoutParams(-1, -2).apply { topMargin = s.px(6); bottomMargin = s.px(26) })
+        panelIcon.setColorFilter(T.ACCENT)
+        right.addView(LinearLayout(act).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
+            addView(panelIcon, LinearLayout.LayoutParams(s.px(40), s.px(40)).apply { marginEnd = s.px(18) }); addView(panelTitle) })
+        right.addView(panelDesc, LinearLayout.LayoutParams(-1, -2).apply { topMargin = s.px(6); bottomMargin = s.px(26) })
         panelScroll.apply { isVerticalScrollBarEnabled = false; overScrollMode = OVER_SCROLL_NEVER; clipChildren = false; addView(rows) }
         right.addView(panelScroll, LinearLayout.LayoutParams(-1, 0, 1f))
         root.addView(right, LinearLayout.LayoutParams(0, -1, 1f))
@@ -173,6 +182,7 @@ class SettingsScreen(
             setPaddingRelative(s.px(14), s.px(9), s.px(18), s.px(9))
             background = StateListDrawable().apply {
                 addState(intArrayOf(android.R.attr.state_focused), rounded(0x33FFFFFF, s.px(T.R_ROW), 0x99FFFFFF.toInt(), s.px(2)))
+                addState(intArrayOf(android.R.attr.state_selected), rounded(T.GLASS, s.px(T.R_ROW), T.HAIRLINE, s.px(1)))
                 addState(intArrayOf(), rounded(Color.TRANSPARENT, s.px(T.R_ROW)))
                 setEnterFadeDuration(T.d(T.FOCUS).toInt()); setExitFadeDuration(T.d(T.FOCUS).toInt())
             }
@@ -198,7 +208,8 @@ class SettingsScreen(
 
     private fun buildPanel(animate: Boolean) {
         val c = cats[selected]
-        panelTitle.text = c.title; panelDesc.text = c.desc
+        panelTitle.text = c.title; panelDesc.text = c.desc; panelIcon.setImageResource(c.icon)
+        catViews.forEachIndexed { i, v -> v.isSelected = i == selected }
         rows.removeAllViews()
         c.items().forEach { rows.addView(rowFor(it), LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = s.px(8) }) }
         panelScroll.scrollTo(0, 0)
@@ -263,6 +274,21 @@ class SettingsScreen(
                 }
             }
             is Info -> item.value?.let { row.addView(valueText(it).apply { setTextColor(T.TEXT) }) }
+            is TapRow -> {
+                val v = valueText(item.value).apply { setTextColor(T.TEXT) }; row.addView(v)
+                var count = 0; var last = 0L
+                row.setOnClickListener {
+                    val now = android.os.SystemClock.uptimeMillis()
+                    if (now - last < 220) return@setOnClickListener               // too quick to be deliberate (key repeat, bounce)
+                    count = if (now - last > 1800) 1 else count + 1; last = now
+                    if (!item.done() && count >= item.taps) {
+                        count = 0; item.onReveal()
+                        v.text = item.unlockedText; v.setTextColor(T.ACCENT)
+                        if (T.animated) v.animate().cancel().also { v.alpha = 0f; v.animate().alpha(1f).setDuration(T.d(T.SLOW)).start() }
+                        v.postDelayed({ if (v.isAttachedToWindow) { v.text = item.value; v.setTextColor(T.TEXT) } }, 3500)
+                    } else if (T.animated && !item.done()) row.animate().cancel().also { row.scaleX = 0.992f; row.scaleY = 0.992f; row.animate().scaleX(1f).scaleY(1f).setDuration(T.d(T.FAST)).start() }
+                }
+            }
             is Secret -> {}
         }
         row.setOnFocusChangeListener { v, f ->

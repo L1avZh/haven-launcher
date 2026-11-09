@@ -57,6 +57,11 @@ class MainActivity : Activity() {
     private lateinit var stageEmpty: TextView
     private lateinit var scopeHero: ScopeHero
     private var character: CharacterView? = null
+    private lateinit var waitLabel: LinearLayout
+    private lateinit var waitTitle: TextView
+    private lateinit var waitSub: TextView
+    private var homeState: HomeState? = null
+    private var wentAway = false
     private lateinit var platform: View
     private lateinit var artCardView: FrameLayout
     private lateinit var artHalo: View
@@ -158,6 +163,8 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         T.init(this, prefs.animLevel, prefs.performance); syncCharacter()
+        // Back from another app the user opened from here: a small acknowledgement, nothing more (Haven cannot know what happened there).
+        if (wentAway) { wentAway = false; character?.input(CharInput.Returned) }
         if (loaded) render()
         if (currentFocus == null) restoreFocus()
         armSaver()
@@ -248,10 +255,16 @@ class MainActivity : Activity() {
 
     /** A full-screen page (Settings) covers the home scene: hide it so the background, hero and character stop drawing. */
     private fun setSceneVisible(on: Boolean) {
-        val v = if (on) View.VISIBLE else View.INVISIBLE
-        glowView.visibility = if (on && prefs.glow) View.VISIBLE else if (on) View.GONE else View.INVISIBLE
-        platform.visibility = v; homeContent.visibility = v; character?.visibility = v
-        if (on) character?.start()
+        val layers = listOfNotNull<View>(homeContent, platform, character, waitLabel.takeIf { homeState != HomeState.APP })
+        if (on) {
+            glowView.visibility = if (prefs.glow) View.VISIBLE else View.GONE
+            layers.forEach { it.animate().cancel(); it.visibility = View.VISIBLE; if (T.animated) { it.alpha = 0f; it.animate().alpha(1f).setDuration(T.d(T.MED)).start() } else it.alpha = 1f }
+            character?.start()
+        } else {
+            // Settings has faded in over the scene by now: fade the scene out, then stop drawing it entirely.
+            layers.forEach { v -> v.animate().cancel(); v.animate().alpha(0f).setDuration(T.d(T.FAST)).withEndAction { if (settings != null) v.visibility = View.INVISIBLE }.start() }
+            glowView.visibility = View.INVISIBLE
+        }
     }
 
     private var studio: CharacterStudio? = null
@@ -260,11 +273,12 @@ class MainActivity : Activity() {
         val c = character ?: return
         if (studio != null || settings != null) return
         dialogs.toList().forEach { it.dismiss() }
-        val st = CharacterStudio(this, s, c, prefs.characterOutfit, prefs.characterProp,
-            { o, p -> prefs.characterOutfit = o; prefs.characterProp = p; c.setLookKept(o, p); c.input(CharInput.Studio(StudioAction.APPLY)); closeStudio() },
-            { c.equip(prefs.characterOutfit, prefs.characterProp); c.input(CharInput.Studio(StudioAction.CANCEL)); closeStudio() })
+        val st = CharacterStudio(this, s, c, prefs.look(), prefs.starUnlocked,
+            { l -> prefs.saveLook(l); c.input(CharInput.Studio(StudioAction.APPLY)); closeStudio() },
+            { c.equip(prefs.look()); c.input(CharInput.Studio(StudioAction.CANCEL)); closeStudio() })
         studio = st
         homeContent.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
+        homeState = null; waitLabel.visibility = View.GONE; c.setWaiting(false)
         c.input(CharInput.ScreenChanged)
         // The studio replaces the home content; the character steps forward into the space that frees up.
         homeContent.animate().cancel(); homeContent.animate().alpha(0f).setDuration(T.d(T.MED)).start()
@@ -282,6 +296,7 @@ class MainActivity : Activity() {
         homeContent.animate().cancel(); homeContent.animate().alpha(1f).setDuration(T.d(T.MED)).start()
         character?.let { c -> c.animate().cancel(); c.animate().scaleX(1f).scaleY(1f).translationX(0f).setDuration(T.d(T.MED + 80)).setInterpolator(T.OUT).start() }
         platform.animate().cancel(); platform.animate().translationX(0f).setDuration(T.d(T.MED + 80)).setInterpolator(T.OUT).start()
+        homeState = null                                       // so the home state puts the character where it belongs again
         st.close { frame.removeView(st); restoreFocus() }
     }
 
@@ -432,7 +447,7 @@ class MainActivity : Activity() {
         frame.addView(platform, FrameLayout.LayoutParams(s.px(620), s.px(620), Gravity.START or Gravity.BOTTOM).apply { marginStart = s.px(40); bottomMargin = -s.px(235) })
         if (prefs.characterEnabled) {
             character = CharacterView(this).also {
-                it.setLook(prefs.characterOutfit, prefs.characterProp); it.motion = T.motion
+                it.setLook(prefs.look()); it.motion = T.motion
                 frame.addView(it, FrameLayout.LayoutParams(s.px(700), s.px(960), Gravity.START or Gravity.BOTTOM).apply { bottomMargin = s.px(50) })
             }
         }
@@ -565,6 +580,18 @@ class MainActivity : Activity() {
             }, LinearLayout.LayoutParams(-2, -2).apply { topMargin = s.px(14) })
             addView(stageEmpty, LinearLayout.LayoutParams(s.px(artW), -2).apply { topMargin = s.px(160) })
         }
+        // The label that names the active source while nothing is selected (centered under the header, above the waiting character).
+        waitTitle = TextView(this).apply { sizePx(s.px(40f)); typeface = Fonts.display; setTextColor(T.ACCENT); gravity = Gravity.CENTER; maxLines = 1; ellipsize = TextUtils.TruncateAt.END }
+        waitSub = TextView(this).apply { sizePx(s.px(T.BODY - 6)); typeface = Fonts.light; setTextColor(T.TEXT_DIM); gravity = Gravity.CENTER; maxLines = 2; ellipsize = TextUtils.TruncateAt.END; setLineSpacing(0f, 1.1f) }
+        waitLabel = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL; visibility = View.GONE
+            setPadding(s.px(30), s.px(10), s.px(30), s.px(12))
+            background = rounded(0x40070B18, s.px(T.R_PILL))
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
+            addView(waitTitle, LinearLayout.LayoutParams(-2, -2)); addView(waitSub, LinearLayout.LayoutParams(s.px(780), -2).apply { topMargin = s.px(2) })
+        }
+        frame.addView(waitLabel, FrameLayout.LayoutParams(-2, -2, Gravity.TOP or Gravity.CENTER_HORIZONTAL).apply { topMargin = s.px(118) })
+        waitLabel.minimumWidth = s.px(520)
         // body: [space for the character] [stage] [rail]
         val body = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL; clipChildren = false
@@ -607,15 +634,56 @@ class MainActivity : Activity() {
         }.also { tabs += it }
     }
 
-    /** A scope tab has focus rather than an app: show the scope's name instead of an empty app card. */
+    /** A scope tab has focus rather than an app: nothing is selected, so the character waits in the middle and the source is named. */
     private fun showHero(i: Int) {
-        val n = scopeItems().size
-        val name = getString(intArrayOf(R.string.favorites, R.string.recent, R.string.library)[i])
-        val summary = if (n > 0) resources.getQuantityString(R.plurals.apps_count, n, n)
-            else getString(when (i) { 0 -> R.string.no_favorites; 1 -> R.string.no_recent; else -> R.string.no_hidden })
         focusedEntry = null
-        stageBody.visibility = View.INVISIBLE; stageEmpty.visibility = View.GONE
-        scopeHero.set(name, summary, glowColor); scopeHero.visibility = View.VISIBLE
+        stageBody.visibility = View.INVISIBLE; stageEmpty.visibility = View.GONE; scopeHero.visibility = View.GONE
+        applyHomeState(when { !loaded -> HomeState.LOADING; scopeItems().isEmpty() -> HomeState.EMPTY; else -> HomeState.SCOPE })
+    }
+
+    /** What the home screen is showing, which decides where the character stands and what the label says. */
+    private enum class HomeState { APP, SCOPE, EMPTY, LOADING, IDLE }
+
+    private fun applyHomeState(st: HomeState) {
+        val names = intArrayOf(R.string.favorites, R.string.recent, R.string.library)
+        val scopeName = getString(names[scope.coerceIn(0, 2)])
+        if (st == HomeState.APP) { waitLabel.visibility = View.GONE }
+        else {
+            val n = scopeItems().size
+            waitTitle.text = getString(R.string.browsing_scope, scopeName)
+            waitTitle.setTextColor(glowColor)
+            waitSub.text = when (st) {
+                HomeState.LOADING -> getString(R.string.loading)                                   // still reading the app list
+                HomeState.EMPTY -> getString(when (scope) { 0 -> R.string.no_favorites; 1 -> R.string.no_recent; else -> R.string.no_hidden })   // this scope has nothing in it
+                else -> resources.getQuantityString(R.plurals.apps_count, n, n) + "  ·  " + getString(R.string.state_waiting)   // ordinary: nothing selected yet
+            }
+            waitLabel.visibility = View.VISIBLE
+        }
+        if (homeState == st) return
+        homeState = st
+        val c = character
+        c?.setWaiting(st != HomeState.APP)
+        if (st != HomeState.APP) character?.input(CharInput.ScreenChanged)
+        moveCharacter(centered = st != HomeState.APP)
+    }
+
+    /** Glides the character to the middle of the screen while nothing is selected, and back to its place when an app is focused. */
+    private fun moveCharacter(centered: Boolean) {
+        val c = character ?: return
+        if (studio != null) return
+        frame.post {
+            val dx = if (centered) frame.width / 2f - (c.left + c.width / 2f) else 0f
+            val k = if (centered) 0.86f else 1f
+            c.pivotX = c.width / 2f; c.pivotY = c.height.toFloat()
+            val moveMs = T.d(T.MED + 160)
+            c.animate().cancel(); c.animate().translationX(dx).scaleX(k).scaleY(k).setDuration(moveMs).setInterpolator(T.OUT).start()
+            platform.animate().cancel(); platform.animate().translationX(dx).setDuration(moveMs).setInterpolator(T.OUT).start()
+        }
+    }
+
+    private fun unlockStar() {
+        prefs.starUnlocked = true; prefs.starWorn = true
+        character?.let { it.setLook(prefs.look()); it.input(CharInput.Studio(StudioAction.APPLY)) }
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -700,12 +768,15 @@ class MainActivity : Activity() {
     private fun updateStageEmpty() {
         val none = scopeItems().isEmpty()
         if (tabs.any { it.isFocused }) { showHero(scope); return }
-        stageBody.visibility = if (none) View.INVISIBLE else View.VISIBLE
-        stageEmpty.visibility = if (none) View.VISIBLE else View.GONE
-        if (none) stageEmpty.text = getString(when { !loaded -> R.string.loading; scope == 0 -> R.string.no_favorites; scope == 1 -> R.string.no_recent; else -> R.string.no_hidden })
+        stageEmpty.visibility = View.GONE
+        val appFocused = !none && focusedEntry != null && (rail.hasFocus() || stageBody.hasFocus())
+        val st = when { !loaded -> HomeState.LOADING; none -> HomeState.EMPTY; appFocused -> HomeState.APP; else -> HomeState.IDLE }
+        // The stage with its artwork card exists only while an app is selected; otherwise the character has the room.
+        stageBody.visibility = if (st == HomeState.APP) View.VISIBLE else View.INVISIBLE
+        applyHomeState(st)
     }
 
-    private fun onRailFocus(e: AppEntry, pos: Int) { lastIdx[scope] = pos; showStage(e) }
+    private fun onRailFocus(e: AppEntry, pos: Int) { lastIdx[scope] = pos; showStage(e); character?.input(CharInput.AppFocus(e.kind)) }
 
     private fun openedText(e: AppEntry): String = prefs.launchLog[e.key]?.let {
         android.text.format.DateUtils.getRelativeTimeSpanString(it, System.currentTimeMillis(), android.text.format.DateUtils.MINUTE_IN_MILLIS).toString()
@@ -715,6 +786,7 @@ class MainActivity : Activity() {
     private fun showStage(e: AppEntry) {
         focusedEntry = e; focusedKey = e.key
         stageEmpty.visibility = View.GONE; scopeHero.visibility = View.GONE; stageBody.visibility = View.VISIBLE
+        applyHomeState(HomeState.APP)
         val accent = accentFor(e)
         val isFav = e.key in prefs.favorites
         Caps.set(stageTag, getString(if (e.virtual) R.string.not_installed else if (isFav) R.string.tag_favorite else R.string.library), 0.22f)
@@ -817,6 +889,7 @@ class MainActivity : Activity() {
 
     private fun launch(e: AppEntry) {
         prefs.recordLaunch(e.key)
+        character?.input(CharInput.AppLaunch(e.kind)); wentAway = true
         try {
             startActivity(Intent(Intent.ACTION_MAIN).setComponent(e.component)
                 .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED))
@@ -1008,7 +1081,7 @@ class MainActivity : Activity() {
         }
         val about = Category(R.drawable.ic_cat_about, g(R.string.cat_about), g(R.string.d_about)) { listOf(
             Info(g(R.string.app_name), null, getString(R.string.ver_build, appInfo?.versionName ?: "", nf.format(buildNumber(appInfo)))),
-            Info(g(R.string.developer), null, "L1avZh"),
+            TapRow(g(R.string.developer), "L1avZh", 7, { prefs.starUnlocked }, g(R.string.star_unlocked)) { unlockStar() },
             Info(g(R.string.licenses), g(R.string.licenses_d)),
             Secret(g(R.string.egg_hint)) { showEgg() },
             if (eggRevealed) Info(g(R.string.egg_sequence), null) else Action(g(R.string.egg_reveal), null) { eggRevealed = true; settings?.refresh() },

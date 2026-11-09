@@ -21,19 +21,21 @@ Haven replaces the usual Android TV home screen with something quieter: a 3D cha
 I built and tested it on a Xiaomi TV Box S (3rd Gen) running Android 14. Other Android TV devices should work, but I haven't tried them (see [Known limitations](#known-limitations)).
 
 <p align="center">
-  <img src="docs/images/screenshots/home.png" alt="Home screen" width="860">
+  <img src="docs/images/screenshots/home.png" alt="Home screen: the human character on the left, the focused app in the middle, the app list on the right" width="860">
 </p>
 
 ## Screenshots
 
-All screenshots were captured on the TV itself.
+All screenshots were captured on a Xiaomi TV Box S (3rd Gen) running the current build. They show a controlled app list (Plex and Netflix as favorites) and no private data.
 
 | | |
 |---|---|
-| ![Scope](docs/images/screenshots/scope.png) | ![Widgets](docs/images/screenshots/widgets.png) |
-| Scope header with a moving light sweep | Widgets: choose what shows where |
-| ![Settings](docs/images/screenshots/settings.png) | ![Easter egg](docs/images/screenshots/easter-egg.png) |
-| Settings: categories, Appearance open | The hidden signature |
+| ![Waiting state: the character stands in the middle and the active source is named](docs/images/screenshots/scope.png) | ![Home with the wizard character](docs/images/screenshots/home-wizard.png) |
+| Nothing selected: the character waits in the middle and the source is named | Another character, with the focused app on the stage |
+| ![Widgets settings page](docs/images/screenshots/widgets.png) | ![Appearance settings page](docs/images/screenshots/settings.png) |
+| Widgets: choose what shows where | Settings, with the same tokens, focus ring and fonts as the home screen |
+| ![The hidden signature](docs/images/screenshots/easter-egg.png) | |
+| The hidden signature | |
 
 <p align="center">
   <img src="docs/images/animations/easter-egg.gif" alt="Easter egg animation" width="560"><br>
@@ -46,7 +48,7 @@ All screenshots were captured on the TV itself.
 - **Live background**: soft color fields and drifting motes that take their palette from the focused app and speed up briefly when focus changes. Rendered at low resolution at 30 fps and paused when not visible; static in performance mode.
 - **Widgets**: choose what appears on the home screen (up to 3) and on the screensaver (up to 4): greeting, weather, share of the day, share of the year, moon illumination, free storage, free memory, uptime. Everything except weather is computed on the device. Weather is opt-in: pick a city in Settings and Haven fetches the current temperature and sky from open-meteo.com over HTTPS every 30 minutes. Only that city's coordinates are sent (no key, no account, no device identifier, no location access). In a non-English language, Haven also asks open-meteo's geocoding service once for the city's name in that language and caches it. The icon is animated, and rain, snow and storms also fall across the whole background.
 - **Screensaver**: after 2 to 20 minutes without input (or off), a black screen with the live background, a drifting clock and your screensaver widgets. The clock moves every 25 seconds to spare OLED panels. Any button wakes it. It lives inside Haven and changes no system setting.
-- **The Warden**: an original rigged 3D character (rendered with Filament) stands beside the stage. It glances at whatever has focus, acknowledges OK and Back, and can change outfit (Courier, Runner, Astral) and hand-held prop (Lantern, Tablet, Compass) in the Character Studio; the look is saved. Local only, hides itself if it cannot render, and can be turned off in Settings → Character. See [docs/character.md](docs/character.md).
+- **Characters**: three original rigged 3D characters (Human, Wizard, Robot), rendered with Filament, share the same pose system. The character glances at whatever has focus, acknowledges OK and Back, and makes a brief themed gesture when you highlight or open a music or video app (it does not know whether anything is playing). When nothing is selected it stands in the middle in a waiting pose and the screen names the source you are browsing: Favorites, Recent or Library. The Character Studio picks the character, its outfit and its prop; the look is saved locally. There is also a hidden accessory. Everything is local, hides itself if it cannot render, and can be turned off in Settings → Character. See [docs/character.md](docs/character.md).
 - **Typefaces**: Outfit for the interface, Unbounded for the clock and big titles, Space Grotesk, Manrope, Sora and Urbanist for app names. All bundled, all SIL Open Font License (see `docs/OFL-*.txt`).
 - **App management**: favorites, hide apps without uninstalling them, reorder favorites, show or hide system apps, sort A to Z or newest first, refresh the list. New and removed apps are picked up automatically.
 - **Settings**: a full-screen page with ten categories (General, Appearance, Widgets, Applications, Remote control, Language & region, Display & animation, AdGuard, Privacy & security, About & credits). Everything is reachable with a D-pad, OK and Back.
@@ -106,7 +108,8 @@ app/src/main/java/dev/l1avzh/haven/
   LiveBackground.kt animated background
   Saver.kt          screensaver
   CharacterView.kt  3D character renderer (Filament)
-  CharacterLogic.kt input-to-reaction mapping and poses
+  CharacterLogic.kt roster, input-to-reaction mapping and poses
+  AppKinds.kt       music/video/other classification from app metadata
   CharacterStudio.kt outfit and prop picker
   Widgets.kt        widget definitions and strip
   Model.kt          app discovery and preferences
@@ -126,7 +129,8 @@ docs/               guides and images
 - With an LG remote over HDMI-CEC, only arrows, OK and Back reach the box. There is no remote shortcut that works while another app is in front.
 - There is no floating Home button. An overlay can't be reached with a D-pad without taking input away from the app underneath.
 - City names in the weather picker are English; the widget shows the name in the app's language once it has been fetched.
-- Screenshots for the remaining settings pages and right-to-left layout are not included yet; the old ones predated the redesign and were removed.
+- Screenshots for the remaining settings pages, the Character Studio and right-to-left layouts are not included. The characters are procedurally modelled stylized figures, not hand-sculpted art.
+- Older revisions of this repository's history still contain earlier screenshots.
 - Translations are machine-assisted drafts. None have been checked by a native speaker.
 - Custom wallpapers from files, custom categories and settings export are not implemented.
 
