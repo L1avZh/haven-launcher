@@ -99,9 +99,16 @@ class MainActivity : Activity() {
     private val accentColors = intArrayOf(0xFF6C8CFF.toInt(), 0xFF4CD6A0.toInt(), 0xFFFF7A6B.toInt(), 0xFFF2B84B.toInt(), 0xFFA77BFF.toInt())
 
     private val pkgReceiver = object : BroadcastReceiver() {
-        override fun onReceive(c: Context, i: Intent) { main.removeCallbacks(reload); main.postDelayed(reload, 600) }
+        override fun onReceive(c: Context, i: Intent) {
+            i.data?.schemeSpecificPart?.let { pkg -> icons.invalidate(pkg); changedPkgs += pkg }
+            main.removeCallbacks(reload); main.postDelayed(reload, 600)
+        }
     }
     private val reload = Runnable { loadApps() }
+    /** Packages whose broadcast arrived since the last reload; the focused one gets its artwork refreshed afterwards. */
+    private val changedPkgs = HashSet<String>()
+    private var loadGen = 0
+    private var artRequest: IconLoader.Request? = null
 
     override fun attachBaseContext(newBase: Context) = super.attachBaseContext(Lang.wrap(newBase))
 
@@ -121,7 +128,12 @@ class MainActivity : Activity() {
         loadApps()
     }
 
-    override fun onDestroy() { unregisterReceiver(pkgReceiver); main.removeCallbacks(autoCloseEgg); super.onDestroy() }
+    override fun onDestroy() {
+        unregisterReceiver(pkgReceiver)
+        main.removeCallbacksAndMessages(null)
+        loader.shutdownNow(); icons.close()
+        super.onDestroy()
+    }
     override fun onStop() {
         dialogs.toList().forEach { it.dismiss() }; dialogs.clear()
         egg?.let { frame.removeView(it) }; egg = null
@@ -171,10 +183,11 @@ class MainActivity : Activity() {
     private fun startSaver() {
         if (saverView != null || overlay != null) return
         val v = SaverView(this, s, timeClock.format12Hour, timeClock.format24Hour, DateFormat.getBestDateTimePattern(Lang.locale(this), "EEEdMMM"), Widgets.parse(prefs.saverWidgets))
+        homeContent.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
         saverView = v; LiveBackground.ambient = LiveBackground.ambientFor(this, Widgets.parse(prefs.saverWidgets).take(4)); frame.addView(v, -1, -1)
     }
 
-    private fun stopSaver() { saverView?.let { frame.removeView(it) }; saverView = null; LiveBackground.ambient = LiveBackground.ambientFor(this, Widgets.parse(prefs.homeWidgets).take(3)) }
+    private fun stopSaver() { saverView?.let { frame.removeView(it) }; saverView = null; homeContent.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_AUTO; LiveBackground.ambient = LiveBackground.ambientFor(this, Widgets.parse(prefs.homeWidgets).take(3)) }
 
     override fun dispatchKeyEvent(e: KeyEvent): Boolean {
         if (saverView != null) { if (e.action == KeyEvent.ACTION_DOWN && e.repeatCount == 0) { stopSaver(); armSaver() }; return true }
@@ -452,6 +465,11 @@ class MainActivity : Activity() {
             setPadding(0, s.px(8), s.px(34), s.px(6))
             addView(txt, LinearLayout.LayoutParams(-2, -2)); addView(bar, LinearLayout.LayoutParams(s.px(34), s.px(3)).apply { topMargin = s.px(8) })
             tag = Pair(txt, bar)
+            accessibilityDelegate = object : View.AccessibilityDelegate() {
+                override fun onInitializeAccessibilityNodeInfo(host: View, info: android.view.accessibility.AccessibilityNodeInfo) {
+                    super.onInitializeAccessibilityNodeInfo(host, info); info.isSelected = scope == i
+                }
+            }
             setOnFocusChangeListener { _, f -> if (f) { if (scope != i) setScope(i); showHero(i) }; updateTabs() }
             setOnClickListener { focusRail(lastIdx[i]) }
             setOnKeyListener { _, code, e ->
@@ -573,7 +591,8 @@ class MainActivity : Activity() {
         railAdapter.tint(accent)
         val token = ++artToken
         stageArt.animate().cancel(); stageArt.alpha = if (T.animated) 0.25f else 1f
-        icons.load(e, s.px(artW), s.px(artW) * 9 / 16) { bmp ->
+        artRequest?.cancel()
+        artRequest = icons.load(e, s.px(artW), s.px(artW) * 9 / 16) { bmp ->
             if (token == artToken) {
                 if (bmp != null) stageArt.setImageBitmap(bmp)
                 stageArt.animate().alpha(1f).setDuration(T.d(T.MED)).start()
@@ -619,9 +638,13 @@ class MainActivity : Activity() {
     // ---------- Data ----------
 
     private fun loadApps() {
-        loader.execute {
+        val gen = ++loadGen
+        try { loader.execute {
+            // A newer request is already queued behind this one: skip the obsolete package scan.
+            if (gen != loadGen) return@execute
             val apps = AppRepo.load(this, prefs.showSystemApps, prefs.sortMode)
             main.post {
+                if (gen != loadGen || isDestroyed) return@post
                 all = apps
                 if (!prefs.seeded) prefs.favorites = AppRepo.seedFavorites(apps)
                 if (!loaded) { loaded = true; scope = if (prefs.favorites.any { k -> all.any { it.key == k && k !in prefs.hidden } }) 0 else 2 }
@@ -629,8 +652,10 @@ class MainActivity : Activity() {
                 if (currentFocus == null) restoreFocus()
                 frame.post { playEntrance() }
                 if (prefs.reopenSettings) { prefs.reopenSettings = false; openSettings() }
+                focusedEntry?.let { fe -> if (changedPkgs.isNotEmpty() && fe.pkg in changedPkgs) all.firstOrNull { it.key == fe.key }?.let { showStage(it) } }
+                changedPkgs.clear()
             }
-        }
+        } } catch (_: java.util.concurrent.RejectedExecutionException) { /* activity is going away */ }
     }
 
     private fun visible() = all.filter { it.key !in prefs.hidden }
@@ -832,7 +857,7 @@ class MainActivity : Activity() {
                 Widgets.ALL.map { d -> Toggle(g(d.nameRes), null, { d.id in Widgets.parse(prefs.homeWidgets) }, { prefs.homeWidgets = Widgets.toggle(prefs.homeWidgets, d.id, it); applyWidgets() }) } +
                 listOf<Item>(
                     Choice(g(R.string.weather_city), g(R.string.weather_city_d), listOf(g(R.string.weather_unset)) + Weather.CITIES.map { it.name },
-                        { prefs.weatherCity }, { prefs.weatherCity = it; prefs.weatherCache = ""; if (it > 0) { prefs.homeWidgets = Widgets.toggle(prefs.homeWidgets, "weather", true); applyWidgets() } }),
+                        { prefs.weatherCity }, { prefs.weatherCity = it; Weather.selectionChanged(prefs); if (it > 0) { prefs.homeWidgets = Widgets.toggle(prefs.homeWidgets, "weather", true); applyWidgets() } }),
                     Choice(g(R.string.weather_unit), null, listOf(g(R.string.celsius), g(R.string.fahrenheit)), { prefs.weatherUnit }, { prefs.weatherUnit = it; WidgetStrip.refreshAll() }),
                 ) +
                 Info(g(R.string.widgets_saver), null) +

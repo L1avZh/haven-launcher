@@ -44,7 +44,7 @@ class SwitchView(ctx: Context, private val s: Scale) : View(ctx) {
     private var anim: ValueAnimator? = null
     var checked = false; private set
 
-    init { thumb.color = Color.WHITE }
+    init { thumb.color = Color.WHITE; importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }   // the row reports the switch state
 
     fun set(on: Boolean, animate: Boolean) {
         checked = on
@@ -153,17 +153,17 @@ class SettingsScreen(
 
     private fun categoryCard(i: Int, c: Category): View {
         val iconBox = FrameLayout(act).apply { background = rounded(0x1AFFFFFF, s.px(26f)) }
-        val icon = ImageView(act).apply { setImageResource(c.icon); setColorFilter(T.TEXT_DIM) }
+        val icon = ImageView(act).apply { setImageResource(c.icon); setColorFilter(T.TEXT_DIM); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }
         iconBox.addView(icon, FrameLayout.LayoutParams(s.px(30), s.px(30), Gravity.CENTER))
         val tt = TextView(act).apply { text = c.title; sizePx(s.px(T.BODY + 1)); setTextColor(T.TEXT); typeface = Fonts.medium; textAlignment = TEXT_ALIGNMENT_VIEW_START; maxLines = 1 }
         val dd = TextView(act).apply { text = c.desc; sizePx(s.px(T.LABEL)); setTextColor(T.TEXT_DIM); textAlignment = TEXT_ALIGNMENT_VIEW_START; maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END }
         val col = LinearLayout(act).apply { orientation = LinearLayout.VERTICAL; addView(tt); addView(dd) }
-        val bar = View(act).apply { background = rounded(T.ACCENT, s.px(3f)); alpha = 0f }
+        val bar = View(act).apply { background = rounded(T.ACCENT, s.px(3f)); alpha = 0f; importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }
         val card = LinearLayout(act).apply {
             orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL; isFocusable = true; isClickable = true
             setPaddingRelative(s.px(14), s.px(9), s.px(18), s.px(9))
             background = StateListDrawable().apply {
-                addState(intArrayOf(android.R.attr.state_focused), rounded(0x26FFFFFF, s.px(T.R_ROW)))
+                addState(intArrayOf(android.R.attr.state_focused), rounded(0x33FFFFFF, s.px(T.R_ROW), 0x99FFFFFF.toInt(), s.px(2)))
                 addState(intArrayOf(), rounded(Color.TRANSPARENT, s.px(T.R_ROW)))
             }
         }
@@ -200,7 +200,7 @@ class SettingsScreen(
 
     private fun rowFor(item: Item): View {
         if (item is Secret) return secretRow(item)
-        val bar = View(act).apply { background = rounded(T.ACCENT, s.px(3f)); alpha = 0f }
+        val bar = View(act).apply { background = rounded(T.ACCENT, s.px(3f)); alpha = 0f; importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }
         val tt = TextView(act).apply { text = item.title; sizePx(s.px(T.BODY)); setTextColor(T.TEXT); textAlignment = TEXT_ALIGNMENT_VIEW_START }
         val col = LinearLayout(act).apply { orientation = LinearLayout.VERTICAL; addView(tt) }
         item.desc?.let { d -> col.addView(TextView(act).apply { text = d; sizePx(s.px(T.LABEL + 1)); setTextColor(T.TEXT_DIM); textAlignment = TEXT_ALIGNMENT_VIEW_START; setLineSpacing(0f, 1.1f) }, LinearLayout.LayoutParams(-1, -2).apply { topMargin = s.px(4) }) }
@@ -209,7 +209,7 @@ class SettingsScreen(
             minimumHeight = s.px(88)
             setPaddingRelative(s.px(16), s.px(16), s.px(26), s.px(16))
             background = StateListDrawable().apply {
-                addState(intArrayOf(android.R.attr.state_focused), rounded(0x26FFFFFF, s.px(T.R_ROW)))
+                addState(intArrayOf(android.R.attr.state_focused), rounded(0x33FFFFFF, s.px(T.R_ROW), 0x99FFFFFF.toInt(), s.px(2)))
                 addState(intArrayOf(), rounded(0x0FFFFFFF, s.px(T.R_ROW)))
             }
         }
@@ -220,7 +220,13 @@ class SettingsScreen(
             is Toggle -> {
                 val sw = SwitchView(act, s).also { it.set(item.get(), false) }
                 row.addView(sw)
-                row.setOnClickListener { val n = !item.get(); item.set(n); sw.set(n, true) }
+                row.setOnClickListener { val n = !item.get(); item.set(n); sw.set(n, true); row.sendAccessibilityEvent(android.view.accessibility.AccessibilityEvent.TYPE_VIEW_CLICKED) }
+                row.accessibilityDelegate = object : AccessibilityDelegate() {
+                    override fun onInitializeAccessibilityNodeInfo(host: View, info: android.view.accessibility.AccessibilityNodeInfo) {
+                        super.onInitializeAccessibilityNodeInfo(host, info)
+                        info.className = "android.widget.Switch"; info.isCheckable = true; info.isChecked = item.get()
+                    }
+                }
             }
             is Choice -> {
                 val v = valueText(item.options[item.index()]).apply { setTextColor(T.TEXT) }
@@ -229,6 +235,7 @@ class SettingsScreen(
                 row.setOnClickListener {
                     val n = (item.index() + 1) % item.options.size; item.set(n)
                     v.text = item.options[n]
+                    row.sendAccessibilityEvent(android.view.accessibility.AccessibilityEvent.TYPE_VIEW_CLICKED)
                     item.swatches?.let { sw -> (row.findViewWithTag<View>("dot")?.background as? GradientDrawable)?.setColor(sw[n]) }
                     if (T.animated) v.animate().cancel().also { v.alpha = 0.3f; v.animate().alpha(1f).setDuration(T.d(T.MED)).start() }
                 }
@@ -237,6 +244,11 @@ class SettingsScreen(
                 item.value?.invoke()?.let { row.addView(valueText(it).apply { setTextColor(T.TEXT) }) }
                 row.addView(TextView(act).apply { text = if (rtl) "‹" else "›"; sizePx(s.px(40f)); setTextColor(T.TEXT_DIM); setPaddingRelative(s.px(14), 0, 0, 0) })
                 row.setOnClickListener { item.run() }
+                row.accessibilityDelegate = object : AccessibilityDelegate() {
+                    override fun onInitializeAccessibilityNodeInfo(host: View, info: android.view.accessibility.AccessibilityNodeInfo) {
+                        super.onInitializeAccessibilityNodeInfo(host, info); info.className = "android.widget.Button"
+                    }
+                }
             }
             is Info -> item.value?.let { row.addView(valueText(it).apply { setTextColor(T.TEXT) }) }
             is Secret -> {}

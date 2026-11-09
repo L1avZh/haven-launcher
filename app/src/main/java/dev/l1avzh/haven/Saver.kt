@@ -27,6 +27,7 @@ class SaverView(ctx: Context, s: Scale, timePattern12: CharSequence?, timePatter
 
     init {
         setBackgroundColor(Color.BLACK); isClickable = true; isFocusable = false
+        contentDescription = ctx.getString(R.string.screensaver); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
         live.setAccent(Color.HSVToColor(hsv)); addView(live, -1, -1)
         box.addView(TextClock(ctx).apply {
             if (timePattern12 != null) format12Hour = timePattern12

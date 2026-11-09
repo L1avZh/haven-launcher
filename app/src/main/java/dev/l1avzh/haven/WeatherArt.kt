@@ -29,11 +29,13 @@ class WeatherIcon(ctx: Context, private val size: Int) : View(ctx) {
     var sky = Sky.CLEAR; var day = true; var hot = false
     private val p = Paint(Paint.ANTI_ALIAS_FLAG)
     private val path = Path()
+    private val clear = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.CLEAR)
 
     fun set(s: Sky, isDay: Boolean, isHot: Boolean) { sky = s; day = isDay; hot = isHot; invalidate() }
 
     override fun onMeasure(a: Int, b: Int) = setMeasuredDimension(size, size)
     override fun hasOverlappingRendering() = false
+    init { importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }   // the widget's text already says what the weather is
 
     private fun cloud(c: Canvas, dx: Float, dy: Float, tone: Int) {
         p.color = tone; p.style = Paint.Style.FILL
@@ -79,7 +81,7 @@ class WeatherIcon(ctx: Context, private val size: Int) : View(ctx) {
     private fun moon(c: Canvas, t: Float) {
         p.style = Paint.Style.FILL; p.color = 0xFFF2F0DC.toInt()
         c.save(); path.reset(); path.addCircle(46f, 52f, 24f, Path.Direction.CW); c.clipPath(path)
-        c.drawCircle(46f, 52f, 24f, p); p.color = 0x00000000; p.xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.CLEAR)
+        c.drawCircle(46f, 52f, 24f, p); p.color = 0x00000000; p.xfermode = clear
         c.drawCircle(58f, 44f, 22f, p); p.xfermode = null; c.restore()
         p.color = 0xFFFFFFFF.toInt()
         for (i in 0..3) { p.alpha = (110 + 140 * (0.5f + 0.5f * sin(t * 2f + i * 1.7f))).toInt(); c.drawCircle(68f + i * 6f, 22f + (i % 2) * 18f, 2.2f, p) }

@@ -70,7 +70,7 @@ class RailAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, type: Int): VH {
         val ctx = parent.context
-        val dot = View(ctx).apply { background = dotShape(0x66FFFFFF); alpha = 0f }
+        val dot = View(ctx).apply { background = dotShape(0x66FFFFFF); alpha = 0f; importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO }
         val name = TextView(ctx).apply {
             sizePx(s.px(46f)); setTextColor(T.TEXT); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
             textAlignment = View.TEXT_ALIGNMENT_VIEW_START; typeface = Fonts.light; includeFontPadding = false; alpha = 0.42f

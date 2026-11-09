@@ -14,6 +14,8 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
+      - name: Unit tests
+        run: ./gradlew testDebugUnitTest --no-daemon
       - name: Build and lint
         run: ./gradlew assembleRelease lintRelease --no-daemon
       - uses: actions/upload-artifact@v5

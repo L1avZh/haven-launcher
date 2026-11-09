@@ -18,7 +18,6 @@ import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.StateListDrawable
 import android.os.Handler
 import android.os.Looper
-import android.util.LruCache
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
@@ -33,7 +32,9 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.Executors
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
 
 /** The UI is laid out on a 1920x1080 grid and scaled to the real window, whatever the density says. */
 class Scale(ctx: Context) {
@@ -81,23 +82,45 @@ class AnchorLayoutManager(ctx: Context, private val cell: Int) : LinearLayoutMan
 
 /** Decodes banners/icons off the main thread into fixed-size bitmaps and remembers each app's accent colour. */
 class IconLoader(private val pm: PackageManager) {
-    private val cache = object : LruCache<String, Bitmap>(12 * 1024 * 1024) {
-        override fun sizeOf(k: String, v: Bitmap) = v.byteCount
-    }
+    private val cache = ArtCache<Bitmap>(12L * 1024 * 1024) { it.byteCount.toLong() }
     private val accents = ConcurrentHashMap<String, Int>()
-    private val pool = Executors.newFixedThreadPool(2)
+    /** Bumped when a package changes, so a decode that started before the change cannot put stale art back. */
+    private val epochs = ConcurrentHashMap<String, Int>()
+    private val pool = ThreadPoolExecutor(1, 2, 10, TimeUnit.SECONDS, LinkedBlockingQueue<Runnable>(8), ThreadPoolExecutor.DiscardOldestPolicy())
     private val main = Handler(Looper.getMainLooper())
+    @Volatile private var closed = false
 
     fun accent(key: String): Int? = accents[key]
 
-    fun load(e: AppEntry, w: Int, h: Int, done: (Bitmap?) -> Unit) {
+    /** Cancel a request whose answer is no longer wanted; a queued decode is skipped, a running one is not delivered. */
+    class Request internal constructor() { @Volatile internal var cancelled = false; fun cancel() { cancelled = true } }
+
+    /** An app was installed, updated or removed: forget just its artwork and accent. */
+    fun invalidate(pkg: String) {
+        epochs.merge(pkg, 1) { a, b -> a + b }
+        cache.removePackage(pkg)
+        accents.keys.removeAll { it.startsWith("$pkg/") }
+    }
+
+    /** Stop background work and drop everything; further calls do nothing. */
+    fun close() { closed = true; pool.shutdownNow(); cache.clear(); accents.clear() }
+
+    fun load(e: AppEntry, w: Int, h: Int, done: (Bitmap?) -> Unit): Request {
+        val req = Request()
+        if (closed) return req
         val k = "${e.key}@${w}x$h"
-        cache.get(k)?.let { done(it); return }
-        pool.execute {
-            val bmp = try { render(e, w, h) } catch (_: Exception) { null }
-            if (bmp != null) cache.put(k, bmp)
-            main.post { done(bmp) }
-        }
+        cache.get(k)?.let { done(it); return req }
+        val epoch = epochs[e.pkg] ?: 0
+        try {
+            pool.execute {
+                if (req.cancelled || closed) return@execute
+                val bmp = try { render(e, w, h) } catch (_: Exception) { null }
+                if ((epochs[e.pkg] ?: 0) != epoch) accents.remove(e.key)
+                else if (bmp != null && !closed) cache.put(k, bmp)
+                main.post { if (!req.cancelled && !closed) done(bmp) }
+            }
+        } catch (_: java.util.concurrent.RejectedExecutionException) { /* closed while queuing */ }
+        return req
     }
 
     private fun render(e: AppEntry, w: Int, h: Int): Bitmap {
@@ -311,7 +334,7 @@ fun Activity.showMenu(s: Scale, title: String, items: List<MenuItem>, focus: Int
             isFocusable = true; isClickable = true
             setPaddingRelative(s.px(14), s.px(16), s.px(24), s.px(16))
             background = StateListDrawable().apply {
-                addState(intArrayOf(android.R.attr.state_focused), rounded(0x26FFFFFF, s.px(T.R_ROW)))
+                addState(intArrayOf(android.R.attr.state_focused), rounded(0x33FFFFFF, s.px(T.R_ROW), 0x99FFFFFF.toInt(), s.px(2)))
                 addState(intArrayOf(), rounded(Color.TRANSPARENT, s.px(T.R_ROW)))
             }
             setOnClickListener { item.action(d) }

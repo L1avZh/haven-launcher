@@ -63,21 +63,17 @@ class Prefs(ctx: Context) {
         set(v) { sp.edit().putBoolean("numbers_open_favs", v).apply() }
 
     var bindings: List<Binding>
-        get() = (sp.getString("bindings", "") ?: "").split('\n').mapNotNull {
-            val p = it.split('|'); if (p.size < 2 || p[0].toIntOrNull() == null) null else Binding(p[0].toInt(), p[1], p.getOrElse(2) { "" }, p.getOrElse(3) { "0" } == "1")
-        }
-        set(v) { sp.edit().putString("bindings", v.joinToString("\n") { "${it.key}|${it.action}|${it.arg}|${if (it.long) 1 else 0}" }).apply() }
+        get() = PrefCodecs.parseBindings(sp.getString("bindings", "") ?: "")
+        set(v) { sp.edit().putString("bindings", PrefCodecs.formatBindings(v)).apply() }
 
     /** When each app was last opened from Haven (key to epoch millis). Local only; powers the Recent list. */
     val launchLog: Map<String, Long>
-        get() = (sp.getString("launch_log", "") ?: "").split('\n').mapNotNull {
-            val p = it.split('|'); if (p.size == 2 && p[1].toLongOrNull() != null) p[0] to p[1].toLong() else null
-        }.toMap()
+        get() = PrefCodecs.parseLaunchLog(sp.getString("launch_log", "") ?: "")
 
     fun recordLaunch(key: String) {
         val m = launchLog.toMutableMap(); m[key] = System.currentTimeMillis()
         val keep = m.entries.sortedByDescending { it.value }.take(40)
-        sp.edit().putString("launch_log", keep.joinToString("\n") { "${it.key}|${it.value}" }).apply()
+        sp.edit().putString("launch_log", PrefCodecs.formatLaunchLog(keep)).apply()
     }
 
     fun resetRemote() { sp.edit().remove("bindings").remove("mappings_enabled").remove("numbers_open_favs").apply() }

@@ -53,6 +53,8 @@ class LiveBackground(ctx: Context) : View(ctx), Choreographer.FrameCallback {
     private val LW = 192
     private val LH = 108
     private var lo: Bitmap? = null
+    private val density = resources.displayMetrics.density
+    private var tint = 0
     private var loCanvas: Canvas? = null
     private val src = Rect()
     private val dst = Rect()
@@ -85,6 +87,7 @@ class LiveBackground(ctx: Context) : View(ctx), Choreographer.FrameCallback {
     }
 
     private fun rebuild() {
+        tint = shifted(0f)
         if (width == 0) return
         val m = maxOf(LW, LH).toFloat()
         blobs.forEachIndexed { i, b ->
@@ -115,14 +118,13 @@ class LiveBackground(ctx: Context) : View(ctx), Choreographer.FrameCallback {
             }
             c.drawBitmap(bmp, src, dst, blit)
         }
-        val tint = shifted(0f)
         for (i in motes.indices step 4) {
             val prog = (motes[i + 1] + t * motes[i + 2]) % 1f
             val x = w * (motes[i] + 0.03f * sin(t * 0.4f + motes[i + 1] * 9f))
             val y = h * (1.05f - prog * 1.1f)
             val tw = sin(prog * PI.toFloat()).coerceIn(0f, 1f)
             mote.color = (tint and 0xFFFFFF) or (((26 + 70 * energy) * tw).toInt() shl 24)
-            c.drawCircle(x, y, motes[i + 3] * resources.displayMetrics.density * 0.9f, mote)
+            c.drawCircle(x, y, motes[i + 3] * density * 0.9f, mote)
         }
         c.drawRect(0f, 0f, w, h, shade)
         ambient?.let { sky -> weatherFall(c, w, h, sky) }
@@ -130,7 +132,7 @@ class LiveBackground(ctx: Context) : View(ctx), Choreographer.FrameCallback {
 
     private fun weatherFall(c: Canvas, w: Float, h: Float, sky: Sky) {
         val snow = sky == Sky.SNOW
-        val d = resources.displayMetrics.density
+        val d = density
         fall.color = if (snow) 0xFFFFFFFF.toInt() else 0xFFBFD8FF.toInt()
         fall.strokeWidth = (if (snow) 3.2f else 1.6f) * d
         val n = if (snow) 46 else 70
@@ -176,4 +178,5 @@ class LiveBackground(ctx: Context) : View(ctx), Choreographer.FrameCallback {
     override fun onVisibilityChanged(v: View, vis: Int) { super.onVisibilityChanged(v, vis); if (vis == VISIBLE) ensureRunning() else stop() }
     override fun onWindowVisibilityChanged(vis: Int) { super.onWindowVisibilityChanged(vis); if (vis == VISIBLE) ensureRunning() else stop() }
     override fun hasOverlappingRendering() = false
+    init { importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }
 }

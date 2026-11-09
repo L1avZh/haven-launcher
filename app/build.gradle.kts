@@ -27,4 +27,8 @@ android {
 
 dependencies {
     implementation("androidx.recyclerview:recyclerview:1.4.0")
+
+    // Test-only: JVM unit tests for the pure logic (request gate, caches, preference formats, JSON parsing).
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20240303")
 }
