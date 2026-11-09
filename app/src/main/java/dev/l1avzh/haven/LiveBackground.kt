@@ -189,6 +189,7 @@ class LiveBackground(ctx: Context) : View(ctx), Choreographer.FrameCallback {
     override fun onAttachedToWindow() { super.onAttachedToWindow(); ensureRunning() }
     override fun onDetachedFromWindow() { stop(); super.onDetachedFromWindow() }
     override fun onVisibilityChanged(v: View, vis: Int) { super.onVisibilityChanged(v, vis); if (vis == VISIBLE) ensureRunning() else stop() }
+    override fun onVisibilityAggregated(visible: Boolean) { super.onVisibilityAggregated(visible); if (visible) ensureRunning() else stop() }
     override fun onWindowVisibilityChanged(vis: Int) { super.onWindowVisibilityChanged(vis); if (vis == VISIBLE) ensureRunning() else stop() }
     override fun hasOverlappingRendering() = false
     init { importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }

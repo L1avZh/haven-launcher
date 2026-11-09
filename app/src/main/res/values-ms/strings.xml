@@ -206,6 +206,21 @@
     <string name="wx_storm">Ribut</string>
     <string name="priv_net_weather">Widget cuaca sahaja (open-meteo.com)</string>
     <string name="priv_perm_internet">Internet, untuk widget cuaca pilihan</string>
+    <string name="cat_character">Watak</string>
+    <string name="d_character">Teman anda di skrin</string>
+    <string name="show_character">Tunjuk watak</string>
+    <string name="show_character_d">Matikan untuk menyembunyikan watak 3D dan menjimatkan sedikit kuasa.</string>
+    <string name="character_studio">Studio Watak</string>
+    <string name="studio_outfit">Pakaian</string>
+    <string name="studio_prop">Prop</string>
+    <string name="outfit_courier">Kurier</string>
+    <string name="outfit_runner">Pelari</string>
+    <string name="outfit_astral">Astral</string>
+    <string name="prop_lantern">Tanglung</string>
+    <string name="prop_tablet">Tablet</string>
+    <string name="prop_compass">Kompas</string>
+    <string name="prop_none">Tiada</string>
+    <string name="studio_apply">Guna</string>
     <plurals name="apps_count">
         <item quantity="other">%d apl</item>
     </plurals>

@@ -206,6 +206,21 @@
     <string name="wx_storm">Badai</string>
     <string name="priv_net_weather">Hanya widget cuaca (open-meteo.com)</string>
     <string name="priv_perm_internet">Internet, untuk widget cuaca opsional</string>
+    <string name="cat_character">Karakter</string>
+    <string name="d_character">Teman di layar Anda</string>
+    <string name="show_character">Tampilkan karakter</string>
+    <string name="show_character_d">Matikan untuk menyembunyikan karakter 3D dan menghemat sedikit daya.</string>
+    <string name="character_studio">Studio Karakter</string>
+    <string name="studio_outfit">Pakaian</string>
+    <string name="studio_prop">Properti</string>
+    <string name="outfit_courier">Kurir</string>
+    <string name="outfit_runner">Pelari</string>
+    <string name="outfit_astral">Astral</string>
+    <string name="prop_lantern">Lentera</string>
+    <string name="prop_tablet">Tablet</string>
+    <string name="prop_compass">Kompas</string>
+    <string name="prop_none">Tidak ada</string>
+    <string name="studio_apply">Terapkan</string>
     <plurals name="apps_count">
         <item quantity="other">%d aplikasi</item>
     </plurals>

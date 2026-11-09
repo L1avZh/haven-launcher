@@ -1,5 +1,6 @@
 ## 1.6
 
+- New home composition: a rigged 3D character ("the Warden") on the start side, the stage in the middle and the app rail at the end. Character Studio for outfits and props, input-driven reactions, saved locally. Adds Filament (about +10 MB, native libraries for armeabi-v7a and arm64-v8a).
 - "Haven Aurora" visual pass: obsidian ground with cyan/violet aurora light that blends with the focused app's accent, glass tabs and capsule focus on the rail, a lit artwork card with a soft halo, restyled settings and menus, press feedback on OK, and a slide-in when the scope changes.
 - Fast D-pad bursts on the app rail now land exactly where expected, and a crash when focus reached a scope tab mid-scroll is fixed.
 - All widget, screensaver and weather strings translated into the 50 languages; the weather widget shows the city name in the app's language.

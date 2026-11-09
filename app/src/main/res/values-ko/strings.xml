@@ -206,6 +206,21 @@
     <string name="wx_storm">뇌우</string>
     <string name="priv_net_weather">날씨 위젯만 (open-meteo.com)</string>
     <string name="priv_perm_internet">인터넷, 선택 사항인 날씨 위젯용</string>
+    <string name="cat_character">캐릭터</string>
+    <string name="d_character">화면 속 나의 동반자</string>
+    <string name="show_character">캐릭터 표시</string>
+    <string name="show_character_d">끄면 3D 캐릭터가 숨겨져 전력을 조금 절약합니다.</string>
+    <string name="character_studio">캐릭터 스튜디오</string>
+    <string name="studio_outfit">의상</string>
+    <string name="studio_prop">소품</string>
+    <string name="outfit_courier">배달원</string>
+    <string name="outfit_runner">러너</string>
+    <string name="outfit_astral">아스트랄</string>
+    <string name="prop_lantern">랜턴</string>
+    <string name="prop_tablet">태블릿</string>
+    <string name="prop_compass">나침반</string>
+    <string name="prop_none">없음</string>
+    <string name="studio_apply">적용</string>
     <plurals name="apps_count">
         <item quantity="other">앱 %d개</item>
     </plurals>

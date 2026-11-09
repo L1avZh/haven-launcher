@@ -139,6 +139,19 @@ class Prefs(ctx: Context) {
         get() = sp.getString("weather_cache", "") ?: ""
         set(v) { sp.edit().putString("weather_cache", v).apply() }
 
+    /** The 3D character: shown by default; outfit and prop are stable ids (see [Look]) with safe fallbacks. */
+    var characterEnabled: Boolean
+        get() = sp.getBoolean("char_enabled", true)
+        set(v) { sp.edit().putBoolean("char_enabled", v).apply() }
+
+    var characterOutfit: String
+        get() = Look.outfit(sp.getString("char_outfit", null))
+        set(v) { sp.edit().putString("char_outfit", Look.outfit(v)).apply() }
+
+    var characterProp: String
+        get() = Look.prop(sp.getString("char_prop", null))
+        set(v) { sp.edit().putString("char_prop", Look.prop(v)).apply() }
+
     var showSystemApps: Boolean
         get() = sp.getBoolean("show_system_apps", true)
         set(v) { sp.edit().putBoolean("show_system_apps", v).apply() }

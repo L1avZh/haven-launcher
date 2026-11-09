@@ -32,7 +32,7 @@ Other useful tasks:
 | Application id | `dev.l1avzh.haven` |
 | minSdk / targetSdk / compileSdk | 26 / 34 / 35 |
 | Language | Kotlin, plain Android views (no Compose, no AppCompat) |
-| Dependencies | `androidx.recyclerview:recyclerview:1.4.0` (Kotlin stdlib comes with the build) |
+| Dependencies | `androidx.recyclerview:recyclerview:1.4.0`, `com.google.android.filament:filament-android:1.69.5`, `gltfio-android:1.69.5` (Kotlin stdlib comes with the build). Tests: JUnit 4.13.2 and org.json |
 
 ## Languages
 

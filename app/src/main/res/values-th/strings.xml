@@ -206,6 +206,21 @@
     <string name="wx_storm">พายุ</string>
     <string name="priv_net_weather">เฉพาะวิดเจ็ตสภาพอากาศ (open-meteo.com)</string>
     <string name="priv_perm_internet">อินเทอร์เน็ต สำหรับวิดเจ็ตสภาพอากาศที่เลือกใช้</string>
+    <string name="cat_character">ตัวละคร</string>
+    <string name="d_character">เพื่อนคู่หูบนหน้าจอของคุณ</string>
+    <string name="show_character">แสดงตัวละคร</string>
+    <string name="show_character_d">ปิดเพื่อซ่อนตัวละคร 3D และประหยัดพลังงานเล็กน้อย</string>
+    <string name="character_studio">สตูดิโอตัวละคร</string>
+    <string name="studio_outfit">ชุด</string>
+    <string name="studio_prop">อุปกรณ์ประกอบ</string>
+    <string name="outfit_courier">คนส่งสาร</string>
+    <string name="outfit_runner">นักวิ่ง</string>
+    <string name="outfit_astral">แอสทรัล</string>
+    <string name="prop_lantern">โคมไฟ</string>
+    <string name="prop_tablet">แท็บเล็ต</string>
+    <string name="prop_compass">เข็มทิศ</string>
+    <string name="prop_none">ไม่มี</string>
+    <string name="studio_apply">ใช้</string>
     <plurals name="apps_count">
         <item quantity="other">%d แอป</item>
     </plurals>

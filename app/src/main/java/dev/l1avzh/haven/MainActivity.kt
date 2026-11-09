@@ -56,6 +56,8 @@ class MainActivity : Activity() {
     private lateinit var stageMeta: TextView
     private lateinit var stageEmpty: TextView
     private lateinit var scopeHero: ScopeHero
+    private var character: CharacterView? = null
+    private lateinit var platform: View
     private lateinit var artCardView: FrameLayout
     private lateinit var artHalo: View
     private lateinit var btnOpen: TextView
@@ -97,7 +99,7 @@ class MainActivity : Activity() {
     private lateinit var dimView: View
     private lateinit var timeClock: TextClock
     private lateinit var clockCol: LinearLayout
-    private var artW = 960
+    private var artW = 680
     private val accentColors = intArrayOf(0xFF6C8CFF.toInt(), 0xFF4CD6A0.toInt(), 0xFFFF7A6B.toInt(), 0xFFF2B84B.toInt(), 0xFFA77BFF.toInt())
 
     private val pkgReceiver = object : BroadcastReceiver() {
@@ -120,8 +122,10 @@ class MainActivity : Activity() {
         rtl = Lang.isRtl(this)
         Fonts.init(this)
         T.init(this, prefs.animLevel, prefs.performance)
-        artW = intArrayOf(800, 960, 1112)[prefs.cardSize]
+        artW = intArrayOf(600, 680, 740)[prefs.cardSize]
         buildUi()
+        syncCharacter()
+        frame.viewTreeObserver.addOnGlobalFocusChangeListener { _, now -> if (now != null) onFocusMoved(now) }
         registerReceiver(pkgReceiver, IntentFilter().apply {
             addAction(Intent.ACTION_PACKAGE_ADDED); addAction(Intent.ACTION_PACKAGE_REMOVED)
             addAction(Intent.ACTION_PACKAGE_CHANGED); addAction(Intent.ACTION_PACKAGE_REPLACED)
@@ -130,13 +134,19 @@ class MainActivity : Activity() {
         loadApps()
     }
 
+    override fun onStart() { super.onStart(); if (settings == null) character?.start() }
+
     override fun onDestroy() {
+        character?.destroy(); character = null
         unregisterReceiver(pkgReceiver)
         main.removeCallbacksAndMessages(null)
         loader.shutdownNow(); icons.close()
         super.onDestroy()
     }
     override fun onStop() {
+        character?.stop()
+        studio?.let { frame.removeView(it) }; studio = null
+        homeContent.alpha = 1f; character?.apply { scaleX = 1f; scaleY = 1f; translationX = 0f }; platform.translationX = 0f
         dialogs.toList().forEach { it.dismiss() }; dialogs.clear()
         egg?.let { frame.removeView(it) }; egg = null
         main.removeCallbacks(saverRun); stopSaver()
@@ -147,7 +157,7 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
-        T.init(this, prefs.animLevel, prefs.performance)
+        T.init(this, prefs.animLevel, prefs.performance); syncCharacter()
         if (loaded) render()
         if (currentFocus == null) restoreFocus()
         armSaver()
@@ -162,7 +172,7 @@ class MainActivity : Activity() {
     }
 
     @Deprecated("Back never leaves the launcher; it returns to the start position.")
-    override fun onBackPressed() { if (egg != null) closeEgg() else settings?.back() ?: focusStart() }
+    override fun onBackPressed() { if (egg != null) closeEgg() else if (studio != null) studio?.back() else settings?.back() ?: focusStart() }
 
     private lateinit var widgetHost: FrameLayout
     private fun applyWidgets() {
@@ -194,6 +204,7 @@ class MainActivity : Activity() {
     override fun dispatchKeyEvent(e: KeyEvent): Boolean {
         if (saverView != null) { if (e.action == KeyEvent.ACTION_DOWN && e.repeatCount == 0) { stopSaver(); armSaver() }; return true }
         armSaver()
+        observeKey(e)
         overlay?.let { return it.onKey(e, getString(R.string.yes), KeyOverlay.Labels(getString(R.string.test_code), getString(R.string.test_device), getString(R.string.test_usable))) }
         if (egg != null) { if (e.action == KeyEvent.ACTION_DOWN && e.repeatCount == 0) closeEgg(); return true }
         if (dialogs.isEmpty() && settings == null) {
@@ -207,6 +218,71 @@ class MainActivity : Activity() {
         if (e.action == KeyEvent.ACTION_DOWN && e.repeatCount == 0 && dialogs.isEmpty() && settings == null && konami(e.keyCode)) return true
         if (e.action == KeyEvent.ACTION_DOWN && e.repeatCount == 0 && dialogs.isEmpty() && settings == null && remoteKey(e)) return true
         return super.dispatchKeyEvent(e)
+    }
+
+    // ---------- Character: what the remote does, as the character sees it ----------
+
+    /** Reduced motion and performance settings reach the character through the same motion factor as every other animation. */
+    private fun syncCharacter() { character?.let { it.motion = T.motion; it.frameGapMs = if (prefs.performance) 48L else 30L } }
+
+    /** Observes keys without consuming them: OK and Back become reactions, a held OK becomes one long-press reaction. */
+    private fun observeKey(e: KeyEvent) {
+        val c = character ?: return
+        if (e.action != KeyEvent.ACTION_DOWN) return
+        when (e.keyCode) {
+            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER, KeyEvent.KEYCODE_NUMPAD_ENTER ->
+                if (e.repeatCount == 0) c.input(CharInput.Key(KeyKind.OK)) else if (e.repeatCount == 1) c.longPress()
+            KeyEvent.KEYCODE_BACK -> if (e.repeatCount == 0) c.input(CharInput.Key(KeyKind.BACK))
+        }
+    }
+
+    /** Tells the character where focus went, relative to where its head is, so it can glance that way. */
+    private fun onFocusMoved(v: View) {
+        val c = character ?: return
+        if (v === c || frame.width == 0) return
+        val loc = IntArray(2); v.getLocationOnScreen(loc)
+        val cl = IntArray(2); c.getLocationOnScreen(cl)
+        val g = gazeFromScreen(loc[0] + v.width / 2f, loc[1] + v.height / 2f, frame.width, frame.height, cl[0] + c.width / 2f, cl[1] + c.height * 0.17f)
+        c.input(CharInput.Focus(g.first, g.second))
+    }
+
+    /** A full-screen page (Settings) covers the home scene: hide it so the background, hero and character stop drawing. */
+    private fun setSceneVisible(on: Boolean) {
+        val v = if (on) View.VISIBLE else View.INVISIBLE
+        glowView.visibility = if (on && prefs.glow) View.VISIBLE else if (on) View.GONE else View.INVISIBLE
+        platform.visibility = v; homeContent.visibility = v; character?.visibility = v
+        if (on) character?.start()
+    }
+
+    private var studio: CharacterStudio? = null
+
+    private fun openStudio() {
+        val c = character ?: return
+        if (studio != null || settings != null) return
+        dialogs.toList().forEach { it.dismiss() }
+        val st = CharacterStudio(this, s, c, prefs.characterOutfit, prefs.characterProp,
+            { o, p -> prefs.characterOutfit = o; prefs.characterProp = p; c.setLookKept(o, p); c.input(CharInput.Studio(StudioAction.APPLY)); closeStudio() },
+            { c.equip(prefs.characterOutfit, prefs.characterProp); c.input(CharInput.Studio(StudioAction.CANCEL)); closeStudio() })
+        studio = st
+        homeContent.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
+        c.input(CharInput.ScreenChanged)
+        // The studio replaces the home content; the character steps forward into the space that frees up.
+        homeContent.animate().cancel(); homeContent.animate().alpha(0f).setDuration(T.d(T.MED)).start()
+        c.pivotX = c.width / 2f; c.pivotY = c.height.toFloat()
+        val k = 1f + 0.10f * T.motion; val dx = (if (rtl) -1 else 1) * s.px(150f) * T.motion
+        c.animate().cancel(); c.animate().scaleX(k).scaleY(k).translationX(dx).setDuration(T.d(T.MED + 80)).setInterpolator(T.OUT).start()
+        platform.animate().cancel(); platform.animate().translationX(dx).setDuration(T.d(T.MED + 80)).setInterpolator(T.OUT).start()
+        frame.addView(st, -1, -1)
+    }
+
+    private fun closeStudio() {
+        val st = studio ?: return
+        studio = null
+        homeContent.descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
+        homeContent.animate().cancel(); homeContent.animate().alpha(1f).setDuration(T.d(T.MED)).start()
+        character?.let { c -> c.animate().cancel(); c.animate().scaleX(1f).scaleY(1f).translationX(0f).setDuration(T.d(T.MED + 80)).setInterpolator(T.OUT).start() }
+        platform.animate().cancel(); platform.animate().translationX(0f).setDuration(T.d(T.MED + 80)).setInterpolator(T.OUT).start()
+        st.close { frame.removeView(st); restoreFocus() }
     }
 
     // ---------- Remote control: mappings, number keys, tester ----------
@@ -347,9 +423,23 @@ class MainActivity : Activity() {
         dimView = View(this).apply { setBackgroundColor(dimColor()) }
         frame.addView(wallpaperView, -1, -1); frame.addView(glowView, -1, -1); frame.addView(dimView, -1, -1)
 
+        // The character stands on the start side (left in LTR, right in RTL), on a pool of light, behind all controls.
+        platform = View(this).apply {
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            background = GradientDrawable().apply { gradientType = GradientDrawable.RADIAL_GRADIENT; gradientRadius = s.px(300f).toFloat(); colors = intArrayOf(0x663A3FB5, 0x2238D8F0, 0x00000000) }
+            scaleY = 0.28f
+        }
+        frame.addView(platform, FrameLayout.LayoutParams(s.px(620), s.px(620), Gravity.START or Gravity.BOTTOM).apply { marginStart = s.px(40); bottomMargin = -s.px(235) })
+        if (prefs.characterEnabled) {
+            character = CharacterView(this).also {
+                it.setLook(prefs.characterOutfit, prefs.characterProp); it.motion = T.motion
+                frame.addView(it, FrameLayout.LayoutParams(s.px(700), s.px(960), Gravity.START or Gravity.BOTTOM).apply { bottomMargin = s.px(50) })
+            }
+        }
+
         homeContent = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL; clipChildren = false; clipToPadding = false
-            setPaddingRelative(s.px(T.MARGIN), s.px(40), s.px(T.MARGIN), 0)
+            orientation = LinearLayout.VERTICAL; clipChildren = false; clipToPadding = false
+            setPaddingRelative(s.px(T.MARGIN), s.px(36), s.px(T.MARGIN), 0)
         }
         frame.addView(homeContent, -1, -1)
         setContentView(frame)
@@ -368,7 +458,7 @@ class MainActivity : Activity() {
         clockCol.visibility = if (prefs.showClock) View.VISIBLE else View.INVISIBLE
 
         val tabRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        listOf(R.string.favorites, R.string.recent, R.string.library).forEachIndexed { i, res -> tabRow.addView(tab(i, getString(res)), LinearLayout.LayoutParams(-2, -2).apply { marginEnd = s.px(8) }) }
+        listOf(R.string.favorites, R.string.recent, R.string.library).forEachIndexed { i, res -> tabRow.addView(tab(i, getString(res)), LinearLayout.LayoutParams(-2, -2).apply { marginEnd = s.px(4) }) }
 
         railAdapter = RailAdapter(s, ::onRailFocus, ::onTile, { if (!okHeldIsBound()) menuFor(it) }, { btnOpen.requestFocus() }, { tabs[scope].requestFocus() })
         rail = RailView(this).apply {
@@ -383,22 +473,23 @@ class MainActivity : Activity() {
         }
         railBox = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL; clipChildren = false
-            addView(clockCol)
-            addView(tabRow, LinearLayout.LayoutParams(-1, -2).apply { topMargin = s.px(26); marginStart = -s.px(26) })
+            addView(tabRow, LinearLayout.LayoutParams(-1, -2))
             addView(rail, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = s.px(10) })
         }
-        homeContent.addView(railBox, LinearLayout.LayoutParams(s.px(560), -1))
 
         // ----- Stage: big artwork, name, last-opened line, and the actions for the focused app.
         widgetHost = FrameLayout(this).apply { clipChildren = false }
         applyWidgets()
         header = LinearLayout(this).apply {
-            gravity = Gravity.CENTER_VERTICAL or Gravity.END
+            gravity = Gravity.CENTER_VERTICAL
+            addView(clockCol, LinearLayout.LayoutParams(s.px(560 + 48), -2))     // widgets then line up with the stage
             addView(widgetHost, LinearLayout.LayoutParams(0, -1, 1f))
             addView(iconButton(R.drawable.ic_home, getString(R.string.back_to_start)) { focusStart() })
             addView(iconButton(R.drawable.ic_search, getString(R.string.search)) { openSearch() })
+            if (character != null) addView(iconButton(R.drawable.ic_character, getString(R.string.character_studio)) { openStudio() })
             addView(iconButton(R.drawable.ic_settings, getString(R.string.settings)) { openSettings() })
         }
+        homeContent.addView(header, LinearLayout.LayoutParams(-1, s.px(96)))
         val artH = artW * 9 / 16
         val radius = s.px(28f)
         stageArt = ImageView(this).apply { scaleType = ImageView.ScaleType.FIT_XY }
@@ -447,8 +538,8 @@ class MainActivity : Activity() {
             listOf(btnOpen, btnFav, btnMore).forEach { b ->
                 addView(b, LinearLayout.LayoutParams(-2, -2).apply { marginEnd = s.px(14) })
                 b.setOnKeyListener { _, code, e ->
-                    val toRail = if (rtl) KeyEvent.KEYCODE_DPAD_RIGHT else KeyEvent.KEYCODE_DPAD_LEFT
-                    if (e.action == KeyEvent.ACTION_DOWN && code == toRail && b === btnOpen) { focusRail(lastIdx[scope]); true } else false
+                    val toRail = if (rtl) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT
+                    if (e.action == KeyEvent.ACTION_DOWN && code == toRail && b === btnMore) { focusRail(lastIdx[scope]); true } else false
                 }
             }
         }
@@ -467,7 +558,6 @@ class MainActivity : Activity() {
         scopeHero = ScopeHero(this, s).apply { visibility = View.GONE }
         val stageCol = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL; clipChildren = false
-            addView(header, LinearLayout.LayoutParams(-1, s.px(84)))
             addView(FrameLayout(this@MainActivity).apply {
                 clipChildren = false
                 addView(stageBody, FrameLayout.LayoutParams(-2, -2))
@@ -475,7 +565,14 @@ class MainActivity : Activity() {
             }, LinearLayout.LayoutParams(-2, -2).apply { topMargin = s.px(14) })
             addView(stageEmpty, LinearLayout.LayoutParams(s.px(artW), -2).apply { topMargin = s.px(160) })
         }
-        homeContent.addView(stageCol, LinearLayout.LayoutParams(0, -1, 1f).apply { marginStart = s.px(56) })
+        // body: [space for the character] [stage] [rail]
+        val body = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL; clipChildren = false
+            addView(View(this@MainActivity), LinearLayout.LayoutParams(s.px(560), -1))
+            addView(stageCol, LinearLayout.LayoutParams(0, -1, 1f).apply { marginStart = s.px(48) })
+            addView(railBox, LinearLayout.LayoutParams(s.px(420), -1).apply { marginStart = s.px(32) })
+        }
+        homeContent.addView(body, LinearLayout.LayoutParams(-1, 0, 1f))
         stageBody.visibility = View.INVISIBLE
 
         if (T.animated) listOf(railBox, header, stageBody).forEach { it.alpha = 0f; it.translationY = s.px(26f) }
@@ -483,11 +580,11 @@ class MainActivity : Activity() {
 
     /** Scope tab: Favorites / Recent / Library. Focusing a tab switches the list immediately. */
     private fun tab(i: Int, label: String): LinearLayout {
-        val txt = TextView(this).apply { text = label; sizePx(s.px(28f)); typeface = Fonts.medium; setTextColor(T.TEXT_DIM); textAlignment = View.TEXT_ALIGNMENT_VIEW_START }
+        val txt = TextView(this).apply { text = label; sizePx(s.px(24f)); typeface = Fonts.medium; setTextColor(T.TEXT_DIM); maxLines = 1; ellipsize = TextUtils.TruncateAt.END; textAlignment = View.TEXT_ALIGNMENT_CENTER }
         val bar = View(this).apply { background = rounded(T.ACCENT, s.px(2f)); alpha = 0f }
         return LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL; isFocusable = true; isClickable = true
-            setPadding(s.px(26), s.px(10), s.px(26), s.px(10))
+            setPadding(s.px(13), s.px(10), s.px(13), s.px(10)); gravity = Gravity.CENTER_HORIZONTAL
             background = StateListDrawable().apply {
                 addState(intArrayOf(android.R.attr.state_focused), rounded(T.GLASS_FOCUS, s.px(T.R_PILL), T.RING, s.px(T.RING_PX)))
                 addState(intArrayOf(android.R.attr.state_selected), rounded(T.GLASS, s.px(T.R_PILL), T.HAIRLINE, s.px(1)))
@@ -587,6 +684,7 @@ class MainActivity : Activity() {
     private fun scopeItems(): List<AppEntry> = when (scope) { 0 -> favList; 1 -> recentList; else -> allList }
 
     private fun setScope(i: Int) {
+        if (scope != i) character?.input(CharInput.ScreenChanged)
         scope = i
         updateTabs()
         // Fast D-pad movement can hand focus to a tab while the rail is still laying out; RecyclerView refuses
@@ -687,10 +785,11 @@ class MainActivity : Activity() {
             main.post {
                 if (gen != loadGen || isDestroyed) return@post
                 all = apps
+                val firstLoad = !loaded
                 if (!prefs.seeded) prefs.favorites = AppRepo.seedFavorites(apps)
-                if (!loaded) { loaded = true; scope = if (prefs.favorites.any { k -> all.any { it.key == k && k !in prefs.hidden } }) 0 else 2 }
+                if (!loaded) { loaded = true; scope = if (prefs.favorites.any { k -> all.any { it.key == k && k !in prefs.hidden } }) 0 else 2; updateTabs() }
                 render()
-                if (currentFocus == null) restoreFocus()
+                if (firstLoad || currentFocus == null) restoreFocus()
                 frame.post { playEntrance() }
                 if (prefs.reopenSettings) { prefs.reopenSettings = false; openSettings() }
                 focusedEntry?.let { fe -> if (changedPkgs.isNotEmpty() && fe.pkg in changedPkgs) all.firstOrNull { it.key == fe.key }?.let { showStage(it) } }
@@ -806,9 +905,11 @@ class MainActivity : Activity() {
     private fun openSettings(cat: Int = prefs.settingsCategory) {
         if (settings != null) return
         dialogs.toList().forEach { it.dismiss() }
-        val sc = SettingsScreen(this, s, getString(R.string.settings), categories(), cat, { prefs.settingsCategory = it }) { closeSettings() }
+        val sc = SettingsScreen(this, s, getString(R.string.settings), categories(), cat, { prefs.settingsCategory = it; character?.input(CharInput.ScreenChanged) }) { closeSettings() }
         settings = sc
         homeContent.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
+        character?.input(CharInput.ScreenChanged)
+        main.postDelayed({ if (settings != null) setSceneVisible(false) }, T.d(T.MED + 80))   // settings covers the scene: stop drawing it
         sc.show(frame)
     }
 
@@ -816,6 +917,7 @@ class MainActivity : Activity() {
         val sc = settings ?: return
         settings = null
         homeContent.descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
+        setSceneVisible(true); character?.input(CharInput.ScreenChanged)
         sc.close { frame.removeView(sc); restoreFocus() }
     }
 
@@ -869,9 +971,9 @@ class MainActivity : Activity() {
         ) }
         val display = Category(R.drawable.ic_cat_display, g(R.string.cat_display), g(R.string.d_display)) { listOf(
             Choice(g(R.string.animation), g(R.string.animation_d), listOf(g(R.string.anim_full), g(R.string.anim_subtle), g(R.string.off)),
-                { 2 - prefs.animLevel }, { prefs.animLevel = 2 - it; T.init(this, prefs.animLevel, prefs.performance) }),
+                { 2 - prefs.animLevel }, { prefs.animLevel = 2 - it; T.init(this, prefs.animLevel, prefs.performance); syncCharacter() }),
             Toggle(g(R.string.accent_glow), g(R.string.accent_glow_d), { prefs.glow }, { prefs.glow = it; applyGlow() }),
-            Toggle(g(R.string.performance), g(R.string.performance_d), { prefs.performance }, { prefs.performance = it; T.init(this, prefs.animLevel, it); applyGlow() }),
+            Toggle(g(R.string.performance), g(R.string.performance_d), { prefs.performance }, { prefs.performance = it; T.init(this, prefs.animLevel, it); syncCharacter(); applyGlow() }),
         ) }
         val adguard = Category(R.drawable.ic_cat_adguard, "AdGuard", g(R.string.d_adguard)) { listOf(
             Info(g(R.string.ag_status), null, if (ag != null) getString(R.string.ag_installed, agVersion) else g(R.string.not_installed)),
@@ -911,7 +1013,11 @@ class MainActivity : Activity() {
             Secret(g(R.string.egg_hint)) { showEgg() },
             if (eggRevealed) Info(g(R.string.egg_sequence), null) else Action(g(R.string.egg_reveal), null) { eggRevealed = true; settings?.refresh() },
         ) }
-        return listOf(general, appearance, widgets, apps, remote, language, display, adguard, privacy, about)
+        val characterCat = Category(R.drawable.ic_character, g(R.string.cat_character), g(R.string.d_character)) { listOf(
+            Toggle(g(R.string.show_character), g(R.string.show_character_d), { prefs.characterEnabled }, { prefs.characterEnabled = it; prefs.reopenSettings = true; main.postDelayed({ recreate() }, T.d(T.MED)) }),
+            Action(g(R.string.character_studio), null) { closeSettings(); main.postDelayed({ openStudio() }, T.d(T.FAST + 120)) },
+        ) }
+        return listOf(general, appearance, characterCat, widgets, apps, remote, language, display, adguard, privacy, about)
     }
 
     @Suppress("DEPRECATION")
@@ -1036,14 +1142,16 @@ class MainActivity : Activity() {
 
     // ---------- Focus ----------
 
-    private fun focusRail(idx: Int) {
+    /** Puts focus on a rail row. The row may not exist yet right after a list change or a screen change, so it retries briefly. */
+    private fun focusRail(idx: Int, tries: Int = 14) {
         val n = railAdapter.itemCount
         if (n == 0) return
         val i = idx.coerceIn(0, n - 1)
         rail.scrollToPosition(i)
         rail.post {
             val v = rail.findViewHolderForAdapterPosition(i)?.itemView
-            if (v != null) v.requestFocus() else rail.postDelayed({ rail.findViewHolderForAdapterPosition(i)?.itemView?.requestFocus() }, 100)
+            if (v != null && v.isShown && v.requestFocus()) return@post
+            if (tries > 0) rail.postDelayed({ focusRail(i, tries - 1) }, 50)
         }
     }
 

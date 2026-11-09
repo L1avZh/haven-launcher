@@ -206,6 +206,21 @@
     <string name="wx_storm">Giông bão</string>
     <string name="priv_net_weather">Chỉ tiện ích thời tiết (open-meteo.com)</string>
     <string name="priv_perm_internet">Internet, cho tiện ích thời tiết tùy chọn</string>
+    <string name="cat_character">Nhân vật</string>
+    <string name="d_character">Người bạn đồng hành trên màn hình</string>
+    <string name="show_character">Hiện nhân vật</string>
+    <string name="show_character_d">Tắt để ẩn nhân vật 3D và tiết kiệm một chút điện.</string>
+    <string name="character_studio">Xưởng nhân vật</string>
+    <string name="studio_outfit">Trang phục</string>
+    <string name="studio_prop">Đạo cụ</string>
+    <string name="outfit_courier">Người đưa tin</string>
+    <string name="outfit_runner">Người chạy</string>
+    <string name="outfit_astral">Thiên giới</string>
+    <string name="prop_lantern">Đèn lồng</string>
+    <string name="prop_tablet">Máy tính bảng</string>
+    <string name="prop_compass">La bàn</string>
+    <string name="prop_none">Không</string>
+    <string name="studio_apply">Áp dụng</string>
     <plurals name="apps_count">
         <item quantity="other">%d ứng dụng</item>
     </plurals>

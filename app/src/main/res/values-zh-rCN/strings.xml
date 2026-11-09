@@ -206,6 +206,21 @@
     <string name="wx_storm">雷暴</string>
     <string name="priv_net_weather">仅天气小组件（open-meteo.com）</string>
     <string name="priv_perm_internet">互联网，用于可选的天气小组件</string>
+    <string name="cat_character">角色</string>
+    <string name="d_character">你的屏幕伙伴</string>
+    <string name="show_character">显示角色</string>
+    <string name="show_character_d">关闭后将隐藏 3D 角色并略微节省电量。</string>
+    <string name="character_studio">角色工作室</string>
+    <string name="studio_outfit">服装</string>
+    <string name="studio_prop">道具</string>
+    <string name="outfit_courier">信使</string>
+    <string name="outfit_runner">跑者</string>
+    <string name="outfit_astral">星界</string>
+    <string name="prop_lantern">提灯</string>
+    <string name="prop_tablet">平板</string>
+    <string name="prop_compass">罗盘</string>
+    <string name="prop_none">无</string>
+    <string name="studio_apply">应用</string>
     <plurals name="apps_count">
         <item quantity="other">%d 个应用</item>
     </plurals>

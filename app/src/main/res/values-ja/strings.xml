@@ -206,6 +206,21 @@
     <string name="wx_storm">雷雨</string>
     <string name="priv_net_weather">天気ウィジェットのみ（open-meteo.com）</string>
     <string name="priv_perm_internet">インターネット（任意の天気ウィジェット用）</string>
+    <string name="cat_character">キャラクター</string>
+    <string name="d_character">画面の相棒</string>
+    <string name="show_character">キャラクターを表示</string>
+    <string name="show_character_d">オフにすると 3D キャラクターを隠し、少し節電できます。</string>
+    <string name="character_studio">キャラクタースタジオ</string>
+    <string name="studio_outfit">衣装</string>
+    <string name="studio_prop">小道具</string>
+    <string name="outfit_courier">メッセンジャー</string>
+    <string name="outfit_runner">ランナー</string>
+    <string name="outfit_astral">アストラル</string>
+    <string name="prop_lantern">ランタン</string>
+    <string name="prop_tablet">タブレット</string>
+    <string name="prop_compass">コンパス</string>
+    <string name="prop_none">なし</string>
+    <string name="studio_apply">適用</string>
     <plurals name="apps_count">
         <item quantity="other">%d 個のアプリ</item>
     </plurals>

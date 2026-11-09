@@ -103,7 +103,7 @@ class RailAdapter(
         val ctx = parent.context
         val dot = View(ctx).apply { background = dotShape(0x66FFFFFF); alpha = 0f; importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO }
         val name = TextView(ctx).apply {
-            sizePx(s.px(46f)); setTextColor(T.TEXT); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
+            sizePx(s.px(40f)); setTextColor(T.TEXT); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
             textAlignment = View.TEXT_ALIGNMENT_VIEW_START; typeface = Fonts.light; includeFontPadding = false; alpha = 0.5f
         }
         val row = PressRow(ctx).apply {
@@ -134,8 +134,9 @@ class RailAdapter(
         }
         row.setOnKeyListener { _, code, e ->
             val rtl = row.layoutDirection == View.LAYOUT_DIRECTION_RTL
-            val toStage = if (rtl) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT
-            val away = if (rtl) KeyEvent.KEYCODE_DPAD_RIGHT else KeyEvent.KEYCODE_DPAD_LEFT
+            // the rail sits at the end side of the screen now, so the stage is toward the start
+            val toStage = if (rtl) KeyEvent.KEYCODE_DPAD_RIGHT else KeyEvent.KEYCODE_DPAD_LEFT
+            val away = if (rtl) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT
             if (e.action != KeyEvent.ACTION_DOWN) false
             else when {
                 code == toStage -> { onToStage(); true }
@@ -218,7 +219,7 @@ fun stagePill(ctx: Context, s: Scale, primary: Boolean, label: String, onClick: 
  */
 class ScopeHero(ctx: Context, private val s: Scale) : LinearLayout(ctx) {
     private val title = TextView(ctx).apply {
-        sizePx(s.px(132f)); typeface = Fonts.display; includeFontPadding = false; maxLines = 1
+        sizePx(s.px(104f)); typeface = Fonts.display; includeFontPadding = false; maxLines = 1
         textAlignment = View.TEXT_ALIGNMENT_VIEW_START; setTextColor(Color.WHITE)
     }
     private val sub = TextView(ctx).apply {
@@ -260,5 +261,6 @@ class ScopeHero(ctx: Context, private val s: Scale) : LinearLayout(ctx) {
     }
 
     override fun onVisibilityChanged(v: View, vis: Int) { super.onVisibilityChanged(v, vis); if (vis == VISIBLE) restart() else sweep?.cancel() }
+    override fun onVisibilityAggregated(visible: Boolean) { super.onVisibilityAggregated(visible); if (visible) restart() else sweep?.cancel() }
     override fun onDetachedFromWindow() { sweep?.cancel(); super.onDetachedFromWindow() }
 }
