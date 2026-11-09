@@ -94,7 +94,16 @@ class SettingsScreen(
     private val rebuild = Runnable { buildPanel(animate = true) }
 
     init {
-        background = GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(0xFF0A0F1C.toInt(), 0xFF05070D.toInt()))
+        // Obsidian ground with two soft pools of aurora light, painted once (no per-frame work).
+        fun glow(cx: Float, cy: Float, color: Int, r: Float) = GradientDrawable().apply {
+            gradientType = GradientDrawable.RADIAL_GRADIENT; setGradientCenter(cx, cy); gradientRadius = s.px(r).toFloat()
+            colors = intArrayOf(color, color and 0xFFFFFF)
+        }
+        background = android.graphics.drawable.LayerDrawable(arrayOf(
+            GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, intArrayOf(T.MIDNIGHT, T.OBSIDIAN)),
+            glow(if (rtl) 0.1f else 0.9f, 0.05f, 0x553A3FB5, 1000f),
+            glow(if (rtl) 0.95f else 0.05f, 1.0f, 0x3338D8F0, 900f),
+        ))
         isFocusable = false
         val root = LinearLayout(act).apply { orientation = LinearLayout.HORIZONTAL }
         addView(root, LayoutParams(-1, -1))
@@ -102,7 +111,7 @@ class SettingsScreen(
         // Start side: title + category cards.
         val left = LinearLayout(act).apply { orientation = LinearLayout.VERTICAL; setPaddingRelative(s.px(88), s.px(52), s.px(40), s.px(28)) }
         left.addView(TextView(act).apply {
-            text = title; sizePx(s.px(46f)); setTextColor(T.TEXT); typeface = Fonts.light
+            text = title; sizePx(s.px(46f)); setTextColor(T.TEXT); typeface = Fonts.display
             textAlignment = TEXT_ALIGNMENT_VIEW_START; setPaddingRelative(s.px(8), 0, 0, s.px(14))
         })
         val catList = LinearLayout(act).apply { orientation = LinearLayout.VERTICAL }
@@ -115,7 +124,7 @@ class SettingsScreen(
 
         // End side: the focused category.
         val right = LinearLayout(act).apply { orientation = LinearLayout.VERTICAL; setPaddingRelative(s.px(64), s.px(64), s.px(88), s.px(40)) }
-        panelTitle.apply { sizePx(s.px(44f)); setTextColor(T.TEXT); typeface = Fonts.light; textAlignment = TEXT_ALIGNMENT_VIEW_START }
+        panelTitle.apply { sizePx(s.px(42f)); setTextColor(T.TEXT); typeface = Fonts.display; textAlignment = TEXT_ALIGNMENT_VIEW_START }
         panelDesc.apply { sizePx(s.px(T.LABEL + 4)); setTextColor(T.TEXT_DIM); textAlignment = TEXT_ALIGNMENT_VIEW_START }
         right.addView(panelTitle); right.addView(panelDesc, LinearLayout.LayoutParams(-1, -2).apply { topMargin = s.px(6); bottomMargin = s.px(26) })
         panelScroll.apply { isVerticalScrollBarEnabled = false; overScrollMode = OVER_SCROLL_NEVER; clipChildren = false; addView(rows) }
@@ -165,6 +174,7 @@ class SettingsScreen(
             background = StateListDrawable().apply {
                 addState(intArrayOf(android.R.attr.state_focused), rounded(0x33FFFFFF, s.px(T.R_ROW), 0x99FFFFFF.toInt(), s.px(2)))
                 addState(intArrayOf(), rounded(Color.TRANSPARENT, s.px(T.R_ROW)))
+                setEnterFadeDuration(T.d(T.FOCUS).toInt()); setExitFadeDuration(T.d(T.FOCUS).toInt())
             }
         }
         card.addView(bar, LinearLayout.LayoutParams(s.px(4), s.px(34)).apply { marginEnd = s.px(12) })
@@ -193,8 +203,9 @@ class SettingsScreen(
         c.items().forEach { rows.addView(rowFor(it), LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = s.px(8) }) }
         panelScroll.scrollTo(0, 0)
         if (animate && T.animated) {
+            rows.animate().cancel()
             rows.alpha = 0f; rows.translationY = s.px(14f)
-            rows.animate().alpha(1f).translationY(0f).setDuration(T.d(T.MED)).setInterpolator(T.OUT).start()
+            rows.animate().alpha(1f).translationY(0f).setDuration(T.d(T.FOCUS + 40)).setInterpolator(T.OUT).start()
         } else { rows.alpha = 1f; rows.translationY = 0f }
     }
 
@@ -210,7 +221,8 @@ class SettingsScreen(
             setPaddingRelative(s.px(16), s.px(16), s.px(26), s.px(16))
             background = StateListDrawable().apply {
                 addState(intArrayOf(android.R.attr.state_focused), rounded(0x33FFFFFF, s.px(T.R_ROW), 0x99FFFFFF.toInt(), s.px(2)))
-                addState(intArrayOf(), rounded(0x0FFFFFFF, s.px(T.R_ROW)))
+                addState(intArrayOf(), rounded(T.GLASS, s.px(T.R_ROW), 0x14FFFFFF, s.px(1)))
+                setEnterFadeDuration(T.d(T.FOCUS).toInt()); setExitFadeDuration(T.d(T.FOCUS).toInt())
             }
         }
         row.addView(bar, LinearLayout.LayoutParams(s.px(4), s.px(36)).apply { marginEnd = s.px(14) })

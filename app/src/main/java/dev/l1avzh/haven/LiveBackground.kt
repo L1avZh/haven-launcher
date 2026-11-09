@@ -21,17 +21,21 @@ import kotlin.math.sin
  * Drawn with a handful of cached radial shaders at 30 fps, and paused whenever the view is not visible.
  */
 class LiveBackground(ctx: Context) : View(ctx), Choreographer.FrameCallback {
-    private class Blob(val fx: Float, val fy: Float, val px: Float, val py: Float, val r: Float, val ax: Float, val ay: Float, val hue: Float, val alpha: Int)
+    /** [base] is the aurora hue this field leans toward, [mix] how much of the focused app's accent it takes on. */
+    private class Blob(val fx: Float, val fy: Float, val px: Float, val py: Float, val r: Float, val ax: Float, val ay: Float, val base: Int, val mix: Float, val alpha: Int, val sx: Float = 1f, val sy: Float = 1f, val cy: Float = 0.5f)
 
     private val blobs = listOf(
-        Blob(0.11f, 0.17f, 0.0f, 1.3f, 0.62f, 0.34f, 0.26f, 0f, 0x88),
-        Blob(0.15f, 0.09f, 2.1f, 0.4f, 0.55f, 0.40f, 0.30f, 38f, 0x70),
-        Blob(0.08f, 0.13f, 4.0f, 2.7f, 0.50f, 0.36f, 0.34f, -42f, 0x68),
-        Blob(0.19f, 0.07f, 5.2f, 3.9f, 0.40f, 0.28f, 0.22f, 12f, 0x50),
+        Blob(0.11f, 0.17f, 0.0f, 1.3f, 0.62f, 0.34f, 0.26f, T.INDIGO, 0.85f, 0x88),
+        Blob(0.15f, 0.09f, 2.1f, 0.4f, 0.55f, 0.40f, 0.30f, T.AURORA_VIOLET, 0.30f, 0x62),
+        Blob(0.08f, 0.13f, 4.0f, 2.7f, 0.50f, 0.36f, 0.34f, T.AURORA_CYAN, 0.25f, 0x58),
+        Blob(0.19f, 0.07f, 5.2f, 3.9f, 0.40f, 0.28f, 0.22f, T.INDIGO, 0.60f, 0x48),
+        // A wide, flat ribbon of light that drifts slowly across the upper third: the "aurora".
+        Blob(0.05f, 0.04f, 1.0f, 2.0f, 0.60f, 0.30f, 0.04f, T.AURORA_CYAN, 0.35f, 0x44, 2.6f, 0.32f, 0.24f),
     )
     private val paints = blobs.map { Paint(Paint.ANTI_ALIAS_FLAG) }
     private val mote = Paint(Paint.ANTI_ALIAS_FLAG)
     private val shade = Paint()
+    private val vignette = Paint()
     private val motes = FloatArray(24 * 4) // x, phase, speed, size
     private var accent = T.ACCENT
     private var energy = 0f
@@ -78,6 +82,13 @@ class LiveBackground(ctx: Context) : View(ctx), Choreographer.FrameCallback {
 
     fun setStatic(v: Boolean) { static = v; if (v) stop() else ensureRunning(); invalidate() }
 
+    private fun blend(a: Int, b: Int, t: Float): Int {
+        val r = ((a shr 16 and 0xFF) * (1 - t) + (b shr 16 and 0xFF) * t).toInt()
+        val g = ((a shr 8 and 0xFF) * (1 - t) + (b shr 8 and 0xFF) * t).toInt()
+        val bl = ((a and 0xFF) * (1 - t) + (b and 0xFF) * t).toInt()
+        return 0xFF shl 24 or (r shl 16) or (g shl 8) or bl
+    }
+
     private fun shifted(h: Float): Int {
         Color.colorToHSV(accent, hsv)
         hsv[0] = (hsv[0] + h + 360f) % 360f
@@ -91,11 +102,12 @@ class LiveBackground(ctx: Context) : View(ctx), Choreographer.FrameCallback {
         if (width == 0) return
         val m = maxOf(LW, LH).toFloat()
         blobs.forEachIndexed { i, b ->
-            val c = shifted(b.hue)
+            val c = blend(b.base, accent, b.mix)
             val rad = m * b.r
             paints[i].shader = RadialGradient(0f, 0f, rad, intArrayOf((c and 0xFFFFFF) or (b.alpha shl 24), (c and 0xFFFFFF) or ((b.alpha / 3) shl 24), c and 0xFFFFFF), floatArrayOf(0f, 0.45f, 1f), Shader.TileMode.CLAMP)
         }
         shade.shader = LinearGradient(0f, height * 0.55f, 0f, height.toFloat(), 0x00000000, 0xAA000000.toInt(), Shader.TileMode.CLAMP)
+        vignette.shader = RadialGradient(width / 2f, height * 0.45f, maxOf(width, height) * 0.78f, intArrayOf(0x00000000, 0x00000000, 0xB005070F.toInt()), floatArrayOf(0f, 0.55f, 1f), Shader.TileMode.CLAMP)
     }
 
     override fun onSizeChanged(w: Int, h: Int, ow: Int, oh: Int) {
@@ -112,8 +124,8 @@ class LiveBackground(ctx: Context) : View(ctx), Choreographer.FrameCallback {
             val lm = maxOf(LW, LH).toFloat()
             blobs.forEachIndexed { i, b ->
                 val x = LW * (0.5f + b.ax * sin(t * b.fx * 2f * PI.toFloat() + b.px))
-                val y = LH * (0.5f + b.ay * cos(t * b.fy * 2f * PI.toFloat() + b.py))
-                lc.save(); lc.translate(x, y); lc.scale(boost, boost)
+                val y = LH * (b.cy + b.ay * cos(t * b.fy * 2f * PI.toFloat() + b.py))
+                lc.save(); lc.translate(x, y); lc.scale(boost * b.sx, boost * b.sy)
                 lc.drawCircle(0f, 0f, lm * b.r, paints[i]); lc.restore()
             }
             c.drawBitmap(bmp, src, dst, blit)
@@ -126,6 +138,7 @@ class LiveBackground(ctx: Context) : View(ctx), Choreographer.FrameCallback {
             mote.color = (tint and 0xFFFFFF) or (((26 + 70 * energy) * tw).toInt() shl 24)
             c.drawCircle(x, y, motes[i + 3] * density * 0.9f, mote)
         }
+        c.drawRect(0f, 0f, w, h, vignette)
         c.drawRect(0f, 0f, w, h, shade)
         ambient?.let { sky -> weatherFall(c, w, h, sky) }
     }

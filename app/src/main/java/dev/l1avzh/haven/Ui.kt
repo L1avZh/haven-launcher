@@ -311,7 +311,7 @@ fun Activity.showMenu(s: Scale, title: String, items: List<MenuItem>, focus: Int
     d.window?.setDimAmount(0.55f)
     box = LinearLayout(this).apply {
         orientation = LinearLayout.VERTICAL
-        background = rounded(T.SURFACE, s.px(T.R_MENU), 0x1FFFFFFF, s.px(1))
+        background = GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, intArrayOf(0xF01B2246.toInt(), 0xF00A0F1F.toInt())).apply { cornerRadius = s.px(T.R_MENU).toFloat(); setStroke(s.px(1), T.HAIRLINE) }
         setPadding(s.px(36), s.px(30), s.px(36), s.px(30))
     }
     box.addView(TextView(this).apply {

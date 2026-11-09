@@ -15,6 +15,19 @@ object T {
     const val TEXT_DIM = 0xFFA3ACBE.toInt()
     const val ON_ACCENT = 0xFF0C1020.toInt()
 
+    // "Haven Aurora": deep obsidian ground with controlled cyan/violet light. Per-app accents blend into these.
+    const val OBSIDIAN = 0xFF05070FL.toInt()
+    const val MIDNIGHT = 0xFF0A1226L.toInt()
+    const val INDIGO = 0xFF3A3FB5L.toInt()
+    const val AURORA_CYAN = 0xFF38D8F0L.toInt()
+    const val AURORA_VIOLET = 0xFF8A5CFFL.toInt()
+    // Translucent surfaces and their edges. Panels are glass only where it helps; focus is always a bright ring.
+    const val GLASS = 0x14FFFFFF
+    const val GLASS_HI = 0x26FFFFFF
+    const val GLASS_FOCUS = 0x33FFFFFF
+    const val HAIRLINE = 0x2EFFFFFF
+    const val RING = 0xCCFFFFFF.toInt()
+
     // Layout, in units of a 1920x1080 canvas (see Scale)
     const val MARGIN = 96
     const val FAV_W = 400
@@ -26,6 +39,10 @@ object T {
     const val R_CARD = 20f
     const val R_MENU = 28f
     const val R_ROW = 16f
+    const val R_ART = 32f
+    const val R_PILL = 40f
+    const val RING_PX = 2           // focus ring width, in 1080p pixels
+    const val FOCUS_LIFT = 0.06f    // pill scale on focus
 
     // Type sizes
     const val HERO = 88f
@@ -35,6 +52,7 @@ object T {
 
     // Motion: three durations, two curves, used everywhere.
     const val FAST = 120L
+    const val FOCUS = 160L
     const val MED = 220L
     const val SLOW = 380L
     val OUT = PathInterpolator(0.2f, 0f, 0f, 1f)     // decelerate: things arriving

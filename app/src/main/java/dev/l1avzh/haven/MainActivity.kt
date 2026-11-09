@@ -56,6 +56,8 @@ class MainActivity : Activity() {
     private lateinit var stageMeta: TextView
     private lateinit var stageEmpty: TextView
     private lateinit var scopeHero: ScopeHero
+    private lateinit var artCardView: FrameLayout
+    private lateinit var artHalo: View
     private lateinit var btnOpen: TextView
     private lateinit var btnFav: TextView
     private lateinit var btnMore: TextView
@@ -366,7 +368,7 @@ class MainActivity : Activity() {
         clockCol.visibility = if (prefs.showClock) View.VISIBLE else View.INVISIBLE
 
         val tabRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        listOf(R.string.favorites, R.string.recent, R.string.library).forEachIndexed { i, res -> tabRow.addView(tab(i, getString(res))) }
+        listOf(R.string.favorites, R.string.recent, R.string.library).forEachIndexed { i, res -> tabRow.addView(tab(i, getString(res)), LinearLayout.LayoutParams(-2, -2).apply { marginEnd = s.px(8) }) }
 
         railAdapter = RailAdapter(s, ::onRailFocus, ::onTile, { if (!okHeldIsBound()) menuFor(it) }, { btnOpen.requestFocus() }, { tabs[scope].requestFocus() })
         rail = RailView(this).apply {
@@ -382,7 +384,7 @@ class MainActivity : Activity() {
         railBox = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL; clipChildren = false
             addView(clockCol)
-            addView(tabRow, LinearLayout.LayoutParams(-1, -2).apply { topMargin = s.px(30) })
+            addView(tabRow, LinearLayout.LayoutParams(-1, -2).apply { topMargin = s.px(26); marginStart = -s.px(26) })
             addView(rail, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = s.px(10) })
         }
         homeContent.addView(railBox, LinearLayout.LayoutParams(s.px(560), -1))
@@ -403,10 +405,33 @@ class MainActivity : Activity() {
         val artCard = FrameLayout(this).apply {
             background = rounded(T.CARD, radius)
             clipToOutline = true
+            elevation = s.px(18f)
             outlineProvider = object : android.view.ViewOutlineProvider() {
                 override fun getOutline(v: View, o: android.graphics.Outline) { o.setRoundRect(0, 0, v.width, v.height, radius) }
             }
             addView(stageArt, FrameLayout.LayoutParams(-1, -1))
+            // A hairline edge and a faint diagonal sheen give the artwork a physical, lit surface.
+            addView(View(this@MainActivity).apply {
+                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+                background = android.graphics.drawable.LayerDrawable(arrayOf(
+                    GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(0x22FFFFFF, 0x00FFFFFF, 0x00FFFFFF)).apply { cornerRadius = radius },
+                    GradientDrawable().apply { setColor(Color.TRANSPARENT); cornerRadius = radius; setStroke(s.px(2), 0x40FFFFFF) },
+                ))
+            }, FrameLayout.LayoutParams(-1, -1))
+        }
+        artCardView = artCard
+        // Soft accent light spilling out from behind the card.
+        artHalo = View(this).apply {
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+            background = GradientDrawable().apply { gradientType = GradientDrawable.RADIAL_GRADIENT; gradientRadius = (s.px(artH) + s.px(90) * 2) / 2f; colors = intArrayOf(0x556C8CFF, 0x00000000) }
+        }
+        val artBox = FrameLayout(this).apply {
+            clipChildren = false; clipToPadding = false
+            val pad = s.px(90)
+            val hh = s.px(artH) + pad * 2                       // a round glow, stretched sideways to the card's shape
+            addView(artHalo, FrameLayout.LayoutParams(hh, hh).apply { marginStart = (s.px(artW) - hh) / 2; topMargin = -pad })
+            artHalo.scaleX = (s.px(artW) + pad * 2f) / hh
+            addView(artCard, FrameLayout.LayoutParams(s.px(artW), s.px(artH)))
         }
         stageTag = TextView(this).apply { textAlignment = View.TEXT_ALIGNMENT_VIEW_START; sizePx(s.px(T.LABEL)); typeface = Fonts.medium }
         stageTitle = TextView(this).apply {
@@ -429,7 +454,7 @@ class MainActivity : Activity() {
         }
         stageBody = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL; clipChildren = false
-            addView(artCard, LinearLayout.LayoutParams(s.px(artW), s.px(artH)))
+            addView(artBox, LinearLayout.LayoutParams(s.px(artW), s.px(artH)))
             addView(stageTag, LinearLayout.LayoutParams(-1, -2).apply { topMargin = s.px(30) })
             addView(stageTitle, LinearLayout.LayoutParams(s.px(artW), -2).apply { topMargin = s.px(6) })
             addView(stageMeta, LinearLayout.LayoutParams(s.px(artW), -2).apply { topMargin = s.px(8) })
@@ -462,8 +487,15 @@ class MainActivity : Activity() {
         val bar = View(this).apply { background = rounded(T.ACCENT, s.px(2f)); alpha = 0f }
         return LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL; isFocusable = true; isClickable = true
-            setPadding(0, s.px(8), s.px(34), s.px(6))
-            addView(txt, LinearLayout.LayoutParams(-2, -2)); addView(bar, LinearLayout.LayoutParams(s.px(34), s.px(3)).apply { topMargin = s.px(8) })
+            setPadding(s.px(26), s.px(10), s.px(26), s.px(10))
+            background = StateListDrawable().apply {
+                addState(intArrayOf(android.R.attr.state_focused), rounded(T.GLASS_FOCUS, s.px(T.R_PILL), T.RING, s.px(T.RING_PX)))
+                addState(intArrayOf(android.R.attr.state_selected), rounded(T.GLASS, s.px(T.R_PILL), T.HAIRLINE, s.px(1)))
+                addState(intArrayOf(), rounded(Color.TRANSPARENT, s.px(T.R_PILL)))
+                setEnterFadeDuration(T.d(T.FOCUS).toInt()); setExitFadeDuration(T.d(T.FOCUS).toInt())
+            }
+            bar.visibility = View.GONE
+            addView(txt, LinearLayout.LayoutParams(-2, -2)); addView(bar, LinearLayout.LayoutParams(s.px(34), s.px(3)))
             tag = Pair(txt, bar)
             accessibilityDelegate = object : View.AccessibilityDelegate() {
                 override fun onInitializeAccessibilityNodeInfo(host: View, info: android.view.accessibility.AccessibilityNodeInfo) {
@@ -495,7 +527,7 @@ class MainActivity : Activity() {
             val (txt, bar) = t.tag as Pair<TextView, View>
             val sel = i == scope
             txt.setTextColor(if (t.isFocused) Color.WHITE else if (sel) T.TEXT else T.TEXT_DIM)
-            bar.animate().alpha(if (sel) 1f else 0f).setDuration(T.d(T.FAST)).start()
+            t.isSelected = sel
         }
     }
 
@@ -538,6 +570,7 @@ class MainActivity : Activity() {
     private fun setGlowColor(c: Int) {
         glowColor = c
         if (::glowView.isInitialized) glowView.setAccent(c)
+        if (::artHalo.isInitialized) (artHalo.background as? GradientDrawable)?.colors = intArrayOf((c and 0xFFFFFF) or (0x66 shl 24), c and 0xFFFFFF)
     }
 
     private fun glowTo(target: Int) {
@@ -556,8 +589,14 @@ class MainActivity : Activity() {
     private fun setScope(i: Int) {
         scope = i
         updateTabs()
-        railAdapter.submit(scopeItems())
+        // Fast D-pad movement can hand focus to a tab while the rail is still laying out; RecyclerView refuses
+        // adapter changes then, so the list update waits for that pass to finish.
+        if (rail.isComputingLayout) { val s0 = scope; rail.post { if (scope == s0) railAdapter.submit(scopeItems()) } } else railAdapter.submit(scopeItems())
         updateStageEmpty()
+        // The list slides up into place; a new scope while this runs simply restarts it from where it is.
+        rail.animate().cancel()
+        if (T.animated) { rail.alpha = 0.35f; rail.translationY = s.px(14f); rail.animate().alpha(1f).translationY(0f).setDuration(T.d(T.FOCUS + 40)).setInterpolator(T.OUT).start() }
+        else { rail.alpha = 1f; rail.translationY = 0f }
     }
 
     private fun updateStageEmpty() {
@@ -591,6 +630,8 @@ class MainActivity : Activity() {
         railAdapter.tint(accent)
         val token = ++artToken
         stageArt.animate().cancel(); stageArt.alpha = if (T.animated) 0.25f else 1f
+        artCardView.animate().cancel()
+        if (T.animated) { artCardView.scaleX = 0.975f; artCardView.scaleY = 0.975f; artCardView.animate().scaleX(1f).scaleY(1f).setDuration(T.d(T.MED + 40)).setInterpolator(T.OUT).start() }
         artRequest?.cancel()
         artRequest = icons.load(e, s.px(artW), s.px(artW) * 9 / 16) { bmp ->
             if (token == artToken) {
@@ -667,7 +708,7 @@ class MainActivity : Activity() {
         // The AdGuard shortcut lives at the end of the library until the real app is installed (or the user hides it).
         allList = if (!AppRepo.hasAdGuard(all) && ADGUARD_ENTRY.key !in prefs.hidden) vis + ADGUARD_ENTRY else vis
         recentList = prefs.launchLog.entries.sortedByDescending { it.value }.mapNotNull { byKey[it.key] }.take(12)
-        railAdapter.submit(scopeItems())
+        if (rail.isComputingLayout) rail.post { railAdapter.submit(scopeItems()) } else railAdapter.submit(scopeItems())
         updateStageEmpty()
     }
 
@@ -967,7 +1008,7 @@ class MainActivity : Activity() {
                 text = e.label; sizePx(s.px(T.BODY)); setTextColor(T.TEXT); isFocusable = true; isClickable = true
                 setPaddingRelative(s.px(24), s.px(16), s.px(24), s.px(16))
                 background = StateListDrawable().apply {
-                    addState(intArrayOf(android.R.attr.state_focused), rounded(T.ACCENT, s.px(T.R_ROW)))
+                    addState(intArrayOf(android.R.attr.state_focused), rounded(T.GLASS_FOCUS, s.px(T.R_ROW), T.RING, s.px(T.RING_PX)))
                     addState(intArrayOf(), rounded(Color.TRANSPARENT, s.px(T.R_ROW)))
                 }
                 setOnClickListener { dialog.dismiss(); launch(e) }

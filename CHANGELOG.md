@@ -1,5 +1,7 @@
 ## 1.6
 
+- "Haven Aurora" visual pass: obsidian ground with cyan/violet aurora light that blends with the focused app's accent, glass tabs and capsule focus on the rail, a lit artwork card with a soft halo, restyled settings and menus, press feedback on OK, and a slide-in when the scope changes.
+- Fast D-pad bursts on the app rail now land exactly where expected, and a crash when focus reached a scope tab mid-scroll is fixed.
 - All widget, screensaver and weather strings translated into the 50 languages; the weather widget shows the city name in the app's language.
 - Weather widget (opt-in, Settings → Widgets → Weather city): animated icon, plus rain, snow and storm falling across the background. Adds the `INTERNET` permission; requests go only to open-meteo.com and only carry the chosen city's coordinates.
 - Widgets for the home screen and the screensaver, chosen in Settings → Widgets.
