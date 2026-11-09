@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">在雨、雪、風暴和寒冷中撐傘並改變姿勢。</string>
     <string name="saver_char">螢幕保護程式上的睡覺角色</string>
     <string name="credits_models">3D 角色模型</string>
+    <string name="prop_candle">蠟燭</string>
+    <string name="prop_book">書</string>
+    <string name="prop_sword">劍</string>
+    <string name="prop_axe">斧頭</string>
     <plurals name="apps_count">
         <item quantity="other">%d 個應用程式</item>
     </plurals>

@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">מחזיקה מטריה ומשנה יציבה בגשם, שלג, סערה וקור.</string>
     <string name="saver_char">דמות ישנה בשומר המסך</string>
     <string name="credits_models">דגמי דמויות תלת־ממדיים</string>
+    <string name="prop_candle">נר</string>
+    <string name="prop_book">ספר</string>
+    <string name="prop_sword">חרב</string>
+    <string name="prop_axe">גרזן</string>
     <plurals name="apps_count">
         <item quantity="one">אפליקציה אחת</item>
         <item quantity="two">שתי אפליקציות</item>

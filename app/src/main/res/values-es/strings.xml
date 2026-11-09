@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">Sostiene un paraguas y cambia de postura con lluvia, nieve, tormenta y frío.</string>
     <string name="saver_char">Personaje dormido en el salvapantallas</string>
     <string name="credits_models">Modelos de personajes 3D</string>
+    <string name="prop_candle">Vela</string>
+    <string name="prop_book">Libro</string>
+    <string name="prop_sword">Espada</string>
+    <string name="prop_axe">Hacha</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="many">%d de apps</item>

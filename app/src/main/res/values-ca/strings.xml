@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">Sosté un paraigua i canvia de postura amb pluja, neu, tempesta i fred.</string>
     <string name="saver_char">Personatge adormit al protector de pantalla</string>
     <string name="credits_models">Models de personatges 3D</string>
+    <string name="prop_candle">Espelma</string>
+    <string name="prop_book">Llibre</string>
+    <string name="prop_sword">Espasa</string>
+    <string name="prop_axe">Balta</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplicació</item>
         <item quantity="many">%d d’aplicacions</item>

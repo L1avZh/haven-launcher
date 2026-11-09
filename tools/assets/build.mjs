@@ -166,7 +166,7 @@ async function shrinkAll(doc, tints = {}) {
 // ---------------------------------------------------------------- Haven extras (props, hands, sleep set) from the v1 models
 async function addExtras(doc, id, headY) {
   const old = await io.read(OLD(id));
-  const names = new Set(['prop_lantern', 'prop_tablet', 'prop_compass', 'prop_staff', 'prop_umbrella', 'sleep_blanket', 'sleep_pillow', 'acc_star']);
+  const names = new Set(['acc_star']);        // props, umbrella and bed now live in world.glb (build_world.mjs)
   const oldHead = old.getRoot().listNodes().find((n) => n.getName() === 'head').getWorldMatrix()[13];
   const before = new Set(doc.getRoot().listNodes()); const scenesBefore = new Set(doc.getRoot().listScenes());
   mergeDocuments(doc, old);

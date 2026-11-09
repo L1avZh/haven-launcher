@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">Coinníonn scáth fearthainne agus athraíonn seasamh i mbáisteach, sneachta, stoirm agus fuacht.</string>
     <string name="saver_char">Carachtar ina chodladh ar an spárálaí scáileáin</string>
     <string name="credits_models">Samhlacha carachtar 3D</string>
+    <string name="prop_candle">Coinneal</string>
+    <string name="prop_book">Leabhar</string>
+    <string name="prop_sword">Claíomh</string>
+    <string name="prop_axe">Ax</string>
     <plurals name="apps_count">
         <item quantity="one">%d aip</item>
         <item quantity="two">%d aip</item>

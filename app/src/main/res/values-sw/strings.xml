@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">Hushika mwavuli na kubadilisha mkao wakati wa mvua, theluji, dhoruba na baridi.</string>
     <string name="saver_char">Mhusika anayelala kwenye kiokoa skrini</string>
     <string name="credits_models">Miundo ya wahusika ya 3D</string>
+    <string name="prop_candle">Mshumaa</string>
+    <string name="prop_book">Kitabu</string>
+    <string name="prop_sword">Panga</string>
+    <string name="prop_axe">Shoka</string>
     <plurals name="apps_count">
         <item quantity="one">Programu %d</item>
         <item quantity="other">Programu %d</item>

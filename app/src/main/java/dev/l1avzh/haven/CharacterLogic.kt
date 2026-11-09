@@ -20,9 +20,9 @@ class CharacterDef(
  */
 object Look {
     val CHARACTERS = listOf(
-        CharacterDef("human", listOf("city", "field"), listOf("lantern", "tablet", "compass", "none"), "city", "lantern", 0.95, 5.3),
-        CharacterDef("wizard", listOf("archmage", "apprentice"), listOf("staff", "lantern", "compass", "none"), "archmage", "staff", 0.97, 5.4),
-        CharacterDef("robot", listOf("plated", "stealth"), listOf("tablet", "compass", "lantern", "none"), "plated", "tablet", 0.95, 5.35),
+        CharacterDef("human", listOf("city", "field"), listOf("candle", "book", "sword", "none"), "city", "candle", 0.95, 5.3),
+        CharacterDef("wizard", listOf("archmage", "apprentice"), listOf("staff", "book", "candle", "none"), "archmage", "staff", 0.97, 5.4),
+        CharacterDef("robot", listOf("plated", "stealth"), listOf("sword", "axe", "candle", "none"), "plated", "sword", 0.95, 5.35),
     )
     const val DEFAULT_CHARACTER = "human"
     val ALL_PROPS = CHARACTERS.flatMap { it.props }.distinct()
@@ -229,7 +229,7 @@ class CharacterAnimator(private val reactor: CharacterReactor) {
     /** Lying down: the whole body rolls onto its side under a blanket, arms folded, eyes closed, slow breathing. */
     private fun sleepPose(t: Double, w: Float, motion: Float) {
         val br = sin(t * 2 * PI * 0.14).toFloat() * motion          // with reduced motion the figure still lies down, it just does not breathe
-        pose.rootRoll = (PI / 2).toFloat() * w; pose.rootScale = 1f - 0.38f * w; pose.rootX = 0.56f * w; pose.rootY = 0.14f * w
+        pose.rootRoll = (PI / 2).toFloat() * w; pose.rootScale = 1f - 0.38f * w; pose.rootX = 0.56f * w; pose.rootY = 0.35f * w
         pose.eyes = 1f - 0.97f * w
         pose.hipsY += 0.004f * br * w
         pose.add("chest", -0.03f * br * w, 0f, 0f); pose.add("head", 0.12f * w, 0f, 0.15f * w)

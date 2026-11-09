@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">Humahawak ng payong at nagbabago ng tindig sa ulan, niyebe, bagyo at lamig.</string>
     <string name="saver_char">Natutulog na karakter sa screensaver</string>
     <string name="credits_models">Mga 3D na modelo ng karakter</string>
+    <string name="prop_candle">Kandila</string>
+    <string name="prop_book">Aklat</string>
+    <string name="prop_sword">Tabak</string>
+    <string name="prop_axe">Palakol</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="other">%d na app</item>

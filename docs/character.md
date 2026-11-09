@@ -31,14 +31,17 @@ joints and the rest follow.
 * **Robot**: an armored android: the same head and the Ranger armor pieces without the hood, in solid metal (*Plated* silver, *Stealth* black) with
   glowing eyes. It is a recolored, re-materialed use of the same CC0 meshes, not a separate model.
 
-Props (Lantern, Tablet, Compass, Staff), the umbrella, the blanket, the pillow and the star pendant are **Haven's own simple procedural
-meshes** (see [assets/ASSET_CREDITS.md](assets/ASSET_CREDITS.md)); they hang from `attach_hand_r`, `sleep_*` under `root` and `chest`. They are
-visibly simpler than the characters. No suitable CC0 props were integrated.
+**Props, bed and scenery** live in a separate `world.glb` (1.8 MiB, loaded once, shared by all characters): Sword, Axe, Candle and Book from the CC0
+Fantasy Props MegaKit, the Staff by TCCDev, the twin bed (with pillow and blanket) and a small diorama (trees, bush, grass, flowers, pebbles; pines
+for snow) from the CC0 Stylized Nature MegaKit. Haven's own plain shapes: the umbrella, the star pendant, the sun and moon, two ground discs and
+the rain and snow particles. `CharacterView` parents the chosen prop entity to the active character's `attach_hand_r` and shows or hides entities by name.
+Props per character: Human candle, book, sword; Wizard staff, book, candle; Robot sword, axe, candle (plus "none"). Older saved props (lantern,
+tablet, compass) fall back to the character's default.
 
 **Asset contract** (identical for every character, checked by `AssetContractTest`): joint nodes `root hips spine chest neck head clavicle_l/r
 upperarm_l/r forearm_l/r hand_l/r thigh_l/r shin_l/r foot_l/r` with **identity rotations** (translation-only, so Haven's pose deltas act on world
-axes; `build.mjs` bakes the T-pose into an arms-hanging bind pose to get there); nodes `attach_hand_r`, `attach_hand_l`, `acc_star`, `prop_umbrella`,
-`sleep_blanket`, `sleep_pillow`; `outfit_<id>` and `prop_<id>` nodes for every id in `Look.CHARACTERS`; the head, eyes and brows as always-visible
+axes; `build.mjs` bakes the T-pose into an arms-hanging bind pose to get there); nodes `attach_hand_r`, `attach_hand_l`, `acc_star`; `outfit_<id>` nodes for every outfit id in `Look.CHARACTERS` (the props are in `world.glb`:
+`prop_<id>`, `prop_umbrella`, `bed`, `env_day`, `env_snow`, `ground_grass`, `ground_snow`, `env_sun`, `env_moon`, `fx_rain_0/1`, `fx_snow_0/1`); the head, eyes and brows as always-visible
 skinned meshes. `Look.CHARACTERS` lists which ids exist per character and how the camera frames it. A model that fails to load is skipped (the next
 character that loads is used); if none loads the character hides itself and the launcher carries on. Only the selected character's model is
 kept in memory; choosing another one releases the previous model.
@@ -56,7 +59,7 @@ characters, not film-grade sculpts, and some limits are visible:
 * Textures are reduced to 1024 px (color) and 512 px (normal) for the TV box, which softens skin and cloth detail.
 * **The eyes do not blink and are not closed while sleeping**: the source eyes are part of the skinned head, so Haven's blink (a scale of eye nodes) has
   nothing to act on. The sleeping pose, blanket and breathing still work.
-* Props and the pendant are simpler than the characters.
+* The umbrella, pendant, sun, moon, ground and weather particles are Haven's own plain shapes; no CC0 equivalents were found.
 
 What would raise it further: the paid Quaternius Wizard outfit or any CC0 hat/robe set rigged to the same skeleton (drop it into `build.mjs` as another
 `outfit_<id>` group), CC0 props in the same style, and eyelid blend shapes or a closed-eyes texture swap.

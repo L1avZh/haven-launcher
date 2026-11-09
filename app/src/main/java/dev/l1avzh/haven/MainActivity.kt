@@ -135,13 +135,13 @@ class MainActivity : Activity() {
         buildUi()
         syncCharacter()
         applyMood(false)
-        registerReceiver(clockReceiver, IntentFilter().apply { addAction(Intent.ACTION_TIME_TICK); addAction(Intent.ACTION_TIME_CHANGED); addAction(Intent.ACTION_TIMEZONE_CHANGED) })
+        registerReceiver(clockReceiver, IntentFilter().apply { addAction(Intent.ACTION_TIME_TICK); addAction(Intent.ACTION_TIME_CHANGED); addAction(Intent.ACTION_TIMEZONE_CHANGED) }, RECEIVER_NOT_EXPORTED)
         frame.viewTreeObserver.addOnGlobalFocusChangeListener { _, now -> if (now != null) onFocusMoved(now) }
         registerReceiver(pkgReceiver, IntentFilter().apply {
             addAction(Intent.ACTION_PACKAGE_ADDED); addAction(Intent.ACTION_PACKAGE_REMOVED)
             addAction(Intent.ACTION_PACKAGE_CHANGED); addAction(Intent.ACTION_PACKAGE_REPLACED)
             addDataScheme("package")
-        }, RECEIVER_EXPORTED)
+        }, RECEIVER_NOT_EXPORTED)
         loadApps()
     }
 
@@ -209,17 +209,20 @@ class MainActivity : Activity() {
     private fun applyMood(animate: Boolean) {
         val m = Mood.resolve(this, prefs); val old = mood; mood = m
         if (prefs.weatherCity > 0) Weather.refresh(this) { if (!isDestroyed) applyMood(true) }
-        if (old != null && old.night == m.night && old.scene.stance == m.scene.stance && old.scene.propOverride == m.scene.propOverride) { moodView.setNight(m.night, false); character?.setScene(m.scene); return }
+        if (old != null && old.night == m.night && old.scene.stance == m.scene.stance && old.scene.propOverride == m.scene.propOverride && old.effect == m.effect) { moodView.setNight(m.night, false); character?.setScene(m.scene); return }
         moodView.setNight(m.night, animate)
         character?.setScene(m.scene)
         saverView?.setMood(m.night, m.scene)
+        character?.setEnvironment(m.night, envEffectFor(m))
     }
+
+    /** The scenery shows the weather only while weather reactions are on, like the umbrella does. */
+    private fun envEffectFor(m: Mood.State) = if (prefs.weatherReactions) m.effect else WeatherEffect.NONE
 
     private lateinit var widgetHost: FrameLayout
     private fun applyWidgets() {
         widgetHost.removeAllViews()
         val ids = Widgets.parse(prefs.homeWidgets).take(3)
-        LiveBackground.ambient = LiveBackground.ambientFor(this, ids)
         if (ids.isNotEmpty()) widgetHost.addView(WidgetStrip(this, s, ids, false), FrameLayout.LayoutParams(-1, -2, Gravity.CENTER_VERTICAL or Gravity.START))
     }
 
@@ -238,10 +241,10 @@ class MainActivity : Activity() {
         character?.stop()
         val v = SaverView(this, s, timeClock.format12Hour, timeClock.format24Hour, DateFormat.getBestDateTimePattern(Lang.locale(this), "EEEdMMM"), Widgets.parse(prefs.saverWidgets), if (prefs.saverCharacter && prefs.characterEnabled) prefs.look() else null)
         homeContent.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
-        saverView = v; mood?.let { m -> v.setMood(m.night, m.scene) }; LiveBackground.ambient = LiveBackground.ambientFor(this, Widgets.parse(prefs.saverWidgets).take(4)); frame.addView(v, -1, -1)
+        saverView = v; mood?.let { m -> v.setMood(m.night, m.scene) }; frame.addView(v, -1, -1)
     }
 
-    private fun stopSaver() { if (saverView != null && settings == null) character?.start(); saverView?.let { frame.removeView(it) }; saverView = null; homeContent.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_AUTO; LiveBackground.ambient = LiveBackground.ambientFor(this, Widgets.parse(prefs.homeWidgets).take(3)) }
+    private fun stopSaver() { if (saverView != null && settings == null) character?.start(); saverView?.let { frame.removeView(it) }; saverView = null; homeContent.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_AUTO }
 
     override fun dispatchKeyEvent(e: KeyEvent): Boolean {
         if (saverView != null) { if (e.action == KeyEvent.ACTION_DOWN && e.repeatCount == 0) { stopSaver(); armSaver() }; return true }
@@ -483,7 +486,7 @@ class MainActivity : Activity() {
         frame.addView(platform, FrameLayout.LayoutParams(s.px(620), s.px(620), Gravity.START or Gravity.BOTTOM).apply { marginStart = s.px(40); bottomMargin = -s.px(235) })
         if (prefs.characterEnabled) {
             character = CharacterView(this).also {
-                it.setLook(prefs.look()); it.motion = T.motion; mood?.let { m -> it.setScene(m.scene) }
+                it.setLook(prefs.look()); it.motion = T.motion; mood?.let { m -> it.setScene(m.scene); it.setEnvironment(m.night, envEffectFor(m)) }
                 frame.addView(it, FrameLayout.LayoutParams(s.px(700), s.px(960), Gravity.START or Gravity.BOTTOM).apply { bottomMargin = s.px(50) })
             }
         }

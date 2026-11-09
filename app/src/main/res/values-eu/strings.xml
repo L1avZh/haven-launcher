@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">Aterkia hartzen du eta jarrera aldatzen du euria, elurra, ekaitza eta hotza dagoenean.</string>
     <string name="saver_char">Pertsonaia lotan pantaila-babesean</string>
     <string name="credits_models">3D pertsonaia-ereduak</string>
+    <string name="prop_candle">Kandela</string>
+    <string name="prop_book">Liburua</string>
+    <string name="prop_sword">Espata</string>
+    <string name="prop_axe">Zizela</string>
     <plurals name="apps_count">
         <item quantity="one">Aplikazio %d</item>
         <item quantity="other">%d aplikazio</item>

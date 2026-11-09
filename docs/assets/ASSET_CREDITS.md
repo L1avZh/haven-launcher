@@ -8,12 +8,16 @@ under CC0 1.0 Universal. Haven's MIT license does not apply to them and does not
 | Universal Base Characters (Standard) — heads, eyes, eyebrows, hair and beard | Quaternius | https://quaternius.itch.io/universal-base-characters | CC0 1.0 Universal |
 | Modular Character Outfits – Fantasy (Standard) — Male Peasant and Male Ranger outfits | Quaternius | https://quaternius.itch.io/modular-character-outfits-fantasy | CC0 1.0 Universal |
 
+| Fantasy Props MegaKit (Standard): sword, axe, candlestick, book, bed | Quaternius | https://quaternius.itch.io/fantasy-props-megakit | CC0 1.0 Universal |
+| Stylized Nature MegaKit (Standard): trees, bush, grass, flowers, pebbles | Quaternius | https://quaternius.itch.io/stylized-nature-megakit | CC0 1.0 Universal |
+| Stylized Wizard Staff | TCCDev | https://opengameart.org/content/stylized-wizard-staff | CC0 |
+
 CC0 requires no attribution; Quaternius asks for support and credit when you can ("Consider supporting me on Patreon":
 https://www.patreon.com/quaternius). Haven credits them in this file, in the README, and in Settings → About & credits.
 
 The characters shipped in the app (`app/src/main/assets/character/{human,wizard,robot}.glb`) are modified derivatives of these assets
-(re-rigged, re-textured and merged; see `assets-source/quaternius/PROVENANCE.md` for the full list of changes). The pendant, props, umbrella,
-blanket and pillow are Haven's own work.
+(re-rigged, re-textured and merged; see `assets-source/quaternius/PROVENANCE.md` for the full list of changes). The props, bed and scenery are modified (baked, resized, merged) copies of the assets above. The umbrella, the star pendant, the sun and moon,
+the ground discs and the rain and snow particles are Haven's own simple shapes (MIT).
 
 License text: `assets-source/quaternius/licenses/CC0-1.0-legalcode.txt`, https://creativecommons.org/publicdomain/zero/1.0/ ; the packs' own
 license files are in the same folder. Accessed 2026-11-09.

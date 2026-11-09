@@ -249,6 +249,10 @@
     <string name="weather_reacts_d">Holds an umbrella and changes stance in rain, snow, storms and cold.</string>
     <string name="saver_char">Sleeping character on screensaver</string>
     <string name="credits_models">3D character models</string>
+    <string name="prop_candle">Candle</string>
+    <string name="prop_book">Book</string>
+    <string name="prop_sword">Sword</string>
+    <string name="prop_axe">Axe</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="other">%d apps</item>

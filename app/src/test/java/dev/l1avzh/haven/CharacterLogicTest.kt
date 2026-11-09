@@ -31,19 +31,19 @@ class LookTest {
         assertEquals("city", Look.outfit("human", "courier"))               // an id written by an older version
         assertEquals("plated", Look.outfit("robot", null))
         assertEquals("staff", Look.prop("wizard", "staff"))
-        assertEquals("lantern", Look.prop("human", "staff"))                // the staff belongs to the wizard
-        assertEquals("tablet", Look.prop("robot", "sword"))
+        assertEquals("candle", Look.prop("human", "staff"))                // the staff belongs to the wizard
+        assertEquals("sword", Look.prop("robot", "book"))
     }
 
     @Test fun theStarIsOnlyWornOnceUnlocked() {
-        assertFalse(LookState.of("human", "city", "lantern", star = true, starUnlocked = false).star)
-        assertTrue(LookState.of("human", "city", "lantern", star = true, starUnlocked = true).star)
-        assertFalse(LookState.of("human", "city", "lantern", star = false, starUnlocked = true).star)
+        assertFalse(LookState.of("human", "city", "candle", star = true, starUnlocked = false).star)
+        assertTrue(LookState.of("human", "city", "candle", star = true, starUnlocked = true).star)
+        assertFalse(LookState.of("human", "city", "candle", star = false, starUnlocked = true).star)
     }
 
     @Test fun anInvalidSavedLookStillProducesAValidOne() {
         val l = LookState.of("zzz", "archmage", "staff", star = true, starUnlocked = false)
-        assertEquals(LookState("human", "city", "lantern", false), l)
+        assertEquals(LookState("human", "city", "candle", false), l)
     }
 }
 

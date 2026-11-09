@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">Pitää sateenvarjoa ja vaihtaa asentoa sateessa, lumessa, myrskyssä ja pakkasessa.</string>
     <string name="saver_char">Nukkuva hahmo näytönsäästäjässä</string>
     <string name="credits_models">3D-hahmomallit</string>
+    <string name="prop_candle">Kynttilä</string>
+    <string name="prop_book">Kirja</string>
+    <string name="prop_sword">Miekka</string>
+    <string name="prop_axe">Kirves</string>
     <plurals name="apps_count">
         <item quantity="one">%d sovellus</item>
         <item quantity="other">%d sovellusta</item>

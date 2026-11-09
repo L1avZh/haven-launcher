@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">Trzyma parasol i zmienia postawę podczas deszczu, śniegu, burzy i mrozu.</string>
     <string name="saver_char">Śpiąca postać w wygaszaczu</string>
     <string name="credits_models">Modele postaci 3D</string>
+    <string name="prop_candle">Świeca</string>
+    <string name="prop_book">Książka</string>
+    <string name="prop_sword">Miecz</string>
+    <string name="prop_axe">Topór</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplikacja</item>
         <item quantity="few">%d aplikacje</item>

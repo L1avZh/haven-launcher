@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">Heldur á regnhlíf og skiptir um stöðu í rigningu, snjó, stormi og kulda.</string>
     <string name="saver_char">Sofandi persóna á skjáhvílu</string>
     <string name="credits_models">3D persónulíkön</string>
+    <string name="prop_candle">Kerti</string>
+    <string name="prop_book">Bók</string>
+    <string name="prop_sword">Sverð</string>
+    <string name="prop_axe">Øx</string>
     <plurals name="apps_count">
         <item quantity="one">%d forrit</item>
         <item quantity="other">%d forrit</item>

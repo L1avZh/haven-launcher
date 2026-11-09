@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">Houdt een paraplu vast en verandert van houding bij regen, sneeuw, storm en kou.</string>
     <string name="saver_char">Slapend personage op de screensaver</string>
     <string name="credits_models">3D-personagemodellen</string>
+    <string name="prop_candle">Kaars</string>
+    <string name="prop_book">Boek</string>
+    <string name="prop_sword">Zwaard</string>
+    <string name="prop_axe">Bijl</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="other">%d apps</item>

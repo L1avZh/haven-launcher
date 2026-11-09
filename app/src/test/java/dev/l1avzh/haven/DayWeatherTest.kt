@@ -125,10 +125,14 @@ class AssetContractTest {
         for (def in Look.CHARACTERS) {
             val n = names(gltf(def.id))
             for (j in Pose.JOINTS + "root") assertTrue("${def.id} lacks joint $j", j in n)
-            for (x in listOf("attach_hand_r", "attach_hand_l", "acc_star", "prop_umbrella", "sleep_blanket", "sleep_pillow")) assertTrue("${def.id} lacks $x", x in n)
+            for (x in listOf("attach_hand_r", "attach_hand_l", "acc_star")) assertTrue("${def.id} lacks $x", x in n)
             for (o in def.outfits) assertTrue("${def.id} lacks outfit_$o", "outfit_$o" in n)
-            for (p in def.props) if (p != "none") assertTrue("${def.id} lacks prop_$p", "prop_$p" in n)
         }
+    }
+    @Test fun theWorldHasEveryPropAndTheScenery() {
+        val n = names(gltf("world"))
+        for (p in Look.ALL_PROPS) if (p != "none") assertTrue("world lacks prop_$p", "prop_$p" in n)
+        for (x in listOf("prop_umbrella", "bed", "env_day", "env_snow", "ground_grass", "ground_snow", "env_sun", "env_moon", "fx_rain_0", "fx_rain_1", "fx_snow_0", "fx_snow_1")) assertTrue("world lacks $x", x in n)
     }
     @Test fun jointsAreRotationFreeSoPoseDeltasActOnWorldAxes() {
         for (def in Look.CHARACTERS) {
@@ -137,6 +141,6 @@ class AssetContractTest {
         }
     }
     @Test fun noExtensionsBeyondWhatFilamentLoads() {
-        for (def in Look.CHARACTERS) assertTrue(gltf(def.id).optJSONArray("extensionsRequired") == null)
+        for (id in Look.CHARACTERS.map { it.id } + "world") (gltf(id).optJSONArray("extensionsRequired") ?: org.json.JSONArray()).let { arr -> for (i in 0 until arr.length()) assertEquals("KHR_materials_unlit", arr.getString(i)) }
     }
 }

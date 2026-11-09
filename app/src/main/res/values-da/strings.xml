@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">Holder en paraply og skifter stilling i regn, sne, storm og kulde.</string>
     <string name="saver_char">Sovende figur på pauseskærmen</string>
     <string name="credits_models">3D-karaktermodeller</string>
+    <string name="prop_candle">Lys</string>
+    <string name="prop_book">Bog</string>
+    <string name="prop_sword">Sværd</string>
+    <string name="prop_axe">Økse</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="other">%d apps</item>

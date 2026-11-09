@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">বৃষ্টি, তুষার, ঝড় ও ঠান্ডায় ছাতা ধরে ও ভঙ্গি বদলায়।</string>
     <string name="saver_char">স্ক্রিনসেভারে ঘুমন্ত চরিত্র</string>
     <string name="credits_models">থ্রিডি চরিত্র মডেল</string>
+    <string name="prop_candle">মোমবাতি</string>
+    <string name="prop_book">বই</string>
+    <string name="prop_sword">তলোয়ার</string>
+    <string name="prop_axe">কুড়াল</string>
     <plurals name="apps_count">
         <item quantity="one">%dটি অ্যাপ</item>
         <item quantity="other">%dটি অ্যাপ</item>

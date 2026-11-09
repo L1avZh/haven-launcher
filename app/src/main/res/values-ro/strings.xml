@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">Ține o umbrelă și își schimbă poziția în ploaie, ninsoare, furtună și frig.</string>
     <string name="saver_char">Personaj adormit pe screensaver</string>
     <string name="credits_models">Modele 3D de personaje</string>
+    <string name="prop_candle">Lumânare</string>
+    <string name="prop_book">Carte</string>
+    <string name="prop_sword">Sabie</string>
+    <string name="prop_axe">Topor</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplicație</item>
         <item quantity="few">%d aplicații</item>

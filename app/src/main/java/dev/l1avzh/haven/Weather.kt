@@ -69,9 +69,12 @@ object Weather {
     fun entry(p: Prefs): WeatherCache.Entry? = if (p.weatherCity > 0) WeatherCache.forCity(p.weatherCache, p.weatherCity - 1) else null
 
     private val gate = RequestGate<Pair<Int, String>>()
+    /** When the last network attempt started. A failed request is not retried for [RETRY_MS], so a dead connection costs one request every few minutes, not one per minute tick. */
+    @Volatile private var lastAttempt = 0L
+    private const val RETRY_MS = 5 * 60_000L
 
     /** The selected city changed: drop the cache and let any slow request for the old city die quietly. */
-    fun selectionChanged(p: Prefs) { p.weatherCache = ""; gate.supersede() }
+    fun selectionChanged(p: Prefs) { p.weatherCache = ""; lastAttempt = 0L; gate.supersede() }
 
     /**
      * Refresh in the background if the selected city's reading is stale or its localized name is missing.
@@ -87,6 +90,8 @@ object Weather {
         val fresh = c != null && WeatherCache.isFresh(c, System.currentTimeMillis())
         val needName = lang != "en" && p.str(nameKey(app, idx)).isEmpty()
         if (fresh && !needName) return
+        val now = System.currentTimeMillis(); if (now - lastAttempt < RETRY_MS) return
+        lastAttempt = now
         val ticket = gate.begin(idx to lang) ?: return
         thread(isDaemon = true) {
             try {

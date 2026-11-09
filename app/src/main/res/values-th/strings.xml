@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">ถือร่มและเปลี่ยนท่าทางเมื่อฝน หิมะ พายุ และอากาศหนาว</string>
     <string name="saver_char">ตัวละครนอนหลับบนภาพพักหน้าจอ</string>
     <string name="credits_models">โมเดลตัวละคร 3 มิติ</string>
+    <string name="prop_candle">เทียน</string>
+    <string name="prop_book">หนังสือ</string>
+    <string name="prop_sword">ดาบ</string>
+    <string name="prop_axe">ขวาน</string>
     <plurals name="apps_count">
         <item quantity="other">%d แอป</item>
     </plurals>

@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">Κρατά ομπρέλα και αλλάζει στάση σε βροχή, χιόνι, καταιγίδα και κρύο.</string>
     <string name="saver_char">Κοιμισμένος χαρακτήρας στην προφύλαξη</string>
     <string name="credits_models">Τρισδιάστατα μοντέλα χαρακτήρων</string>
+    <string name="prop_candle">Κερί</string>
+    <string name="prop_book">Βιβλίο</string>
+    <string name="prop_sword">Σπαθί</string>
+    <string name="prop_axe">Τσεκούρι</string>
     <plurals name="apps_count">
         <item quantity="one">%d εφαρμογή</item>
         <item quantity="other">%d εφαρμογές</item>

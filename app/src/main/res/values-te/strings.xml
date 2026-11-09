@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">వర్షం, మంచు, తుఫాను, చలిలో గొడుగు పట్టి భంగిమ మారుస్తుంది.</string>
     <string name="saver_char">స్క్రీన్‌సేవర్‌లో నిద్రపోతున్న పాత్ర</string>
     <string name="credits_models">3D పాత్ర నమూనాలు</string>
+    <string name="prop_candle">కొవ్వొత్తి</string>
+    <string name="prop_book">పుస్తకం</string>
+    <string name="prop_sword">కత్తి</string>
+    <string name="prop_axe">గొడ్డలి</string>
     <plurals name="apps_count">
         <item quantity="one">%d యాప్</item>
         <item quantity="other">%d యాప్‌లు</item>

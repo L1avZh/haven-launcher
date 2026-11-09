@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">Држи кишобран и мења став по киши, снегу, олуји и хладноћи.</string>
     <string name="saver_char">Лик који спава на чувару екрана</string>
     <string name="credits_models">3D модели ликова</string>
+    <string name="prop_candle">Свећа</string>
+    <string name="prop_book">Књига</string>
+    <string name="prop_sword">Мач</string>
+    <string name="prop_axe">Секира</string>
     <plurals name="apps_count">
         <item quantity="one">%d апликација</item>
         <item quantity="few">%d апликације</item>

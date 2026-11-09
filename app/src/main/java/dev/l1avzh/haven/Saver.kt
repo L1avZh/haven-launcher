@@ -63,7 +63,7 @@ class SaverView(ctx: Context, private val s: Scale, timePattern12: CharSequence?
         if (want && sleeper == null) {
             sleeper = CharacterView(context).also {
                 it.setLook(look!!); it.motion = T.motion; it.frameGapMs = 66L           // a slow breath needs few frames
-                it.setScene(scene); box.addView(it, 0, LinearLayout.LayoutParams(s.px(520), s.px(380)).apply { marginEnd = s.px(32) })
+                it.setScene(scene); it.setEnvironment(true, WeatherEffect.NONE); box.addView(it, 0, LinearLayout.LayoutParams(s.px(520), s.px(380)).apply { marginEnd = s.px(32) })
                 it.start()
             }
         } else if (!want) sleeper?.let { box.removeView(it); it.destroy(); sleeper = null }

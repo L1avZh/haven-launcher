@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">在雨、雪、风暴和寒冷中撑伞并改变姿势。</string>
     <string name="saver_char">屏保上的睡觉角色</string>
     <string name="credits_models">3D 角色模型</string>
+    <string name="prop_candle">蜡烛</string>
+    <string name="prop_book">书</string>
+    <string name="prop_sword">剑</string>
+    <string name="prop_axe">斧头</string>
     <plurals name="apps_count">
         <item quantity="other">%d 个应用</item>
     </plurals>

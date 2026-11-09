@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">በዝናብ፣ በበረዶ፣ በማዕበል እና በቅዝቃዜ ጃንጥላ ይይዛል አቋሙንም ይቀይራል።</string>
     <string name="saver_char">በስክሪን ማቆያ ላይ የሚተኛ ገጸ ባሕሪ</string>
     <string name="credits_models">የ3D ገጸ ባህሪ ሞዴሎች</string>
+    <string name="prop_candle">ሻማ</string>
+    <string name="prop_book">መጽሐፍ</string>
+    <string name="prop_sword">ሰይፍ</string>
+    <string name="prop_axe">መጥረቢያ</string>
     <plurals name="apps_count">
         <item quantity="one">%d መተግበሪያ</item>
         <item quantity="other">%d መተግበሪያዎች</item>

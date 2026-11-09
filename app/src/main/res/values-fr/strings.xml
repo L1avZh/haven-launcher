@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">Tient un parapluie et change de posture sous la pluie, la neige, l\'orage et le froid.</string>
     <string name="saver_char">Personnage endormi sur l\'économiseur</string>
     <string name="credits_models">Modèles de personnages 3D</string>
+    <string name="prop_candle">Bougie</string>
+    <string name="prop_book">Livre</string>
+    <string name="prop_sword">Épée</string>
+    <string name="prop_axe">Hache</string>
     <plurals name="apps_count">
         <item quantity="one">%d appli</item>
         <item quantity="many">%d d’applis</item>

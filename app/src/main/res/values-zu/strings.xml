@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">Ubamba isambulela futhi aguqule isimo emvuleni, eqhweni, esiphepheleni nasebusika.</string>
     <string name="saver_char">Umlingiswa olele esilondolozini sesikrini</string>
     <string name="credits_models">Amamodeli abalingiswa be-3D</string>
+    <string name="prop_candle">Ikhandlela</string>
+    <string name="prop_book">Incwadi</string>
+    <string name="prop_sword">Inkemba</string>
+    <string name="prop_axe">Izembe</string>
     <plurals name="apps_count">
         <item quantity="one">Uhlelo lokusebenza olu-%d</item>
         <item quantity="other">Izinhlelo zokusebenza ezingu-%d</item>

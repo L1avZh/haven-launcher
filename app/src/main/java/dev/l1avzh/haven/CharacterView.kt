@@ -67,12 +67,16 @@ class CharacterView(ctx: Context) : TextureView(ctx), Choreographer.FrameCallbac
     private class Joint(val entity: Int, val inst: Int, val bind: FloatArray)
     /** One loaded character: its skeleton, eyes and the optional pieces that can be shown or hidden. */
     private class Model(val def: CharacterDef, val asset: FilamentAsset, val joints: Map<String, Joint>, val eyes: List<Joint>,
-                        val outfits: Map<String, Int>, val props: Map<String, Int>, val star: Int, val always: IntArray,
-                        val umbrella: Int, val blanket: Int, val pillow: Int)
+                        val outfits: Map<String, Int>, val star: Int, val always: IntArray, val attachR: Int)
+    /** Props, bed, scenery and weather effects, loaded once and shared by every character. Entities are shown or hidden by name. */
+    private class World(val asset: FilamentAsset, val ent: Map<String, Int>) { var attachedTo: Model? = null }
+    private var world: World? = null
+    private var envNight = false
+    private var envEffect = WeatherEffect.NONE
     private val models = HashMap<String, Model>()
     private var active: Model? = null
 
-    private var look = LookState("human", "city", "lantern", false)
+    private var look = LookState("human", "city", "candle", false)
     private var pendingLook: LookState? = null
     private var scenery = SceneLook(Stance.NONE, null, false)
     private var started = false
@@ -113,6 +117,12 @@ class CharacterView(ctx: Context) : TextureView(ctx), Choreographer.FrameCallbac
     fun setScene(s: SceneLook) {
         if (s.stance == scenery.stance && s.propOverride == scenery.propOverride && s.sleeping == scenery.sleeping) return
         scenery = s; reactor.stance = s.stance; applyLook(); frameCamera(); dirty = true; kick()
+    }
+
+    /** The scenery around the character: sky (sun or moon) and the weather in 3D. Independent of the saved look. */
+    fun setEnvironment(night: Boolean, effect: WeatherEffect) {
+        if (night == envNight && effect == envEffect) return
+        envNight = night; envEffect = effect; applyLook(); dirty = true; kick()
     }
 
     fun start() { if (started || failed) return; started = true; lastFrameMs = 0; dirty = true; kick() }
@@ -247,31 +257,57 @@ class CharacterView(ctx: Context) : TextureView(ctx), Choreographer.FrameCallbac
                 val inst = tm.getInstance(ent); val m = FloatArray(16); tm.getTransform(inst, m); return Joint(ent, inst, m) }
             val joints = (Pose.JOINTS + "root").mapNotNull { n -> joint(n)?.let { n to it } }.toMap()
             val outfits = def.outfits.associateWith { a.getFirstEntityByName("outfit_$it") }
-            val props = def.props.associateWith { a.getFirstEntityByName("prop_$it") }
             val star = a.getFirstEntityByName("acc_star")
-            val umbrella = a.getFirstEntityByName("prop_umbrella"); val blanket = a.getFirstEntityByName("sleep_blanket"); val pillow = a.getFirstEntityByName("sleep_pillow")
-            val optional = (outfits.values + props.values + star + umbrella + blanket + pillow).toSet()
-            Model(def, a, joints, listOfNotNull(joint("eye_l"), joint("eye_r")), outfits, props, star, a.entities.filter { it !in optional }.toIntArray(), umbrella, blanket, pillow)
+            val optional = (outfits.values + star).toSet()
+            Model(def, a, joints, listOfNotNull(joint("eye_l"), joint("eye_r")), outfits, star, a.entities.filter { it !in optional }.toIntArray(), a.getFirstEntityByName("attach_hand_r"))
                 .also { models[def.id] = it }
         } catch (t: Throwable) { Log.w("Haven", "character ${def.id} not loaded: $t"); null }
     }
 
-    /** Shows the selected character with its outfit, prop and (if worn) pendant. Only that model stays in memory. */
+    /** Reads world.glb (props, bed, scenery, weather effects). Null when it cannot be loaded: the character then shows without them. */
+    private fun loadWorld(): World? {
+        world?.let { return it }
+        val e = engine ?: return null; val loader = assetLoader ?: return null; val rl = resources ?: return null
+        return try {
+            val bytes = context.assets.open("character/world.glb").use { it.readBytes() }
+            val buf = ByteBuffer.allocateDirect(bytes.size).put(bytes).apply { flip() }
+            val a = loader.createAsset(buf) ?: return null
+            rl.loadResources(a); a.releaseSourceData()
+            val names = Look.ALL_PROPS.filter { it != "none" }.map { "prop_$it" } + listOf("prop_umbrella", "bed", "env_day", "env_snow", "ground_grass", "ground_snow", "env_sun", "env_moon", "fx_rain_0", "fx_rain_1", "fx_snow_0", "fx_snow_1")
+            World(a, names.associateWith { a.getFirstEntityByName(it) }).also { world = it }
+        } catch (t: Throwable) { Log.w("Haven", "world not loaded: $t"); null }
+    }
+
+    /** Shows the selected character with its outfit, prop and (if worn) pendant, and the matching scenery. Only that model stays in memory. */
     private fun applyLook() {
-        val s = scene ?: return
+        val s = scene ?: return; val tm = engine?.transformManager ?: return
         val want = models[look.character] ?: loadModel(Look.def(look.character))
             ?: Look.CHARACTERS.firstNotNullOfOrNull { models[it.id] ?: loadModel(it) } ?: return
+        val w = loadWorld()
         for (m in models.values.toList()) if (m !== want) {
-            s.removeEntities(m.always); (m.outfits.values + m.props.values + m.star + m.umbrella + m.blanket + m.pillow).forEach { if (it != 0) s.removeEntity(it) }
+            w?.let { ww -> if (ww.attachedTo === m) { ww.ent.forEach { (n, ent) -> if (n.startsWith("prop_") && ent != 0) tm.setParent(tm.getInstance(ent), 0) }; ww.attachedTo = null } }
+            s.removeEntities(m.always); (m.outfits.values + m.star).forEach { if (it != 0) s.removeEntity(it) }
             assetLoader?.destroyAsset(m.asset); models.remove(m.def.id)
         }
         s.addEntities(want.always)
         for ((o, ent) in want.outfits) if (ent != 0) { if (o == look.outfit) s.addEntity(ent) else s.removeEntity(ent) }
-        val shown = if (scenery.sleeping) null else scenery.propOverride ?: look.prop
-        for ((p, ent) in want.props) if (ent != 0) { if (p == shown) s.addEntity(ent) else s.removeEntity(ent) }
-        fun toggle(ent: Int, on: Boolean) { if (ent != 0) { if (on) s.addEntity(ent) else s.removeEntity(ent) } }
-        toggle(want.umbrella, shown == "umbrella"); toggle(want.blanket, scenery.sleeping); toggle(want.pillow, scenery.sleeping)
         if (want.star != 0) { if (look.star) s.addEntity(want.star) else s.removeEntity(want.star) }
+        if (w != null) {
+            if (w.attachedTo !== want && want.attachR != 0) {
+                val parent = tm.getInstance(want.attachR)
+                w.ent.forEach { (n, ent) -> if (n.startsWith("prop_") && ent != 0) tm.setParent(tm.getInstance(ent), parent) }; w.attachedTo = want
+            }
+            fun show(name: String, on: Boolean) { val ent = w.ent[name] ?: 0; if (ent != 0) { if (on) s.addEntity(ent) else s.removeEntity(ent) } }
+            val shown = if (scenery.sleeping) null else scenery.propOverride ?: look.prop
+            for (n in w.ent.keys) if (n.startsWith("prop_")) show(n, n == "prop_$shown")
+            val sleeping = scenery.sleeping; val snowy = envEffect == WeatherEffect.SNOW
+            show("bed", sleeping)
+            w.ent["bed"]?.takeIf { it != 0 }?.let { setT(tm, it, 0f, 0f, -0.08f) }    // behind the sleeper, so the face is not hidden by the pillow
+            show("ground_grass", !snowy); show("ground_snow", snowy); show("env_day", !snowy && !sleeping); show("env_snow", snowy && !sleeping)
+            show("env_sun", !envNight && envEffect == WeatherEffect.NONE); show("env_moon", envNight)
+            val rain = !sleeping && (envEffect == WeatherEffect.RAIN || envEffect == WeatherEffect.STORM); val snow = !sleeping && snowy
+            show("fx_rain_0", rain); show("fx_rain_1", rain); show("fx_snow_0", snow); show("fx_snow_1", snow)
+        }
         if (active !== want) { active = want; frameCamera() }
     }
 
@@ -280,6 +316,7 @@ class CharacterView(ctx: Context) : TextureView(ctx), Choreographer.FrameCallbac
         try {
             swapChain?.let { e.destroySwapChain(it) }; swapChain = null
             models.values.forEach { assetLoader?.destroyAsset(it.asset) }; models.clear(); active = null
+            world?.let { assetLoader?.destroyAsset(it.asset) }; world = null
             resources?.destroy(); resources = null
             assetLoader?.destroy(); assetLoader = null
             materials?.destroyMaterials(); materials?.destroy(); materials = null
@@ -327,8 +364,25 @@ class CharacterView(ctx: Context) : TextureView(ctx), Choreographer.FrameCallbac
         }
         val pose = animator.update(nowMs, motion)
         poseJoints(e, pose)
+        scrollEffects(e, nowMs)
         active?.asset?.instance?.animator?.updateBoneMatrices()
         if (r.beginFrame(sc, frameTimeNanos)) { r.render(v); r.endFrame() }
+    }
+
+    /** Rain and snow are 3D layers of small meshes that scroll down and wrap; with reduced motion they hold still. */
+    private fun scrollEffects(e: Engine, nowMs: Long) {
+        val w = world ?: return
+        if (envEffect != WeatherEffect.RAIN && envEffect != WeatherEffect.STORM && envEffect != WeatherEffect.SNOW) return
+        val tm = e.transformManager; val sec = nowMs / 1000.0; val mv = motion > 0f
+        for (i in 0..1) {
+            val rainEnt = w.ent["fx_rain_$i"] ?: 0; val snowEnt = w.ent["fx_snow_$i"] ?: 0
+            if (rainEnt != 0) { val off = if (mv) ((sec * (2.2 + 0.7 * i)) % 2.4).toFloat() else 0f; setT(tm, rainEnt, 0f, -off, 0f) }
+            if (snowEnt != 0) { val off = if (mv) ((sec * (0.32 + 0.12 * i)) % 2.4).toFloat() else 0f; setT(tm, snowEnt, if (mv) (0.05 * sin(sec * 0.9 + i * 2)).toFloat() else 0f, -off, 0f) }
+        }
+    }
+    private fun setT(tm: com.google.android.filament.TransformManager, ent: Int, x: Float, y: Float, z: Float) {
+        val m = scratch; m.fill(0f); m[0] = 1f; m[5] = 1f; m[10] = 1f; m[15] = 1f; m[12] = x; m[13] = y; m[14] = z
+        tm.setTransform(tm.getInstance(ent), m)
     }
 
     // ------------------------------------------------------------------ pose to transforms

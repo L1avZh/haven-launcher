@@ -30,8 +30,8 @@ class CharacterStudio(
         "c" to "wizard" -> R.string.char_wizard; "c" to "robot" -> R.string.char_robot; "c" to "human" -> R.string.char_human
         "o" to "field" -> R.string.outfit_field; "o" to "archmage" -> R.string.outfit_archmage; "o" to "apprentice" -> R.string.outfit_apprentice
         "o" to "plated" -> R.string.outfit_plated; "o" to "stealth" -> R.string.outfit_stealth; "o" to "city" -> R.string.outfit_city
-        "p" to "tablet" -> R.string.prop_tablet; "p" to "compass" -> R.string.prop_compass; "p" to "none" -> R.string.prop_none
-        "p" to "staff" -> R.string.prop_staff; else -> R.string.prop_lantern
+        "p" to "candle" -> R.string.prop_candle; "p" to "book" -> R.string.prop_book; "p" to "sword" -> R.string.prop_sword; "p" to "axe" -> R.string.prop_axe
+        "p" to "none" -> R.string.prop_none; "p" to "staff" -> R.string.prop_staff; else -> R.string.prop_candle
     })
 
     init {

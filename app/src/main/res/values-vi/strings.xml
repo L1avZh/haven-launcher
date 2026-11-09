@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">Cầm ô và đổi tư thế khi mưa, tuyết, bão và lạnh.</string>
     <string name="saver_char">Nhân vật ngủ trên màn hình chờ</string>
     <string name="credits_models">Mô hình nhân vật 3D</string>
+    <string name="prop_candle">Nến</string>
+    <string name="prop_book">Sách</string>
+    <string name="prop_sword">Kiếm</string>
+    <string name="prop_axe">Rìu</string>
     <plurals name="apps_count">
         <item quantity="other">%d ứng dụng</item>
     </plurals>

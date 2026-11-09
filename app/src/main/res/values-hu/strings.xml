@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">Esernyőt tart és testtartást vált esőben, hóban, viharban és hidegben.</string>
     <string name="saver_char">Alvó karakter a képernyővédőn</string>
     <string name="credits_models">3D karaktermodellek</string>
+    <string name="prop_candle">Gyertya</string>
+    <string name="prop_book">Könyv</string>
+    <string name="prop_sword">Kard</string>
+    <string name="prop_axe">Balta</string>
     <plurals name="apps_count">
         <item quantity="one">%d alkalmazás</item>
         <item quantity="other">%d alkalmazás</item>

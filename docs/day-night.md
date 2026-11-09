@@ -26,11 +26,20 @@ The stars never twinkle and the sky is drawn into a hardware layer, so it costs 
 Stored value `daynight_mode` is an int 0..2; anything else (or nothing, as on every install before this feature) reads as Automatic, so there is
 nothing to migrate.
 
+## The scene
+
+Behind and around the character (inside its view only, so the widgets and the app list are never covered) a small 3D diorama follows the same state.
+By day on clear weather: a sun, a tree, a flowering bush and grass on a green ground disc. At night: a moon, with the 2D stars behind. Rain and
+storm: 3D drops fall in two scrolling layers. Snow: pines on a white ground and 3D flakes drifting down. Sleeping: the twin bed with pillow and
+blanket on the ground, the character lying on the mattress, the moon above, and no weather (it sleeps indoors in spirit). Weather in the scene
+follows **Weather reactions**, like the umbrella. The earlier 2D rain lines drawn on the background canvas were removed. With reduced motion the
+particles hold still.
+
 ## The character
 
 | Situation (priority, highest first) | Result |
 |---|---|
-| Night and *Sleep at night* is on | Sleeps: lies on its side under a blanket on a pillow, eyes closed, slow breathing. No umbrella, no reactions. |
+| Night and *Sleep at night* is on | Sleeps: lies on its side on the bed's mattress with its head by the pillow, slow breathing. No umbrella, no reactions. |
 | Thunderstorm (WMO 95 to 99), fresh reading | Umbrella, leaning into the wind, other arm up |
 | Snow (71 to 77, 85, 86) | Umbrella, head tilted up, a palm held out |
 | Rain, drizzle, freezing rain, showers (51 to 67, 80 to 82) | Umbrella, a hand out to check |
@@ -42,7 +51,7 @@ nothing to migrate.
 * Sleeping wins over weather, so the character never sleeps with an umbrella. With *Sleep at night* off, weather shows at night too.
 * The umbrella is a temporary override. The prop saved in the Studio is not touched and comes back when the weather clears or the character wakes.
 * Settings → Character has **Sleep at night**, **Weather reactions** (turns the umbrella and stances off) and **Sleeping character on screensaver**.
-* All three characters carry the same `prop_umbrella`, `sleep_blanket` and `sleep_pillow` nodes, so this works for every one of them.
+* The umbrella and the bed come from `world.glb` and attach to whichever character is active, so this works for every one of them.
 * With reduced motion the held poses (lying down, umbrella arm) still show; only the breathing, shiver and gusting are removed.
 * When the umbrella is up the camera backs off and rises a little for head-room; when sleeping it comes in to frame a lying figure.
 

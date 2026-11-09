@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">Drží dáždnik a mení postoj v daždi, snehu, búrke a zime.</string>
     <string name="saver_char">Spiaca postava v šetriči</string>
     <string name="credits_models">3D modely postáv</string>
+    <string name="prop_candle">Sviečka</string>
+    <string name="prop_book">Kniha</string>
+    <string name="prop_sword">Meč</string>
+    <string name="prop_axe">Sekera</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplikácia</item>
         <item quantity="few">%d aplikácie</item>

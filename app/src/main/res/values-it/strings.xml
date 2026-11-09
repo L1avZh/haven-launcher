@@ -248,6 +248,10 @@
     <string name="weather_reacts_d">Tiene un ombrello e cambia postura con pioggia, neve, temporale e freddo.</string>
     <string name="saver_char">Personaggio che dorme nello screensaver</string>
     <string name="credits_models">Modelli di personaggi 3D</string>
+    <string name="prop_candle">Candela</string>
+    <string name="prop_book">Libro</string>
+    <string name="prop_sword">Spada</string>
+    <string name="prop_axe">Ascia</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="many">%d di app</item>

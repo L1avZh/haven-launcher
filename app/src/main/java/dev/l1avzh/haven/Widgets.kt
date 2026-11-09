@@ -167,7 +167,6 @@ class WidgetStrip(ctx: Context, private val s: Scale, ids: List<String>, private
             t.card.contentDescription = if (r.showLabel) "$name: ${r.value}" else r.value
             r.sky?.let { t.icon?.set(it.first, it.second, it.third) }
             t.icon?.visibility = if (r.sky == null) View.GONE else View.VISIBLE
-            if (t.def.id == "weather") LiveBackground.ambient = r.sky?.first?.takeIf { it == Sky.RAIN || it == Sky.SNOW || it == Sky.STORM }
             r.fraction?.let { t.bar.fraction = it.coerceIn(0f, 1f); t.bar.invalidate() }
         }
     }
