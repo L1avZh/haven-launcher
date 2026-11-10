@@ -252,6 +252,14 @@
     <string name="prop_book">Livre</string>
     <string name="prop_sword">Épée</string>
     <string name="prop_axe">Hache</string>
+    <string name="home_status">Application d\'accueil par défaut</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Non défini</string>
+    <string name="home_v_na">Indisponible</string>
+    <string name="home_d_yes">Haven est l\'application d\'accueil par défaut. Que la touche Accueil de l\'appareil l\'ouvre réellement dépend de son firmware.</string>
+    <string name="home_d_no">Haven n\'est pas l\'application d\'accueil par défaut. Appuyez sur OK pour la choisir dans le système.</string>
+    <string name="home_d_na">Cet appareil n\'a pas de sélecteur d\'application d\'accueil. Voir le guide d\'installation pour les étapes manuelles.</string>
+    <string name="home_firmware">Certains boîtiers TV ouvrent toujours leur propre lanceur, même si une autre application d\'accueil est choisie ; Haven ne peut pas y changer.</string>
     <plurals name="apps_count">
         <item quantity="one">%d appli</item>
         <item quantity="many">%d d’applis</item>

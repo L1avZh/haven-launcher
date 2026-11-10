@@ -252,6 +252,14 @@
     <string name="prop_book">Kitap</string>
     <string name="prop_sword">Kılıç</string>
     <string name="prop_axe">Balta</string>
+    <string name="home_status">Varsayılan Ana ekran uygulaması</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Ayarlanmadı</string>
+    <string name="home_v_na">Kullanılamıyor</string>
+    <string name="home_d_yes">Haven varsayılan Ana ekran uygulaması olarak seçili. Cihazın Ana Sayfa düğmesinin onu gerçekten açıp açmadığı yazılımına bağlıdır.</string>
+    <string name="home_d_no">Haven varsayılan Ana ekran uygulaması değil. Sistemde seçmek için Tamam\'a basın.</string>
+    <string name="home_d_na">Bu cihazda Ana ekran uygulaması seçici yok. Elle yapılacak adımlar için kurulum kılavuzuna bakın.</string>
+    <string name="home_firmware">Bazı TV kutuları başka bir Ana ekran uygulaması seçilse bile kendi başlatıcısını açar; Haven bunu değiştiremez.</string>
     <plurals name="apps_count">
         <item quantity="one">%d uygulama</item>
         <item quantity="other">%d uygulama</item>

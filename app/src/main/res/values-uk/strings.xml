@@ -252,6 +252,14 @@
     <string name="prop_book">Книга</string>
     <string name="prop_sword">Меч</string>
     <string name="prop_axe">Сокира</string>
+    <string name="home_status">Програма головного екрана за замовчуванням</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Не задано</string>
+    <string name="home_v_na">Недоступно</string>
+    <string name="home_d_yes">Haven вибрано програмою головного екрана за замовчуванням. Чи відкриє її кнопка «Додому» пристрою, залежить від прошивки.</string>
+    <string name="home_d_no">Haven не є програмою головного екрана за замовчуванням. Натисніть OK, щоб вибрати її в системі.</string>
+    <string name="home_d_na">На цьому пристрої немає вибору програми головного екрана. Ручні кроки є в посібнику зі встановлення.</string>
+    <string name="home_firmware">Деякі ТВ-приставки все одно відкривають свій лаунчер, навіть якщо вибрано іншу програму; Haven не може цього змінити.</string>
     <plurals name="apps_count">
         <item quantity="one">%d застосунок</item>
         <item quantity="few">%d застосунки</item>

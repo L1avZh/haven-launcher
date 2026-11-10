@@ -252,6 +252,14 @@
     <string name="prop_book">Книга</string>
     <string name="prop_sword">Меч</string>
     <string name="prop_axe">Топор</string>
+    <string name="home_status">Приложение главного экрана по умолчанию</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Не задано</string>
+    <string name="home_v_na">Недоступно</string>
+    <string name="home_d_yes">Haven выбран приложением главного экрана по умолчанию. Откроет ли его кнопка «Домой» устройства, зависит от прошивки.</string>
+    <string name="home_d_no">Haven не является приложением главного экрана по умолчанию. Нажмите OK, чтобы выбрать его в системе.</string>
+    <string name="home_d_na">На этом устройстве нет выбора приложения главного экрана. Ручные шаги описаны в руководстве по установке.</string>
+    <string name="home_firmware">Некоторые ТВ-приставки всё равно открывают свой лаунчер, даже если выбрано другое приложение; Haven не может это изменить.</string>
     <plurals name="apps_count">
         <item quantity="one">%d приложение</item>
         <item quantity="few">%d приложения</item>

@@ -252,6 +252,14 @@
     <string name="prop_book">Buku</string>
     <string name="prop_sword">Pedang</string>
     <string name="prop_axe">Kapak</string>
+    <string name="home_status">Aplikasi Beranda default</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Belum diatur</string>
+    <string name="home_v_na">Tidak tersedia</string>
+    <string name="home_d_yes">Haven dipilih sebagai aplikasi Beranda default. Apakah tombol Beranda perangkat benar-benar membukanya bergantung pada firmware.</string>
+    <string name="home_d_no">Haven bukan aplikasi Beranda default. Tekan OK untuk memilihnya di sistem.</string>
+    <string name="home_d_na">Perangkat ini tidak memiliki pemilih aplikasi Beranda. Lihat panduan instalasi untuk langkah manual.</string>
+    <string name="home_firmware">Beberapa TV box tetap membuka launcher sendiri meski aplikasi lain dipilih; Haven tidak dapat mengubahnya.</string>
     <plurals name="apps_count">
         <item quantity="other">%d aplikasi</item>
     </plurals>

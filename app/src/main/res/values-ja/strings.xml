@@ -252,6 +252,14 @@
     <string name="prop_book">本</string>
     <string name="prop_sword">剣</string>
     <string name="prop_axe">斧</string>
+    <string name="home_status">既定のホームアプリ</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">未設定</string>
+    <string name="home_v_na">利用不可</string>
+    <string name="home_d_yes">Haven が既定のホームアプリに選択されています。端末のホームボタンが実際に開くかどうかは、ファームウェア次第です。</string>
+    <string name="home_d_no">Haven は既定のホームアプリではありません。OK を押してシステムで選択してください。</string>
+    <string name="home_d_na">この端末にはホームアプリの選択画面がありません。手動の手順はインストールガイドをご覧ください。</string>
+    <string name="home_firmware">別のホームアプリを選んでも、独自のランチャーを開き続けるテレビボックスがあります。Haven には変更できません。</string>
     <plurals name="apps_count">
         <item quantity="other">%d 個のアプリ</item>
     </plurals>

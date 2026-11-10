@@ -252,6 +252,14 @@
     <string name="prop_book">کتاب</string>
     <string name="prop_sword">تلوار</string>
     <string name="prop_axe">کلہاڑی</string>
+    <string name="home_status">ڈیفالٹ ہوم ایپ</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">سیٹ نہیں</string>
+    <string name="home_v_na">دستیاب نہیں</string>
+    <string name="home_d_yes">Haven بطور ڈیفالٹ ہوم ایپ منتخب ہے۔ آلے کا ہوم بٹن اسے واقعی کھولتا ہے یا نہیں، یہ اس کے فرم ویئر پر منحصر ہے۔</string>
+    <string name="home_d_no">Haven ڈیفالٹ ہوم ایپ نہیں ہے۔ سسٹم میں منتخب کرنے کے لیے OK دبائیں۔</string>
+    <string name="home_d_na">اس آلے میں ہوم ایپ منتخب کرنے کا اختیار نہیں۔ دستی مراحل کے لیے انسٹالیشن گائیڈ دیکھیں۔</string>
+    <string name="home_firmware">کچھ ٹی وی باکس دوسری ایپ منتخب ہونے پر بھی اپنا لانچر کھولتے ہیں؛ Haven اسے تبدیل نہیں کر سکتا۔</string>
     <plurals name="apps_count">
         <item quantity="one">%d ایپ</item>
         <item quantity="other">%d ایپس</item>

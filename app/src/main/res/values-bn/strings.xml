@@ -252,6 +252,14 @@
     <string name="prop_book">বই</string>
     <string name="prop_sword">তলোয়ার</string>
     <string name="prop_axe">কুড়াল</string>
+    <string name="home_status">ডিফল্ট হোম অ্যাপ</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">সেট করা নেই</string>
+    <string name="home_v_na">উপলব্ধ নয়</string>
+    <string name="home_d_yes">Haven ডিফল্ট হোম অ্যাপ হিসেবে নির্বাচিত। ডিভাইসের হোম বোতাম সত্যিই এটি খোলে কি না তা তার ফার্মওয়্যারের উপর নির্ভর করে।</string>
+    <string name="home_d_no">Haven ডিফল্ট হোম অ্যাপ নয়। সিস্টেমে বেছে নিতে OK চাপুন।</string>
+    <string name="home_d_na">এই ডিভাইসে হোম অ্যাপ বাছাইয়ের ব্যবস্থা নেই। ম্যানুয়াল ধাপের জন্য ইনস্টলেশন গাইড দেখুন।</string>
+    <string name="home_firmware">কিছু টিভি বক্স অন্য হোম অ্যাপ বেছে নিলেও নিজস্ব লঞ্চার খোলে; Haven তা বদলাতে পারে না।</string>
     <plurals name="apps_count">
         <item quantity="one">%dটি অ্যাপ</item>
         <item quantity="other">%dটি অ্যাপ</item>

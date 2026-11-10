@@ -252,6 +252,14 @@
     <string name="prop_book">书</string>
     <string name="prop_sword">剑</string>
     <string name="prop_axe">斧头</string>
+    <string name="home_status">默认主屏幕应用</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">未设置</string>
+    <string name="home_v_na">不可用</string>
+    <string name="home_d_yes">已选择 Haven 作为默认主屏幕应用。设备的主页键是否真的打开它，取决于其固件。</string>
+    <string name="home_d_no">Haven 不是默认主屏幕应用。按“确定”在系统中选择它。</string>
+    <string name="home_d_na">此设备没有主屏幕应用选择器。手动步骤请参阅安装指南。</string>
+    <string name="home_firmware">部分电视盒子即使选择了其他主屏幕应用，仍会打开自带的启动器；Haven 无法改变这一点。</string>
     <plurals name="apps_count">
         <item quantity="other">%d 个应用</item>
     </plurals>

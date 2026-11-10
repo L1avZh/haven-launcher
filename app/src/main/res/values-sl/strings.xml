@@ -252,6 +252,14 @@
     <string name="prop_book">Knjiga</string>
     <string name="prop_sword">Meč</string>
     <string name="prop_axe">Sekira</string>
+    <string name="home_status">Privzeta domača aplikacija</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Ni nastavljeno</string>
+    <string name="home_v_na">Ni na voljo</string>
+    <string name="home_d_yes">Haven je izbran kot privzeta domača aplikacija. Ali ga gumb Domov na napravi res odpre, je odvisno od vdelane programske opreme.</string>
+    <string name="home_d_no">Haven ni privzeta domača aplikacija. Pritisnite OK, da ga izberete v sistemu.</string>
+    <string name="home_d_na">Ta naprava nima izbire domače aplikacije. Ročni koraki so v navodilih za namestitev.</string>
+    <string name="home_firmware">Nekatere televizijske škatle še vedno odprejo svoj zaganjalnik, tudi če je izbrana druga aplikacija; Haven tega ne more spremeniti.</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplikacija</item>
         <item quantity="two">%d aplikaciji</item>

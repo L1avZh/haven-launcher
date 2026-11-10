@@ -252,6 +252,14 @@
     <string name="prop_book">Βιβλίο</string>
     <string name="prop_sword">Σπαθί</string>
     <string name="prop_axe">Τσεκούρι</string>
+    <string name="home_status">Προεπιλεγμένη εφαρμογή αρχικής οθόνης</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Δεν έχει οριστεί</string>
+    <string name="home_v_na">Μη διαθέσιμο</string>
+    <string name="home_d_yes">Το Haven είναι επιλεγμένο ως προεπιλεγμένη εφαρμογή αρχικής οθόνης. Το αν το κουμπί Home της συσκευής την ανοίγει πράγματι εξαρτάται από το υλικολογισμικό.</string>
+    <string name="home_d_no">Το Haven δεν είναι η προεπιλεγμένη εφαρμογή αρχικής οθόνης. Πατήστε OK για να το επιλέξετε στο σύστημα.</string>
+    <string name="home_d_na">Αυτή η συσκευή δεν έχει επιλογέα εφαρμογής αρχικής οθόνης. Δείτε τον οδηγό εγκατάστασης για τα χειροκίνητα βήματα.</string>
+    <string name="home_firmware">Ορισμένα TV box ανοίγουν πάντα το δικό τους launcher ακόμη κι αν επιλεγεί άλλη εφαρμογή· το Haven δεν μπορεί να το αλλάξει.</string>
     <plurals name="apps_count">
         <item quantity="one">%d εφαρμογή</item>
         <item quantity="other">%d εφαρμογές</item>

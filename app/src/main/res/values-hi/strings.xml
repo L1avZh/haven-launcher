@@ -252,6 +252,14 @@
     <string name="prop_book">किताब</string>
     <string name="prop_sword">तलवार</string>
     <string name="prop_axe">कुल्हाड़ी</string>
+    <string name="home_status">डिफ़ॉल्ट होम ऐप</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">सेट नहीं</string>
+    <string name="home_v_na">उपलब्ध नहीं</string>
+    <string name="home_d_yes">Haven डिफ़ॉल्ट होम ऐप के रूप में चुना गया है। डिवाइस का होम बटन उसे सच में खोलता है या नहीं, यह उसके फ़र्मवेयर पर निर्भर है।</string>
+    <string name="home_d_no">Haven डिफ़ॉल्ट होम ऐप नहीं है। सिस्टम में चुनने के लिए OK दबाएँ।</string>
+    <string name="home_d_na">इस डिवाइस में होम ऐप चुनने की सुविधा नहीं है। मैन्युअल चरणों के लिए इंस्टॉलेशन गाइड देखें।</string>
+    <string name="home_firmware">कुछ टीवी बॉक्स दूसरा होम ऐप चुनने पर भी अपना लॉन्चर खोलते हैं; Haven इसे बदल नहीं सकता।</string>
     <plurals name="apps_count">
         <item quantity="one">%d ऐप</item>
         <item quantity="other">%d ऐप</item>

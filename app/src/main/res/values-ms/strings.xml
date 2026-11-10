@@ -252,6 +252,14 @@
     <string name="prop_book">Buku</string>
     <string name="prop_sword">Pedang</string>
     <string name="prop_axe">Kapak</string>
+    <string name="home_status">Apl Utama lalai</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Belum ditetapkan</string>
+    <string name="home_v_na">Tidak tersedia</string>
+    <string name="home_d_yes">Haven dipilih sebagai apl Utama lalai. Sama ada butang Utama peranti benar-benar membukanya bergantung pada perisian tegarnya.</string>
+    <string name="home_d_no">Haven bukan apl Utama lalai. Tekan OK untuk memilihnya dalam sistem.</string>
+    <string name="home_d_na">Peranti ini tiada pemilih apl Utama. Lihat panduan pemasangan untuk langkah manual.</string>
+    <string name="home_firmware">Sesetengah kotak TV masih membuka pelancar sendiri walaupun apl lain dipilih; Haven tidak dapat mengubahnya.</string>
     <plurals name="apps_count">
         <item quantity="other">%d apl</item>
     </plurals>

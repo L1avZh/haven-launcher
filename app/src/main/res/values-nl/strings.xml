@@ -252,6 +252,14 @@
     <string name="prop_book">Boek</string>
     <string name="prop_sword">Zwaard</string>
     <string name="prop_axe">Bijl</string>
+    <string name="home_status">Standaard startapp</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Niet ingesteld</string>
+    <string name="home_v_na">Niet beschikbaar</string>
+    <string name="home_d_yes">Haven is gekozen als standaard startapp. Of de Home-knop van het apparaat hem echt opent, hangt af van de firmware.</string>
+    <string name="home_d_no">Haven is niet de standaard startapp. Druk op OK om hem in het systeem te kiezen.</string>
+    <string name="home_d_na">Dit apparaat heeft geen keuze voor de startapp. Zie de installatiegids voor de handmatige stappen.</string>
+    <string name="home_firmware">Sommige tv-boxen openen steeds hun eigen launcher, ook als een andere startapp is gekozen; Haven kan dat niet veranderen.</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="other">%d apps</item>

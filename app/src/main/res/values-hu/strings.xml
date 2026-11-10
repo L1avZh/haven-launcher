@@ -252,6 +252,14 @@
     <string name="prop_book">Könyv</string>
     <string name="prop_sword">Kard</string>
     <string name="prop_axe">Balta</string>
+    <string name="home_status">Alapértelmezett kezdőalkalmazás</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Nincs beállítva</string>
+    <string name="home_v_na">Nem érhető el</string>
+    <string name="home_d_yes">A Haven van kiválasztva alapértelmezett kezdőalkalmazásnak. Hogy az eszköz Home gombja valóban megnyitja-e, a firmware-től függ.</string>
+    <string name="home_d_no">A Haven nem az alapértelmezett kezdőalkalmazás. Nyomja meg az OK-t a rendszerben való kiválasztásához.</string>
+    <string name="home_d_na">Ezen az eszközön nincs kezdőalkalmazás-választó. A kézi lépéseket a telepítési útmutató tartalmazza.</string>
+    <string name="home_firmware">Néhány TV-box akkor is a saját launcherét nyitja meg, ha másik kezdőalkalmazás van kiválasztva; a Haven ezt nem változtathatja meg.</string>
     <plurals name="apps_count">
         <item quantity="one">%d alkalmazás</item>
         <item quantity="other">%d alkalmazás</item>

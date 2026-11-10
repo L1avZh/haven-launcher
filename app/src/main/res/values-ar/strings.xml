@@ -252,6 +252,14 @@
     <string name="prop_book">كتاب</string>
     <string name="prop_sword">سيف</string>
     <string name="prop_axe">فأس</string>
+    <string name="home_status">تطبيق الشاشة الرئيسية الافتراضي</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">غير محدد</string>
+    <string name="home_v_na">غير متاح</string>
+    <string name="home_d_yes">تم اختيار Haven كتطبيق الشاشة الرئيسية الافتراضي. يعتمد فتح زر الرئيسية في الجهاز له فعلًا على البرنامج الثابت.</string>
+    <string name="home_d_no">Haven ليس تطبيق الشاشة الرئيسية الافتراضي. اضغط OK لاختياره في النظام.</string>
+    <string name="home_d_na">لا يوفّر هذا الجهاز أداة اختيار تطبيق الشاشة الرئيسية. راجع دليل التثبيت للخطوات اليدوية.</string>
+    <string name="home_firmware">تواصل بعض أجهزة التلفاز فتح مشغّلها الخاص حتى عند اختيار تطبيق آخر؛ لا يستطيع Haven تغيير ذلك.</string>
     <plurals name="apps_count">
         <item quantity="zero">لا تطبيقات</item>
         <item quantity="one">تطبيق واحد</item>

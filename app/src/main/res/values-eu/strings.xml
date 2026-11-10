@@ -252,6 +252,14 @@
     <string name="prop_book">Liburua</string>
     <string name="prop_sword">Espata</string>
     <string name="prop_axe">Zizela</string>
+    <string name="home_status">Hasierako aplikazio lehenetsia</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Ezarri gabe</string>
+    <string name="home_v_na">Ez dago erabilgarri</string>
+    <string name="home_d_yes">Haven hasierako aplikazio lehenetsi gisa aukeratuta dago. Gailuaren Hasiera botoiak benetan irekitzen duen firmwarearen araberakoa da.</string>
+    <string name="home_d_no">Haven ez da hasierako aplikazio lehenetsia. Sakatu OK sisteman aukeratzeko.</string>
+    <string name="home_d_na">Gailu honek ez du hasierako aplikazioaren hautatzailerik. Ikusi instalazio-gida eskuzko urratsetarako.</string>
+    <string name="home_firmware">TV kutxa batzuek beren launcherra irekitzen dute beste aplikazio bat aukeratuta ere; Havenek ezin du hori aldatu.</string>
     <plurals name="apps_count">
         <item quantity="one">Aplikazio %d</item>
         <item quantity="other">%d aplikazio</item>

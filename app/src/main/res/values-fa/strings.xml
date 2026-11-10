@@ -252,6 +252,14 @@
     <string name="prop_book">کتاب</string>
     <string name="prop_sword">شمشیر</string>
     <string name="prop_axe">تبر</string>
+    <string name="home_status">برنامه صفحه اصلی پیش‌فرض</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">تنظیم نشده</string>
+    <string name="home_v_na">در دسترس نیست</string>
+    <string name="home_d_yes">Haven به‌عنوان برنامه صفحه اصلی پیش‌فرض انتخاب شده است. اینکه دکمه خانه دستگاه واقعاً آن را باز کند به سیستم‌افزار بستگی دارد.</string>
+    <string name="home_d_no">Haven برنامه صفحه اصلی پیش‌فرض نیست. برای انتخاب آن در سیستم OK را بزنید.</string>
+    <string name="home_d_na">این دستگاه انتخاب‌گر برنامه صفحه اصلی ندارد. مراحل دستی را در راهنمای نصب ببینید.</string>
+    <string name="home_firmware">برخی جعبه‌های تلویزیون حتی با انتخاب برنامه دیگر، لانچر خودشان را باز می‌کنند؛ Haven نمی‌تواند این را تغییر دهد.</string>
     <plurals name="apps_count">
         <item quantity="one">%d برنامه</item>
         <item quantity="other">%d برنامه</item>

@@ -252,6 +252,14 @@
     <string name="prop_book">Kitabu</string>
     <string name="prop_sword">Panga</string>
     <string name="prop_axe">Shoka</string>
+    <string name="home_status">Programu chaguomsingi ya Mwanzo</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Haijawekwa</string>
+    <string name="home_v_na">Haipatikani</string>
+    <string name="home_d_yes">Haven imechaguliwa kama programu chaguomsingi ya Mwanzo. Kama kitufe cha Mwanzo cha kifaa kinaifungua kweli kunategemea programu dhibiti yake.</string>
+    <string name="home_d_no">Haven si programu chaguomsingi ya Mwanzo. Bonyeza OK ili kuichagua kwenye mfumo.</string>
+    <string name="home_d_na">Kifaa hiki hakina kichaguzi cha programu ya Mwanzo. Tazama mwongozo wa usakinishaji kwa hatua za mikono.</string>
+    <string name="home_firmware">Baadhi ya visanduku vya TV huendelea kufungua kizindua chao hata programu nyingine ikichaguliwa; Haven haiwezi kubadilisha hilo.</string>
     <plurals name="apps_count">
         <item quantity="one">Programu %d</item>
         <item quantity="other">Programu %d</item>

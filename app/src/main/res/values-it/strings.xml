@@ -252,6 +252,14 @@
     <string name="prop_book">Libro</string>
     <string name="prop_sword">Spada</string>
     <string name="prop_axe">Ascia</string>
+    <string name="home_status">App Home predefinita</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Non impostata</string>
+    <string name="home_v_na">Non disponibile</string>
+    <string name="home_d_yes">Haven è selezionata come app Home predefinita. Se il tasto Home del dispositivo la apre davvero dipende dal firmware.</string>
+    <string name="home_d_no">Haven non è l\'app Home predefinita. Premi OK per sceglierla nel sistema.</string>
+    <string name="home_d_na">Questo dispositivo non ha un selettore dell\'app Home. Vedi la guida all\'installazione per i passaggi manuali.</string>
+    <string name="home_firmware">Alcuni box TV aprono comunque il proprio launcher anche se è scelta un\'altra app Home; Haven non può cambiarlo.</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="many">%d di app</item>

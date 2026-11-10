@@ -252,6 +252,14 @@
     <string name="prop_book">Sách</string>
     <string name="prop_sword">Kiếm</string>
     <string name="prop_axe">Rìu</string>
+    <string name="home_status">Ứng dụng Màn hình chính mặc định</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Chưa đặt</string>
+    <string name="home_v_na">Không khả dụng</string>
+    <string name="home_d_yes">Haven đã được chọn làm ứng dụng Màn hình chính mặc định. Nút Home của thiết bị có thực sự mở nó hay không phụ thuộc vào firmware.</string>
+    <string name="home_d_no">Haven không phải ứng dụng Màn hình chính mặc định. Nhấn OK để chọn trong hệ thống.</string>
+    <string name="home_d_na">Thiết bị này không có bộ chọn ứng dụng Màn hình chính. Xem hướng dẫn cài đặt để biết các bước thủ công.</string>
+    <string name="home_firmware">Một số TV box vẫn mở launcher riêng dù đã chọn ứng dụng khác; Haven không thể thay đổi điều đó.</string>
     <plurals name="apps_count">
         <item quantity="other">%d ứng dụng</item>
     </plurals>

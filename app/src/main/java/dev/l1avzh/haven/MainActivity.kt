@@ -50,6 +50,7 @@ class MainActivity : Activity() {
     private lateinit var moodView: MoodView
     private var mood: Mood.State? = null
     private var debugYaw = 0f
+    private val REQ_HOME_ROLE = 4021
     private lateinit var header: LinearLayout
     private lateinit var railBox: View
     private lateinit var stageBody: LinearLayout
@@ -170,6 +171,7 @@ class MainActivity : Activity() {
     override fun onResume() {
         super.onResume()
         T.init(this, prefs.animLevel, prefs.performance); syncCharacter(); applyMood(false)
+        settings?.refresh()      // back from a system screen: re-check the Home state instead of assuming
         // Back from another app the user opened from here: a small acknowledgement, nothing more (Haven cannot know what happened there).
         if (wentAway) { wentAway = false; character?.input(CharInput.Returned) }
         if (loaded) render()
@@ -1045,7 +1047,9 @@ class MainActivity : Activity() {
 
         val general = Category(R.drawable.ic_cat_general, g(R.string.cat_general), g(R.string.d_general)) { listOf(
             Toggle(g(R.string.return_start_home), g(R.string.return_start_home_d), { prefs.returnStartOnHome }, { prefs.returnStartOnHome = it }),
-            Action(g(R.string.set_home), g(R.string.set_home_d)) { homeSettings() },
+            run { val st = HomeRole.status(this)      // read fresh on every rebuild, so returning from the system screen shows what Android now says
+                Action(g(R.string.home_status), g(when (st) { HomeStatus.HELD -> R.string.home_d_yes; HomeStatus.NOT_HELD -> R.string.home_d_no; HomeStatus.UNSUPPORTED -> R.string.home_d_na }),
+                    { g(when (st) { HomeStatus.HELD -> R.string.home_v_yes; HomeStatus.NOT_HELD -> R.string.home_v_no; HomeStatus.UNSUPPORTED -> R.string.home_v_na }) }) { chooseHome(st) } },
             Action(g(R.string.reset_all), g(R.string.reset_all_d)) { confirmRestore() },
         ) }
         val appearance = Category(R.drawable.ic_cat_appearance, g(R.string.cat_appearance), g(R.string.d_appearance)) { listOf(
@@ -1214,12 +1218,27 @@ class MainActivity : Activity() {
         track(showMenu(s, getString(R.string.hidden_apps), items))
     }
 
-    private fun homeSettings() {
-        try { startActivity(Intent(Settings.ACTION_HOME_SETTINGS)); return } catch (_: Exception) {}
-        track(showMenu(s, getString(R.string.set_home), listOf(
-            MenuItem(getString(R.string.no_home_picker)) { it.dismiss() },
-            MenuItem(getString(R.string.use_adb)) { it.dismiss() },
-        )))
+    /**
+     * The supported ways to become the Home app, in order: the system's consent dialog for the Home role (API 29+), then the system Home or default-apps
+     * screen, then plain instructions. Nothing here selects Haven by itself; the result is re-read when we come back (see [onActivityResult], [onResume]).
+     */
+    private fun chooseHome(st: HomeStatus) {
+        if (st != HomeStatus.HELD) {
+            HomeRole.roleRequest(this)?.let { try { startActivityForResult(it, REQ_HOME_ROLE); return } catch (_: Exception) { /* fall through to the settings screens */ } }
+            for (i in HomeRole.settingsScreens(this)) try { startActivity(i); return } catch (_: Exception) { /* try the next one */ }
+        }
+        val items = ArrayList<MenuItem>()
+        items += MenuItem(getString(if (st == HomeStatus.HELD) R.string.home_d_yes else R.string.no_home_picker)) { it.dismiss() }
+        if (st != HomeStatus.HELD) items += MenuItem(getString(R.string.use_adb)) { it.dismiss() }
+        items += MenuItem(getString(R.string.home_firmware)) { it.dismiss() }
+        if (st == HomeStatus.HELD) HomeRole.settingsScreens(this).firstOrNull()?.let { i -> items += MenuItem(getString(R.string.system_settings)) { d -> d.dismiss(); try { startActivity(i) } catch (_: Exception) {} } }
+        track(showMenu(s, getString(R.string.home_status), items))
+    }
+
+    @Suppress("DEPRECATION")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQ_HOME_ROLE) settings?.refresh()       // granted or not, ask Android again rather than assume
     }
 
     private fun openSearch() {

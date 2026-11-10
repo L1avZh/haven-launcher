@@ -252,6 +252,14 @@
     <string name="prop_book">መጽሐፍ</string>
     <string name="prop_sword">ሰይፍ</string>
     <string name="prop_axe">መጥረቢያ</string>
+    <string name="home_status">ነባሪ የመነሻ መተግበሪያ</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">አልተዘጋጀም</string>
+    <string name="home_v_na">አይገኝም</string>
+    <string name="home_d_yes">Haven እንደ ነባሪ የመነሻ መተግበሪያ ተመርጧል። የመሣሪያው የመነሻ አዝራር በእርግጥ ይከፍተው እንደሆነ በፊርምዌሩ ይወሰናል።</string>
+    <string name="home_d_no">Haven ነባሪ የመነሻ መተግበሪያ አይደለም። በሲስተሙ ለመምረጥ OK ይጫኑ።</string>
+    <string name="home_d_na">ይህ መሣሪያ የመነሻ መተግበሪያ መምረጫ የለውም። የእጅ ደረጃዎችን በመጫኛ መመሪያው ይመልከቱ።</string>
+    <string name="home_firmware">አንዳንድ የቲቪ ሳጥኖች ሌላ መተግበሪያ ቢመረጥም የራሳቸውን ማስጀመሪያ ይከፍታሉ፤ Haven ይህን መቀየር አይችልም።</string>
     <plurals name="apps_count">
         <item quantity="one">%d መተግበሪያ</item>
         <item quantity="other">%d መተግበሪያዎች</item>

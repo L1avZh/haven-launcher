@@ -252,6 +252,14 @@
     <string name="prop_book">หนังสือ</string>
     <string name="prop_sword">ดาบ</string>
     <string name="prop_axe">ขวาน</string>
+    <string name="home_status">แอปหน้าหลักเริ่มต้น</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">ยังไม่ได้ตั้งค่า</string>
+    <string name="home_v_na">ไม่พร้อมใช้งาน</string>
+    <string name="home_d_yes">เลือก Haven เป็นแอปหน้าหลักเริ่มต้นแล้ว ปุ่มหน้าหลักของอุปกรณ์จะเปิดแอปนี้จริงหรือไม่ขึ้นอยู่กับเฟิร์มแวร์</string>
+    <string name="home_d_no">Haven ไม่ใช่แอปหน้าหลักเริ่มต้น กด OK เพื่อเลือกในระบบ</string>
+    <string name="home_d_na">อุปกรณ์นี้ไม่มีตัวเลือกแอปหน้าหลัก ดูขั้นตอนแบบแมนนวลในคู่มือการติดตั้ง</string>
+    <string name="home_firmware">ทีวีบ็อกซ์บางรุ่นยังเปิดตัวเรียกใช้ของตัวเองแม้เลือกแอปอื่นแล้ว Haven เปลี่ยนเรื่องนี้ไม่ได้</string>
     <plurals name="apps_count">
         <item quantity="other">%d แอป</item>
     </plurals>

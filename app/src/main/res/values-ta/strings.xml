@@ -252,6 +252,14 @@
     <string name="prop_book">புத்தகம்</string>
     <string name="prop_sword">வாள்</string>
     <string name="prop_axe">கோடரி</string>
+    <string name="home_status">இயல்புநிலை முகப்பு ஆப்</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">அமைக்கப்படவில்லை</string>
+    <string name="home_v_na">கிடைக்கவில்லை</string>
+    <string name="home_d_yes">Haven இயல்புநிலை முகப்பு ஆப்பாகத் தேர்ந்தெடுக்கப்பட்டுள்ளது. சாதனத்தின் முகப்பு பொத்தான் அதை உண்மையில் திறக்குமா என்பது அதன் ஃபர்ம்வேரைப் பொறுத்தது.</string>
+    <string name="home_d_no">Haven இயல்புநிலை முகப்பு ஆப் அல்ல. கணினியில் தேர்ந்தெடுக்க OK அழுத்தவும்.</string>
+    <string name="home_d_na">இந்தச் சாதனத்தில் முகப்பு ஆப் தேர்வி இல்லை. கைமுறை படிகளுக்கு நிறுவல் வழிகாட்டியைப் பாருங்கள்.</string>
+    <string name="home_firmware">சில டிவி பெட்டிகள் வேறு ஆப் தேர்ந்தெடுத்தாலும் தங்கள் சொந்த லாஞ்சரையே திறக்கும்; Haven அதை மாற்ற முடியாது.</string>
     <plurals name="apps_count">
         <item quantity="one">%d பயன்பாடு</item>
         <item quantity="other">%d பயன்பாடுகள்</item>

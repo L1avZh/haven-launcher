@@ -252,6 +252,14 @@
     <string name="prop_book">Bok</string>
     <string name="prop_sword">Sverd</string>
     <string name="prop_axe">Øks</string>
+    <string name="home_status">Standard startapp</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Ikke angitt</string>
+    <string name="home_v_na">Ikke tilgjengelig</string>
+    <string name="home_d_yes">Haven er valgt som standard startapp. Om enhetens Hjem-knapp faktisk åpner den, avhenger av fastvaren.</string>
+    <string name="home_d_no">Haven er ikke standard startapp. Trykk OK for å velge den i systemet.</string>
+    <string name="home_d_na">Denne enheten har ingen velger for startapp. Se installasjonsveiledningen for de manuelle trinnene.</string>
+    <string name="home_firmware">Noen TV-bokser åpner fortsatt sin egen launcher selv om en annen startapp er valgt; Haven kan ikke endre det.</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="other">%d apper</item>

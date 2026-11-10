@@ -252,6 +252,14 @@
     <string name="prop_book">Kniha</string>
     <string name="prop_sword">Meč</string>
     <string name="prop_axe">Sekera</string>
+    <string name="home_status">Predvolená domovská aplikácia</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Nenastavené</string>
+    <string name="home_v_na">Nedostupné</string>
+    <string name="home_d_yes">Haven je vybraný ako predvolená domovská aplikácia. Či ju tlačidlo Domov zariadenia naozaj otvorí, závisí od firmvéru.</string>
+    <string name="home_d_no">Haven nie je predvolená domovská aplikácia. Stlačte OK a vyberte ju v systéme.</string>
+    <string name="home_d_na">Toto zariadenie nemá výber domovskej aplikácie. Manuálne kroky nájdete v inštalačnej príručke.</string>
+    <string name="home_firmware">Niektoré TV boxy stále otvárajú vlastný launcher, aj keď je vybraná iná aplikácia; Haven to nemôže zmeniť.</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplikácia</item>
         <item quantity="few">%d aplikácie</item>

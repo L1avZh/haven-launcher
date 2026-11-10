@@ -252,6 +252,14 @@
     <string name="prop_book">Aklat</string>
     <string name="prop_sword">Tabak</string>
     <string name="prop_axe">Palakol</string>
+    <string name="home_status">Default na Home app</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Hindi nakatakda</string>
+    <string name="home_v_na">Hindi available</string>
+    <string name="home_d_yes">Napili ang Haven bilang default na Home app. Kung talagang bubuksan ito ng Home button ng device ay depende sa firmware nito.</string>
+    <string name="home_d_no">Hindi ang Haven ang default na Home app. Pindutin ang OK para piliin ito sa system.</string>
+    <string name="home_d_na">Walang pamili ng Home app ang device na ito. Tingnan ang gabay sa pag-install para sa mga manu-manong hakbang.</string>
+    <string name="home_firmware">Ang ilang TV box ay patuloy na nagbubukas ng sarili nilang launcher kahit may ibang napiling app; hindi ito mababago ng Haven.</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="other">%d na app</item>

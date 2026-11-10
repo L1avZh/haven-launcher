@@ -252,6 +252,14 @@
     <string name="prop_book">書</string>
     <string name="prop_sword">劍</string>
     <string name="prop_axe">斧頭</string>
+    <string name="home_status">預設主畫面應用程式</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">未設定</string>
+    <string name="home_v_na">無法使用</string>
+    <string name="home_d_yes">已選擇 Haven 作為預設主畫面應用程式。裝置的主畫面鍵是否真的開啟它，取決於其韌體。</string>
+    <string name="home_d_no">Haven 不是預設主畫面應用程式。按「確定」在系統中選擇它。</string>
+    <string name="home_d_na">此裝置沒有主畫面應用程式選擇器。手動步驟請參閱安裝指南。</string>
+    <string name="home_firmware">部分電視盒即使選擇了其他主畫面應用程式，仍會開啟自家的啟動器；Haven 無法改變這一點。</string>
     <plurals name="apps_count">
         <item quantity="other">%d 個應用程式</item>
     </plurals>

@@ -252,6 +252,14 @@
     <string name="prop_book">Bók</string>
     <string name="prop_sword">Sverð</string>
     <string name="prop_axe">Øx</string>
+    <string name="home_status">Sjálfgefið heimaforrit</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Ekki stillt</string>
+    <string name="home_v_na">Ekki tiltækt</string>
+    <string name="home_d_yes">Haven er valið sem sjálfgefið heimaforrit. Hvort Heim-hnappur tækisins opnar það í raun fer eftir vélbúnaðarhugbúnaði þess.</string>
+    <string name="home_d_no">Haven er ekki sjálfgefið heimaforrit. Ýttu á OK til að velja það í kerfinu.</string>
+    <string name="home_d_na">Þetta tæki er ekki með val á heimaforriti. Sjá uppsetningarleiðbeiningar fyrir handvirk skref.</string>
+    <string name="home_firmware">Sumir sjónvarpskassar opna áfram eigin ræsiforrit þótt annað heimaforrit sé valið; Haven getur ekki breytt því.</string>
     <plurals name="apps_count">
         <item quantity="one">%d forrit</item>
         <item quantity="other">%d forrit</item>

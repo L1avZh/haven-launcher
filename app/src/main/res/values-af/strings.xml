@@ -252,6 +252,14 @@
     <string name="prop_book">Boek</string>
     <string name="prop_sword">Swaard</string>
     <string name="prop_axe">Byl</string>
+    <string name="home_status">Verstek-tuisprogram</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Nie gestel nie</string>
+    <string name="home_v_na">Nie beskikbaar nie</string>
+    <string name="home_d_yes">Haven is gekies as verstek-tuisprogram. Of die toestel se Tuis-knoppie dit werklik oopmaak, hang van sy firmware af.</string>
+    <string name="home_d_no">Haven is nie die verstek-tuisprogram nie. Druk OK om dit in die stelsel te kies.</string>
+    <string name="home_d_na">Hierdie toestel het nie \'n keuse vir tuisprogram nie. Sien die installasiegids vir die handmatige stappe.</string>
+    <string name="home_firmware">Sommige TV-bokse maak steeds hul eie launcher oop selfs wanneer \'n ander program gekies is; Haven kan dit nie verander nie.</string>
     <plurals name="apps_count">
         <item quantity="one">%d toepassing</item>
         <item quantity="other">%d toepassings</item>

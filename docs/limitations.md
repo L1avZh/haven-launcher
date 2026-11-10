@@ -1,7 +1,7 @@
 # Known limitations
 
 - Only tested on one device (Xiaomi TV Box S 3rd Gen, Android 14) and one remote (LG Magic Remote over HDMI-CEC).
-- The firmware on that box ignores a third-party Home app: the Home button still opens Google's launcher. Haven registers as a Home app, but that is up to the device.
+- Selected is not routed. Settings > General > Default Home app reports what Android has recorded (the Home role on Android 10+, the resolved Home handler before that). On the Xiaomi box the Home button still opens Google's launcher even when Haven holds the role: the firmware decides, and Haven does nothing to override it (no service, overlay, boot or screen-on receiver, key interception or standby control). Measured on that box: with Haven holding the role, an injected Home key and a standby/wake cycle both ended in Google's launcher (details in [installation.md](installation.md)); the LG remote's Home button, display off/on and reboot were not tested.
 - With an LG remote over HDMI-CEC only arrows, OK and Back reach the box, so there is no shortcut that works while another app is in front. There is no floating Home button (an overlay cannot be reached with a D-pad without taking input from the app underneath). See [remote-control.md](remote-control.md).
 - City names in the weather picker are English; the widget shows the name in the app's language once fetched.
 - Translations are machine-assisted drafts, none checked by a native speaker ([localization.md](localization.md)).

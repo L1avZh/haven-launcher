@@ -252,6 +252,14 @@
     <string name="prop_book">Livro</string>
     <string name="prop_sword">Espada</string>
     <string name="prop_axe">Machado</string>
+    <string name="home_status">Aplicativo de início padrão</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Não definido</string>
+    <string name="home_v_na">Indisponível</string>
+    <string name="home_d_yes">O Haven está selecionado como aplicativo de início padrão. Se o botão Início do aparelho o abre de fato depende do firmware.</string>
+    <string name="home_d_no">O Haven não é o aplicativo de início padrão. Pressione OK para escolhê-lo no sistema.</string>
+    <string name="home_d_na">Este aparelho não tem seletor de aplicativo de início. Veja o guia de instalação para os passos manuais.</string>
+    <string name="home_firmware">Algumas TV boxes continuam abrindo o próprio launcher mesmo com outro aplicativo de início; o Haven não pode mudar isso.</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="many">%d de apps</item>

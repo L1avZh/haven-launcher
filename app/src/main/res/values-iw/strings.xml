@@ -252,6 +252,14 @@
     <string name="prop_book">ספר</string>
     <string name="prop_sword">חרב</string>
     <string name="prop_axe">גרזן</string>
+    <string name="home_status">אפליקציית הבית כברירת מחדל</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">לא נבחר</string>
+    <string name="home_v_na">לא זמין</string>
+    <string name="home_d_yes">Haven נבחר כאפליקציית הבית. האם כפתור הבית במכשיר פותח אותו בפועל תלוי בקושחה שלו.</string>
+    <string name="home_d_no">Haven אינו אפליקציית הבית. לחץ OK כדי לבחור בו במערכת.</string>
+    <string name="home_d_na">במכשיר זה אין בורר לאפליקציית הבית. ראה את מדריך ההתקנה לשלבים ידניים.</string>
+    <string name="home_firmware">חלק ממתאמי הטלוויזיה ממשיכים לפתוח את המשגר שלהם גם כשנבחרה אפליקציית בית אחרת; Haven לא יכול לשנות זאת.</string>
     <plurals name="apps_count">
         <item quantity="one">אפליקציה אחת</item>
         <item quantity="two">שתי אפליקציות</item>

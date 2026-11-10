@@ -252,6 +252,14 @@
     <string name="prop_book">Книга</string>
     <string name="prop_sword">Меч</string>
     <string name="prop_axe">Секира</string>
+    <string name="home_status">Начално приложение по подразбиране</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Не е зададено</string>
+    <string name="home_v_na">Недостъпно</string>
+    <string name="home_d_yes">Haven е избрано като начално приложение по подразбиране. Дали бутонът „Начало“ на устройството го отваря наистина, зависи от фърмуера.</string>
+    <string name="home_d_no">Haven не е началното приложение по подразбиране. Натиснете OK, за да го изберете в системата.</string>
+    <string name="home_d_na">Това устройство няма избор на начално приложение. Ръчните стъпки са в ръководството за инсталиране.</string>
+    <string name="home_firmware">Някои ТВ приставки продължават да отварят своя лаунчер, дори когато е избрано друго приложение; Haven не може да го промени.</string>
     <plurals name="apps_count">
         <item quantity="one">%d приложение</item>
         <item quantity="other">%d приложения</item>

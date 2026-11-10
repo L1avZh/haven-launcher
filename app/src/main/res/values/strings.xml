@@ -253,6 +253,14 @@
     <string name="prop_book">Book</string>
     <string name="prop_sword">Sword</string>
     <string name="prop_axe">Axe</string>
+    <string name="home_status">Default Home app</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Not set</string>
+    <string name="home_v_na">Unavailable</string>
+    <string name="home_d_yes">Haven is selected as the default Home app. Whether this device\'s Home button actually opens it depends on its firmware.</string>
+    <string name="home_d_no">Haven is not the default Home app. Press OK to choose it in the system.</string>
+    <string name="home_d_na">This device has no Home app chooser. See the installation guide for the manual steps.</string>
+    <string name="home_firmware">Some TV boxes keep opening their own launcher even when another Home app is selected; Haven cannot change that.</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="other">%d apps</item>

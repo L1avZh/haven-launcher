@@ -252,6 +252,14 @@
     <string name="prop_book">Llyfr</string>
     <string name="prop_sword">Cleddyf</string>
     <string name="prop_axe">Bwyell</string>
+    <string name="home_status">Ap Cartref diofyn</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Heb ei osod</string>
+    <string name="home_v_na">Ddim ar gael</string>
+    <string name="home_d_yes">Mae Haven wedi\'i ddewis fel yr ap Cartref diofyn. Mae a yw botwm Cartref y ddyfais yn ei agor go iawn yn dibynnu ar ei firmware.</string>
+    <string name="home_d_no">Nid Haven yw\'r ap Cartref diofyn. Pwyswch OK i\'w ddewis yn y system.</string>
+    <string name="home_d_na">Does gan y ddyfais hon ddim dewisydd ap Cartref. Gweler y canllaw gosod am y camau â llaw.</string>
+    <string name="home_firmware">Mae rhai blychau teledu\'n dal i agor eu lansiwr eu hunain hyd yn oed pan ddewisir ap arall; ni all Haven newid hynny.</string>
     <plurals name="apps_count">
         <item quantity="zero">%d ap</item>
         <item quantity="one">%d ap</item>

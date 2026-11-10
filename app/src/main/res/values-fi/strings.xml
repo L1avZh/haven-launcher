@@ -252,6 +252,14 @@
     <string name="prop_book">Kirja</string>
     <string name="prop_sword">Miekka</string>
     <string name="prop_axe">Kirves</string>
+    <string name="home_status">Oletuskotisovellus</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Ei asetettu</string>
+    <string name="home_v_na">Ei saatavilla</string>
+    <string name="home_d_yes">Haven on valittu oletuskotisovellukseksi. Avaako laitteen Koti-painike sen todella, riippuu laiteohjelmistosta.</string>
+    <string name="home_d_no">Haven ei ole oletuskotisovellus. Valitse se järjestelmässä painamalla OK.</string>
+    <string name="home_d_na">Tässä laitteessa ei ole kotisovelluksen valintaa. Katso käsin tehtävät vaiheet asennusoppaasta.</string>
+    <string name="home_firmware">Jotkin TV-boksit avaavat edelleen oman käynnistimensä, vaikka toinen kotisovellus olisi valittu; Haven ei voi muuttaa sitä.</string>
     <plurals name="apps_count">
         <item quantity="one">%d sovellus</item>
         <item quantity="other">%d sovellusta</item>

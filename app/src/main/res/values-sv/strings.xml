@@ -252,6 +252,14 @@
     <string name="prop_book">Bok</string>
     <string name="prop_sword">Svärd</string>
     <string name="prop_axe">Yxa</string>
+    <string name="home_status">Standardstartapp</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Inte angiven</string>
+    <string name="home_v_na">Inte tillgänglig</string>
+    <string name="home_d_yes">Haven är vald som standardstartapp. Om enhetens Hem-knapp verkligen öppnar den beror på dess firmware.</string>
+    <string name="home_d_no">Haven är inte standardstartapp. Tryck på OK för att välja den i systemet.</string>
+    <string name="home_d_na">Den här enheten har ingen väljare för startapp. Se installationsguiden för de manuella stegen.</string>
+    <string name="home_firmware">Vissa TV-boxar öppnar fortfarande sin egen launcher även när en annan startapp är vald; Haven kan inte ändra det.</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="other">%d appar</item>

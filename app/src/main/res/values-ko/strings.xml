@@ -252,6 +252,14 @@
     <string name="prop_book">책</string>
     <string name="prop_sword">검</string>
     <string name="prop_axe">도끼</string>
+    <string name="home_status">기본 홈 앱</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">설정 안 됨</string>
+    <string name="home_v_na">사용할 수 없음</string>
+    <string name="home_d_yes">Haven이 기본 홈 앱으로 선택되어 있습니다. 기기의 홈 버튼이 실제로 이를 여는지는 펌웨어에 달려 있습니다.</string>
+    <string name="home_d_no">Haven은 기본 홈 앱이 아닙니다. OK를 눌러 시스템에서 선택하세요.</string>
+    <string name="home_d_na">이 기기에는 홈 앱 선택 기능이 없습니다. 수동 절차는 설치 가이드를 참고하세요.</string>
+    <string name="home_firmware">일부 TV 박스는 다른 홈 앱을 선택해도 자체 런처를 계속 엽니다. Haven은 이를 바꿀 수 없습니다.</string>
     <plurals name="apps_count">
         <item quantity="other">앱 %d개</item>
     </plurals>

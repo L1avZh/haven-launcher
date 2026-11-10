@@ -252,6 +252,14 @@
     <string name="prop_book">Knjiga</string>
     <string name="prop_sword">Mač</string>
     <string name="prop_axe">Sjekira</string>
+    <string name="home_status">Zadana početna aplikacija</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Nije postavljeno</string>
+    <string name="home_v_na">Nedostupno</string>
+    <string name="home_d_yes">Haven je odabran kao zadana početna aplikacija. Otvara li ga tipka Početna na uređaju doista, ovisi o firmveru.</string>
+    <string name="home_d_no">Haven nije zadana početna aplikacija. Pritisnite OK da ga odaberete u sustavu.</string>
+    <string name="home_d_na">Ovaj uređaj nema odabir početne aplikacije. Ručni koraci su u vodiču za instalaciju.</string>
+    <string name="home_firmware">Neki TV uređaji i dalje otvaraju vlastiti launcher čak i kad je odabrana druga aplikacija; Haven to ne može promijeniti.</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplikacija</item>
         <item quantity="few">%d aplikacije</item>

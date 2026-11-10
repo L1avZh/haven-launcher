@@ -252,6 +252,14 @@
     <string name="prop_book">పుస్తకం</string>
     <string name="prop_sword">కత్తి</string>
     <string name="prop_axe">గొడ్డలి</string>
+    <string name="home_status">డిఫాల్ట్ హోమ్ యాప్</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">సెట్ చేయలేదు</string>
+    <string name="home_v_na">అందుబాటులో లేదు</string>
+    <string name="home_d_yes">Haven డిఫాల్ట్ హోమ్ యాప్‌గా ఎంచుకోబడింది. పరికరం హోమ్ బటన్ దాన్ని నిజంగా తెరుస్తుందా అనేది దాని ఫర్మ్‌వేర్‌పై ఆధారపడి ఉంటుంది.</string>
+    <string name="home_d_no">Haven డిఫాల్ట్ హోమ్ యాప్ కాదు. సిస్టమ్‌లో ఎంచుకోవడానికి OK నొక్కండి.</string>
+    <string name="home_d_na">ఈ పరికరంలో హోమ్ యాప్ ఎంపిక లేదు. మాన్యువల్ దశల కోసం ఇన్‌స్టాలేషన్ గైడ్ చూడండి.</string>
+    <string name="home_firmware">కొన్ని టీవీ బాక్సులు మరో యాప్ ఎంచుకున్నా తమ లాంచర్‌నే తెరుస్తాయి; Haven దాన్ని మార్చలేదు.</string>
     <plurals name="apps_count">
         <item quantity="one">%d యాప్</item>
         <item quantity="other">%d యాప్‌లు</item>

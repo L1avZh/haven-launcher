@@ -252,6 +252,14 @@
     <string name="prop_book">Carte</string>
     <string name="prop_sword">Sabie</string>
     <string name="prop_axe">Topor</string>
+    <string name="home_status">Aplicația Acasă implicită</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Nesetat</string>
+    <string name="home_v_na">Indisponibil</string>
+    <string name="home_d_yes">Haven este selectat ca aplicație Acasă implicită. Dacă butonul Acasă al dispozitivului o deschide efectiv depinde de firmware.</string>
+    <string name="home_d_no">Haven nu este aplicația Acasă implicită. Apăsați OK pentru a o alege în sistem.</string>
+    <string name="home_d_na">Acest dispozitiv nu are selector de aplicație Acasă. Vedeți ghidul de instalare pentru pașii manuali.</string>
+    <string name="home_firmware">Unele TV box-uri își deschid în continuare propriul launcher chiar dacă e aleasă altă aplicație; Haven nu poate schimba asta.</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplicație</item>
         <item quantity="few">%d aplicații</item>

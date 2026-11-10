@@ -252,6 +252,14 @@
     <string name="prop_book">Książka</string>
     <string name="prop_sword">Miecz</string>
     <string name="prop_axe">Topór</string>
+    <string name="home_status">Domyślna aplikacja startowa</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Nie ustawiono</string>
+    <string name="home_v_na">Niedostępne</string>
+    <string name="home_d_yes">Haven jest wybrany jako domyślna aplikacja startowa. Czy przycisk Home urządzenia faktycznie ją otwiera, zależy od oprogramowania sprzętowego.</string>
+    <string name="home_d_no">Haven nie jest domyślną aplikacją startową. Naciśnij OK, aby wybrać go w systemie.</string>
+    <string name="home_d_na">To urządzenie nie ma wyboru aplikacji startowej. Kroki ręczne są w przewodniku instalacji.</string>
+    <string name="home_firmware">Niektóre dekodery TV nadal otwierają własny launcher, nawet gdy wybrano inną aplikację; Haven nie może tego zmienić.</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplikacja</item>
         <item quantity="few">%d aplikacje</item>

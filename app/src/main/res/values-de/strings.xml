@@ -252,6 +252,14 @@
     <string name="prop_book">Buch</string>
     <string name="prop_sword">Schwert</string>
     <string name="prop_axe">Axt</string>
+    <string name="home_status">Standard-Startbildschirm</string>
+    <string name="home_v_yes">Haven</string>
+    <string name="home_v_no">Nicht festgelegt</string>
+    <string name="home_v_na">Nicht verfügbar</string>
+    <string name="home_d_yes">Haven ist als Standard-Startbildschirm gewählt. Ob die Home-Taste des Geräts ihn tatsächlich öffnet, hängt von dessen Firmware ab.</string>
+    <string name="home_d_no">Haven ist nicht der Standard-Startbildschirm. Drücken Sie OK, um ihn im System zu wählen.</string>
+    <string name="home_d_na">Dieses Gerät hat keine Auswahl für den Startbildschirm. Die manuellen Schritte stehen in der Installationsanleitung.</string>
+    <string name="home_firmware">Manche TV-Boxen öffnen weiterhin ihren eigenen Launcher, auch wenn ein anderer gewählt ist; Haven kann das nicht ändern.</string>
     <plurals name="apps_count">
         <item quantity="one">%d App</item>
         <item quantity="other">%d Apps</item>
