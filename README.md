@@ -2,7 +2,7 @@
 
 A fast, ad-free launcher for Android TV. No accounts, no tracking; the only network use is an optional weather widget.
 
-![Haven's home screen: a 3D character on the left, the focused app in the middle, the app list on the right](docs/images/screenshots/home.png)
+![Haven's home screen: a 3D character on the left in front of a mountain photograph, the focused app's name and actions on top, shelves of app cards below](docs/images/screenshots/home.png)
 
 Haven replaces the usual Android TV home screen with something quieter: a 3D character in a small scene that follows the time of day and the weather, the artwork and actions of whatever is focused above shelves of app cards (Favorites, Recent, Library). Plain Kotlin views plus Google Filament for the 3D; one permission (internet, for the weather widget, used only after you pick a city).
 
