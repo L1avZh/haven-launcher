@@ -28,10 +28,11 @@ nothing to migrate.
 
 ## The scene
 
-Behind and around the character (inside its view only, so the widgets and the app list are never covered) a small 3D diorama follows the same state.
-By day on clear weather: a sun, a tree, a flowering bush and grass on a green ground disc. At night: a moon, with the 2D stars behind. Rain and
-storm: 3D drops fall in two scrolling layers. Snow: pines on a white ground and 3D flakes drifting down. Sleeping: the twin bed with pillow and
-blanket on the ground, the character lying on the mattress, the moon above, and no weather (it sleeps indoors in spirit). Weather in the scene
+The backdrop is a bundled landscape photograph (credits in [assets/ASSET_CREDITS.md](assets/ASSET_CREDITS.md)). By day it is left bright with a light wash of the
+wallpaper color; at night the wash deepens and the 2D stars and moon glow return, cross-fading over 1.4 s (instantly with reduced motion). The plain Black wallpaper turns the
+photo off. The 3D diorama (sun, moon, tree, bush, grass and the ground disc) is no longer drawn on the home screen, so the character stands on a soft contact shadow in front of
+the photo; the ground disc returns only under the bed. Rain and storm: 3D drops fall in two scrolling layers. Snow: 3D flakes drift down. Sleeping: the twin bed with pillow and
+blanket, the character lying on the mattress, and no weather (it sleeps indoors in spirit). Weather in the scene
 follows **Weather reactions**, like the umbrella. The earlier 2D rain lines drawn on the background canvas were removed. With reduced motion the
 particles hold still.
 

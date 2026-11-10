@@ -48,13 +48,13 @@ class MainActivity : Activity() {
     private lateinit var wallpaperView: View
     private lateinit var glowView: LiveBackground
     private lateinit var moodView: MoodView
+    private lateinit var photoView: PhotoView
     private var mood: Mood.State? = null
     private var debugYaw = 0f
     private val REQ_HOME_ROLE = 4021
     private lateinit var header: LinearLayout
     private lateinit var stageBody: LinearLayout
     private lateinit var shelfBox: View
-    private lateinit var stageArt: ImageView
     private lateinit var stageTag: TextView
     private lateinit var stageTitle: TextView
     private lateinit var stageMeta: TextView
@@ -63,8 +63,6 @@ class MainActivity : Activity() {
     private var homeState: HomeState? = null
     private var wentAway = false
     private lateinit var platform: View
-    private lateinit var artCardView: FrameLayout
-    private lateinit var artHalo: View
     private lateinit var btnOpen: TextView
     private lateinit var btnFav: TextView
     private lateinit var btnMore: TextView
@@ -102,8 +100,7 @@ class MainActivity : Activity() {
     private lateinit var dimView: View
     private lateinit var timeClock: TextClock
     private lateinit var clockCol: LinearLayout
-    private var artW = 520
-    private var cardW = 280
+    private var cardW = 300
     private val accentColors = intArrayOf(0xFF6C8CFF.toInt(), 0xFF4CD6A0.toInt(), 0xFFFF7A6B.toInt(), 0xFFF2B84B.toInt(), 0xFFA77BFF.toInt())
 
     private val pkgReceiver = object : BroadcastReceiver() {
@@ -126,7 +123,7 @@ class MainActivity : Activity() {
         rtl = Lang.isRtl(this)
         Fonts.init(this)
         T.init(this, prefs.animLevel, prefs.performance)
-        cardW = intArrayOf(250, 280, 320)[prefs.cardSize]
+        cardW = intArrayOf(260, 300, 340)[prefs.cardSize]
         debugInputs(intent)
         mood = Mood.resolve(this, prefs)
         buildUi()
@@ -208,8 +205,8 @@ class MainActivity : Activity() {
     private fun applyMood(animate: Boolean) {
         val m = Mood.resolve(this, prefs); val old = mood; mood = m
         if (prefs.weatherCity > 0) Weather.refresh(this) { if (!isDestroyed) applyMood(true) }
-        if (old != null && old.night == m.night && old.scene.stance == m.scene.stance && old.scene.propOverride == m.scene.propOverride && old.effect == m.effect) { moodView.setNight(m.night, false); character?.setScene(m.scene); return }
-        moodView.setNight(m.night, animate)
+        if (old != null && old.night == m.night && old.scene.stance == m.scene.stance && old.scene.propOverride == m.scene.propOverride && old.effect == m.effect) { moodView.setNight(m.night, false); photoView.setNight(m.night, false); character?.setScene(m.scene); return }
+        moodView.setNight(m.night, animate); photoView.setNight(m.night, animate)
         character?.setScene(m.scene)
         saverView?.setMood(m.night, m.scene)
         character?.setEnvironment(m.night, envEffectFor(m))
@@ -471,16 +468,18 @@ class MainActivity : Activity() {
 
         // Layer 1: wallpaper. Layer 2: accent glow behind the stage. Layer 3: optional dimming.
         wallpaperView = View(this).apply { background = wallpaperDrawable() }
-        glowView = LiveBackground(this).apply { visibility = if (prefs.glow) View.VISIBLE else View.GONE; setStatic(prefs.performance); setAccent(glowColor) }
+        glowView = LiveBackground(this).apply { visibility = if (prefs.glow) View.VISIBLE else View.GONE; setStatic(prefs.performance); setAccent(glowColor); alpha = 0.4f }
         dimView = View(this).apply { setBackgroundColor(dimColor()) }
-        moodView = MoodView(this)
-        frame.addView(wallpaperView, -1, -1); frame.addView(moodView, -1, -1); frame.addView(glowView, -1, -1); frame.addView(dimView, -1, -1)
+        moodView = MoodView(this).apply { strength = 0.45f }       // the photo carries the sky; the sun and moon glows stay a soft accent
+        photoView = PhotoView(this)
+        applyPhotoTint()
+        frame.addView(wallpaperView, -1, -1); frame.addView(photoView, -1, -1); frame.addView(moodView, -1, -1); frame.addView(glowView, -1, -1); frame.addView(dimView, -1, -1)
 
-        // The character stands on the start side (left in LTR, right in RTL), on a pool of light, behind all controls.
+        // The character stands on the start side (left in LTR, right in RTL), on a soft contact shadow, behind all controls.
         platform = View(this).apply {
             importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            background = GradientDrawable().apply { gradientType = GradientDrawable.RADIAL_GRADIENT; gradientRadius = s.px(300f).toFloat(); colors = intArrayOf(0x663A3FB5, 0x2238D8F0, 0x00000000) }
-            scaleY = 0.28f
+            background = GradientDrawable().apply { gradientType = GradientDrawable.RADIAL_GRADIENT; gradientRadius = s.px(300f).toFloat(); colors = intArrayOf(0xAA000000.toInt(), 0x55000000, 0x00000000) }      // a soft contact shadow under the feet
+            scaleY = 0.22f
         }
         frame.addView(platform, FrameLayout.LayoutParams(s.px(620), s.px(620), Gravity.START or Gravity.BOTTOM).apply { marginStart = s.px(40); bottomMargin = -s.px(235) })
         if (prefs.characterEnabled) {
@@ -512,7 +511,7 @@ class MainActivity : Activity() {
 
         // ----- Shelves: Favorites, Recent and the Library as rows of artwork cards under the hero.
         shelves = ShelfStack(this, s, listOf(getString(R.string.favorites), getString(R.string.recent), getString(R.string.library)),
-            listOf(getString(R.string.no_favorites), getString(R.string.no_recent), ""), s.px(cardW),
+            listOf(getString(R.string.no_favorites), "", ""), s.px(cardW),
             ShelfCallbacks(::onShelfFocus, ::onTile, { if (!okHeldIsBound()) menuFor(it) }, ::onShelfVertical, { e, w, h, done -> icons.load(e, w, h, done) }))
 
         // ----- Stage: big artwork, name, last-opened line, and the actions for the focused app.
@@ -521,50 +520,16 @@ class MainActivity : Activity() {
         header = LinearLayout(this).apply {
             gravity = Gravity.CENTER_VERTICAL
             addView(clockCol, LinearLayout.LayoutParams(s.px(560 + 48), -2))     // widgets then line up with the hero and shelves
-            addView(widgetHost, LinearLayout.LayoutParams(0, -1, 1f))
+            addView(widgetHost.apply { alpha = 0.88f }, LinearLayout.LayoutParams(0, -1, 1f))
             addView(iconButton(R.drawable.ic_home, getString(R.string.back_to_start)) { focusStart() })
             addView(iconButton(R.drawable.ic_search, getString(R.string.search)) { openSearch() })
             if (character != null) addView(iconButton(R.drawable.ic_character, getString(R.string.character_studio)) { openStudio() })
             addView(iconButton(R.drawable.ic_settings, getString(R.string.settings)) { openSettings() })
         }
         homeContent.addView(header, LinearLayout.LayoutParams(-1, s.px(96)))
-        val artH = artW * 9 / 16
-        val radius = s.px(28f)
-        stageArt = ImageView(this).apply { scaleType = ImageView.ScaleType.FIT_XY }
-        val artCard = FrameLayout(this).apply {
-            background = rounded(T.CARD, radius)
-            clipToOutline = true
-            elevation = s.px(18f)
-            outlineProvider = object : android.view.ViewOutlineProvider() {
-                override fun getOutline(v: View, o: android.graphics.Outline) { o.setRoundRect(0, 0, v.width, v.height, radius) }
-            }
-            addView(stageArt, FrameLayout.LayoutParams(-1, -1))
-            // A hairline edge and a faint diagonal sheen give the artwork a physical, lit surface.
-            addView(View(this@MainActivity).apply {
-                importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-                background = android.graphics.drawable.LayerDrawable(arrayOf(
-                    GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(0x22FFFFFF, 0x00FFFFFF, 0x00FFFFFF)).apply { cornerRadius = radius },
-                    GradientDrawable().apply { setColor(Color.TRANSPARENT); cornerRadius = radius; setStroke(s.px(2), 0x40FFFFFF) },
-                ))
-            }, FrameLayout.LayoutParams(-1, -1))
-        }
-        artCardView = artCard
-        // Soft accent light spilling out from behind the card.
-        artHalo = View(this).apply {
-            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
-            background = GradientDrawable().apply { gradientType = GradientDrawable.RADIAL_GRADIENT; gradientRadius = (s.px(artH) + s.px(90) * 2) / 2f; colors = intArrayOf(0x556C8CFF, 0x00000000) }
-        }
-        val artBox = FrameLayout(this).apply {
-            clipChildren = false; clipToPadding = false
-            val pad = s.px(90)
-            val hh = s.px(artH) + pad * 2                       // a round glow, stretched sideways to the card's shape
-            addView(artHalo, FrameLayout.LayoutParams(hh, hh).apply { marginStart = (s.px(artW) - hh) / 2; topMargin = -pad })
-            artHalo.scaleX = (s.px(artW) + pad * 2f) / hh
-            addView(artCard, FrameLayout.LayoutParams(s.px(artW), s.px(artH)))
-        }
         stageTag = TextView(this).apply { textAlignment = View.TEXT_ALIGNMENT_VIEW_START; sizePx(s.px(T.LABEL)); typeface = Fonts.medium }
         stageTitle = TextView(this).apply {
-            textAlignment = View.TEXT_ALIGNMENT_VIEW_START; sizePx(s.px(58f)); setTextColor(T.TEXT); maxLines = 1
+            textAlignment = View.TEXT_ALIGNMENT_VIEW_START; sizePx(s.px(72f)); setTextColor(T.TEXT); maxLines = 1
             ellipsize = TextUtils.TruncateAt.END; typeface = Fonts.display; includeFontPadding = false
         }
         stageMeta = TextView(this).apply { textAlignment = View.TEXT_ALIGNMENT_VIEW_START; sizePx(s.px(T.LABEL + 4)); setTextColor(T.TEXT_DIM); maxLines = 1 }
@@ -580,18 +545,13 @@ class MainActivity : Activity() {
                 }
             }
         }
-        // Hero: the artwork of the focused app, and beside it its name, last-opened line and actions.
-        val heroText = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL; clipChildren = false; gravity = Gravity.CENTER_VERTICAL
-            addView(stageTag, LinearLayout.LayoutParams(-1, -2))
-            addView(stageTitle, LinearLayout.LayoutParams(-1, -2).apply { topMargin = s.px(8) })
-            addView(stageMeta, LinearLayout.LayoutParams(-1, -2).apply { topMargin = s.px(10) })
-            addView(pills, LinearLayout.LayoutParams(-2, -2).apply { topMargin = s.px(28) })
-        }
+        // Hero: the focused app's name, last-opened line and actions. Its artwork is the focused card in the shelf below, so it is shown once.
         stageBody = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL; clipChildren = false; gravity = Gravity.CENTER_VERTICAL
-            addView(artBox, LinearLayout.LayoutParams(s.px(artW), s.px(artH)))
-            addView(heroText, LinearLayout.LayoutParams(0, s.px(artH), 1f).apply { marginStart = s.px(44) })
+            orientation = LinearLayout.VERTICAL; clipChildren = false
+            addView(stageTag, LinearLayout.LayoutParams(-1, -2))
+            addView(stageTitle, LinearLayout.LayoutParams(-1, -2).apply { topMargin = s.px(6) })
+            addView(stageMeta, LinearLayout.LayoutParams(-1, -2).apply { topMargin = s.px(8) })
+            addView(pills, LinearLayout.LayoutParams(-2, -2).apply { topMargin = s.px(24) })
         }
         stageEmpty = TextView(this).apply {
             textAlignment = View.TEXT_ALIGNMENT_VIEW_START; sizePx(s.px(T.BODY)); setTextColor(T.TEXT_DIM); typeface = Fonts.light
@@ -600,7 +560,7 @@ class MainActivity : Activity() {
         val hero = FrameLayout(this).apply {
             clipChildren = false
             addView(stageBody, FrameLayout.LayoutParams(-1, -2))
-            addView(stageEmpty, FrameLayout.LayoutParams(s.px(artW), -2).apply { topMargin = s.px(110) })
+            addView(stageEmpty, FrameLayout.LayoutParams(s.px(760), -2).apply { topMargin = s.px(60) })
         }
         // body: [room for the character] [hero over the shelves]; the shelves run on to the screen edge so cards slide off it.
         val shelfViewport = FrameLayout(this).apply { clipChildren = true; addView(shelves, FrameLayout.LayoutParams(-1, -2)) }
@@ -643,7 +603,7 @@ class MainActivity : Activity() {
             isFocusable = true; isClickable = true; contentDescription = desc
             background = StateListDrawable().apply {
                 addState(intArrayOf(android.R.attr.state_focused), rounded(Color.WHITE, size / 2f))
-                addState(intArrayOf(), rounded(0x26FFFFFF, size / 2f))
+                addState(intArrayOf(), rounded(0x55101624, size / 2f))
             }
             setOnClickListener { onClick() }
             setOnFocusChangeListener { v, f ->
@@ -662,7 +622,10 @@ class MainActivity : Activity() {
         return GradientDrawable(GradientDrawable.Orientation.TL_BR, intArrayOf(w.top, w.bottom))
     }
 
+    private fun applyPhotoTint() { val w = WALLPAPERS[prefs.wallpaper]; photoView.setTint(w.top, w.bottom, prefs.wallpaper != WALLPAPERS.lastIndex) }   // the last wallpaper is plain black: no photo
+
     private fun applyWallpaper() {
+        applyPhotoTint()
         val next = wallpaperDrawable()
         if (T.animated) {
             val t = TransitionDrawable(arrayOf(wallpaperView.background, next))
@@ -675,7 +638,6 @@ class MainActivity : Activity() {
     private fun setGlowColor(c: Int) {
         glowColor = c
         if (::glowView.isInitialized) glowView.setAccent(c)
-        if (::artHalo.isInitialized) (artHalo.background as? GradientDrawable)?.colors = intArrayOf((c and 0xFFFFFF) or (0x66 shl 24), c and 0xFFFFFF)
     }
 
     private fun glowTo(target: Int) {
@@ -726,26 +688,19 @@ class MainActivity : Activity() {
         val accent = accentFor(e)
         val isFav = e.key in prefs.favorites
         Caps.set(stageTag, getString(if (e.virtual) R.string.not_installed else if (isFav) R.string.tag_favorite else R.string.library), 0.22f)
-        stageTag.setTextColor(accent)
+        stageTag.setTextColor(legible(accent))
         stageTitle.text = e.label; stageTitle.typeface = Fonts.familyFor(e.key).first
         stageMeta.text = if (e.virtual) getString(R.string.adguard_open_page) else openedText(e)
+        stageMeta.visibility = if (stageMeta.text.isEmpty()) View.GONE else View.VISIBLE
         btnFav.text = (if (isFav) "\u2605 " else "\u2606 ") + getString(R.string.tag_favorite)
         val real = if (e.virtual) View.GONE else View.VISIBLE
         btnFav.visibility = real; btnMore.visibility = real
         glowTo(accent)
         shelves.tint(scope, accent)
         val token = ++artToken
-        stageArt.animate().cancel(); stageArt.alpha = if (T.animated) 0.25f else 1f
-        artCardView.animate().cancel()
-        if (T.animated) { artCardView.scaleX = 0.975f; artCardView.scaleY = 0.975f; artCardView.animate().scaleX(1f).scaleY(1f).setDuration(T.d(T.MED + 40)).setInterpolator(T.OUT).start() }
         artRequest?.cancel()
-        artRequest = icons.load(e, s.px(artW), s.px(artW) * 9 / 16) { bmp ->
-            if (token == artToken) {
-                if (bmp != null) stageArt.setImageBitmap(bmp)
-                stageArt.animate().alpha(1f).setDuration(T.d(T.MED)).start()
-                artReady(e)
-            }
-        }
+        // The card in the shelf loads this same artwork; asking again is a cache hit that also tells us the accent colour.
+        artRequest = icons.load(e, s.px(cardW), s.px(cardW) * 9 / 16) { _ -> if (token == artToken) artReady(e) }
         if (T.animated) {
             stageTitle.animate().cancel()
             stageTitle.alpha = 0f; stageTitle.translationX = if (rtl) s.px(16f) else -s.px(16f)
@@ -779,7 +734,7 @@ class MainActivity : Activity() {
     private fun artReady(e: AppEntry) {
         if (e.key != focusedKey) return
         val a = accentFor(e)
-        stageTag.setTextColor(a); shelves.tint(scope, a); glowTo(a)
+        stageTag.setTextColor(legible(a)); shelves.tint(scope, a); glowTo(a)
     }
 
     // ---------- Data ----------
@@ -814,7 +769,8 @@ class MainActivity : Activity() {
         favList = prefs.favorites.mapNotNull { byKey[it] }
         // The AdGuard shortcut lives at the end of the library until the real app is installed (or the user hides it).
         allList = if (!AppRepo.hasAdGuard(all) && ADGUARD_ENTRY.key !in prefs.hidden) vis + ADGUARD_ENTRY else vis
-        recentList = prefs.launchLog.entries.sortedByDescending { it.value }.mapNotNull { byKey[it.key] }.take(12)
+        // Recent leaves out apps already on the Favorites shelf (they stay in the data), so one app is not shown twice in view.
+        recentList = prefs.launchLog.entries.sortedByDescending { it.value }.mapNotNull { byKey[it.key] }.filter { it.key !in favList.map { f -> f.key } }.take(12)
         shelves.submit(0, favList); shelves.submit(1, recentList); shelves.submit(2, allList)
         updateStageEmpty()
     }
@@ -906,10 +862,10 @@ class MainActivity : Activity() {
 
     private fun refreshAccent() {
         val e = focusedEntry ?: return
-        val a = accentFor(e); stageTag.setTextColor(a); shelves.tint(scope, a); glowTo(a)
+        val a = accentFor(e); stageTag.setTextColor(legible(a)); shelves.tint(scope, a); glowTo(a)
     }
 
-    private fun applyGlow() { glowView.visibility = if (prefs.glow) View.VISIBLE else View.GONE; glowView.setStatic(prefs.performance) }
+    private fun applyGlow() { glowView.visibility = if (prefs.glow) View.VISIBLE else View.GONE; glowView.setStatic(prefs.performance); glowView.alpha = 0.4f }   // a faint accent on the photo, not a wash
 
     private fun openSettings(cat: Int = prefs.settingsCategory) {
         if (settings != null) return

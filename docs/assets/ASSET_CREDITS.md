@@ -12,6 +12,12 @@ under CC0 1.0 Universal. Haven's MIT license does not apply to them and does not
 | Stylized Nature MegaKit (Standard): trees, bush, grass, flowers, pebbles | Quaternius | https://quaternius.itch.io/stylized-nature-megakit | CC0 1.0 Universal |
 | Stylized Wizard Staff | TCCDev | https://opengameart.org/content/stylized-wizard-staff | CC0 |
 
+| Home screen background photograph: "Misty clouds obscure a steep mountain valley with trees" | Nguyen Bui | https://unsplash.com/photos/misty-clouds-obscure-a-steep-mountain-valley-with-trees-ghd8iAZKdjE (profile https://unsplash.com/@renichinguyen) | Unsplash License, https://unsplash.com/license (free for commercial and non-commercial use, no permission or attribution required, not to be resold without significant modification or used to build a competing image service) |
+
+The photograph (published on Unsplash 2025-10-26, downloaded 2026-11-10 from the page above) is shipped as `app/src/main/res/drawable-nodpi/bg_valley.webp`: cropped to 16:9, resized to 1920x1080 and
+compressed to WebP (about 190 KB). At run time Haven tints and darkens it in code and layers soft scrims on it; it is a bundled file and is never fetched from the network. It shows no people, brands or
+watermarks. The Unsplash License is not MIT or CC0; Haven's MIT license does not apply to this photograph.
+
 CC0 requires no attribution; Quaternius asks for support and credit when you can ("Consider supporting me on Patreon":
 https://www.patreon.com/quaternius). Haven credits them in this file, in the README, and in Settings → About & credits.
 

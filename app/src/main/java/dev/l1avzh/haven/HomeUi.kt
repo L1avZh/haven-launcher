@@ -192,7 +192,9 @@ class ShelfStack(ctx: Context, private val s: Scale, titles: List<String>, hints
     private val labels = mutableListOf<TextView>()
     private val hintViews = mutableListOf<TextView>()
     private val shelves = mutableListOf<LinearLayout>()
-    private var offsetShelf = 0
+    private var offsetShelf = -1
+    private var cur = 0
+    private val emptyHint = titles.indices.map { hints[it].isEmpty() }
     val last get() = adapters.lastIndex
 
     init {
@@ -218,7 +220,6 @@ class ShelfStack(ctx: Context, private val s: Scale, titles: List<String>, hints
             }
             recyclers += rv; labels += label; hintViews += hint; shelves += shelf
             addView(shelf, LayoutParams(-1, -2))
-            if (i > 1) shelf.alpha = 0f                       // only two shelves show until the stack slides
         }
     }
 
@@ -231,7 +232,12 @@ class ShelfStack(ctx: Context, private val s: Scale, titles: List<String>, hints
 
     fun submit(shelf: Int, list: List<AppEntry>) {
         val rv = recyclers[shelf]
-        val apply = { adapters[shelf].submit(list); rv.visibility = if (list.isEmpty()) GONE else VISIBLE; hintViews[shelf].visibility = if (list.isEmpty()) VISIBLE else GONE }
+        val apply = {
+            adapters[shelf].submit(list); rv.visibility = if (list.isEmpty()) GONE else VISIBLE; hintViews[shelf].visibility = if (list.isEmpty()) VISIBLE else GONE
+            shelves[shelf].visibility = if (list.isEmpty() && emptyHint[shelf]) GONE else VISIBLE      // an empty shelf with nothing to say folds away
+            offsetShelf = -1; post { reveal(cur) }
+            Unit
+        }
         if (rv.isComputingLayout) rv.post(apply) else apply()
     }
 
@@ -258,21 +264,27 @@ class ShelfStack(ctx: Context, private val s: Scale, titles: List<String>, hints
         }
     }
 
-    /** Slides the stack so the focused shelf is one of the two on screen. */
+    /** Slides the stack so the focused shelf is one of the two on screen; folded-away shelves do not count. */
     fun reveal(shelf: Int) {
-        val want = if (shelf >= 2) 1 else 0
-        if (want == offsetShelf && translationY == targetY(want)) return
-        offsetShelf = want
+        cur = shelf
+        val shown = shelves.indices.filter { shelves[it].visibility == VISIBLE }
+        val pos = shown.indexOf(shelf).coerceAtLeast(0)
+        val first = if (pos >= 2) pos - 1 else 0
+        if (first == offsetShelf && translationY == targetY(shown, first)) return
+        offsetShelf = first
         animate().cancel()
-        val y = targetY(want)
+        val y = targetY(shown, first)
         if (T.animated) animate().translationY(y).setDuration(T.d(T.MED)).setInterpolator(T.OUT).start() else translationY = y
-        shelves.forEachIndexed { i, v -> val gone = i < want || i > want + 1; v.animate().cancel(); if (T.animated) v.animate().alpha(if (gone) 0f else 1f).setDuration(T.d(T.MED)).start() else v.alpha = if (gone) 0f else 1f }
+        shelves.forEachIndexed { i, v ->
+            val p = shown.indexOf(i); val on = p in first..first + 1
+            v.animate().cancel(); if (T.animated) v.animate().alpha(if (on) 1f else 0f).setDuration(T.d(T.MED)).start() else v.alpha = if (on) 1f else 0f
+        }
     }
 
-    private fun targetY(want: Int) = if (want == 0 || shelves.size < 2) 0f else -shelves[1].top.toFloat()
+    private fun targetY(shown: List<Int>, first: Int) = if (first == 0 || shown.isEmpty()) 0f else -shelves[shown[first]].top.toFloat()
 
     fun markFocused(shelf: Int) { labels.forEachIndexed { i, l -> l.setTextColor(if (i == shelf) T.TEXT else T.TEXT_DIM) } }
-    fun tint(shelf: Int, color: Int) { labels.getOrNull(shelf)?.setTextColor(color) }
+    fun tint(shelf: Int, color: Int) { labels.getOrNull(shelf)?.setTextColor(legible(color)) }
 }
 
 /** Shrinks a little while OK is held, so a press is felt before the action runs. */
@@ -322,3 +334,6 @@ fun stagePill(ctx: Context, s: Scale, primary: Boolean, label: String, onClick: 
     }
     setOnClickListener { onClick() }
 }
+
+/** An accent colour lightened toward white so small text in it stays readable over a photograph. */
+fun legible(c: Int): Int = androidx.core.graphics.ColorUtils.blendARGB(c, Color.WHITE, 0.45f)

@@ -385,9 +385,10 @@ class CharacterView(ctx: Context) : TextureView(ctx), Choreographer.FrameCallbac
         scaled("prop_umbrella", p.umbrellaScale)
         scaled("bed", p.bedScale)
         val lying = p.sleepFrame > 0.3f; val snowy = envEffect == WeatherEffect.SNOW
-        vis("env_day", !snowy && !lying); vis("env_snow", snowy && !lying)
-        scaled("ground_grass", if (snowy) 0f else 1f + 1.6f * p.bedScale); scaled("ground_snow", if (snowy) 1f + 1.6f * p.bedScale else 0f)
-        vis("env_sun", !envNight && envEffect == WeatherEffect.NONE && !lying); vis("env_moon", envNight && !lying)
+        // The photographic backdrop is the scene now: the tree, bush, grass, ground disc, sun and moon stay out of the frame (they fought the
+        // character and the shelves). The ground disc returns only under the bed, and rain and snow remain.
+        vis("env_day", false); vis("env_snow", false); vis("env_sun", false); vis("env_moon", false)
+        scaled("ground_grass", if (snowy) 0f else 1.6f * p.bedScale); scaled("ground_snow", if (snowy) 1.6f * p.bedScale else 0f)
         val rain = !lying && (envEffect == WeatherEffect.RAIN || envEffect == WeatherEffect.STORM); val snow = !lying && snowy
         vis("fx_rain_0", rain); vis("fx_rain_1", rain); vis("fx_snow_0", snow); vis("fx_snow_1", snow)
         if (kotlin.math.abs(p.umbrellaScale - framedUmb) > 0.004f || kotlin.math.abs(p.sleepFrame - framedSleep) > 0.004f) frameCamera(p.umbrellaScale, p.sleepFrame)
