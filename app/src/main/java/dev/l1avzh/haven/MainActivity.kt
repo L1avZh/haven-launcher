@@ -52,18 +52,14 @@ class MainActivity : Activity() {
     private var debugYaw = 0f
     private val REQ_HOME_ROLE = 4021
     private lateinit var header: LinearLayout
-    private lateinit var railBox: View
     private lateinit var stageBody: LinearLayout
+    private lateinit var shelfBox: View
     private lateinit var stageArt: ImageView
     private lateinit var stageTag: TextView
     private lateinit var stageTitle: TextView
     private lateinit var stageMeta: TextView
     private lateinit var stageEmpty: TextView
-    private lateinit var scopeHero: ScopeHero
     private var character: CharacterView? = null
-    private lateinit var waitLabel: LinearLayout
-    private lateinit var waitTitle: TextView
-    private lateinit var waitSub: TextView
     private var homeState: HomeState? = null
     private var wentAway = false
     private lateinit var platform: View
@@ -72,13 +68,11 @@ class MainActivity : Activity() {
     private lateinit var btnOpen: TextView
     private lateinit var btnFav: TextView
     private lateinit var btnMore: TextView
-    private lateinit var rail: RailView
-    private lateinit var railAdapter: RailAdapter
-    private val tabs = mutableListOf<LinearLayout>()
+    private lateinit var shelves: ShelfStack
     private var favList: List<AppEntry> = emptyList()
     private var recentList: List<AppEntry> = emptyList()
     private var allList: List<AppEntry> = emptyList()
-    private var scope = 0                       // 0 favorites, 1 recent, 2 library
+    private var scope = 0                       // the shelf that has focus: 0 favorites, 1 recent, 2 library
     private val lastIdx = IntArray(3)
     private var focusedEntry: AppEntry? = null
     private var loaded = false
@@ -108,7 +102,8 @@ class MainActivity : Activity() {
     private lateinit var dimView: View
     private lateinit var timeClock: TextClock
     private lateinit var clockCol: LinearLayout
-    private var artW = 680
+    private var artW = 520
+    private var cardW = 280
     private val accentColors = intArrayOf(0xFF6C8CFF.toInt(), 0xFF4CD6A0.toInt(), 0xFFFF7A6B.toInt(), 0xFFF2B84B.toInt(), 0xFFA77BFF.toInt())
 
     private val pkgReceiver = object : BroadcastReceiver() {
@@ -131,7 +126,7 @@ class MainActivity : Activity() {
         rtl = Lang.isRtl(this)
         Fonts.init(this)
         T.init(this, prefs.animLevel, prefs.performance)
-        artW = intArrayOf(600, 680, 740)[prefs.cardSize]
+        cardW = intArrayOf(250, 280, 320)[prefs.cardSize]
         debugInputs(intent)
         mood = Mood.resolve(this, prefs)
         buildUi()
@@ -297,7 +292,7 @@ class MainActivity : Activity() {
 
     /** A full-screen page (Settings) covers the home scene: hide it so the background, hero and character stop drawing. */
     private fun setSceneVisible(on: Boolean) {
-        val layers = listOfNotNull<View>(homeContent, platform, character, waitLabel.takeIf { homeState != HomeState.APP })
+        val layers = listOfNotNull<View>(homeContent, platform, character)
         if (on) {
             glowView.visibility = if (prefs.glow) View.VISIBLE else View.GONE
             layers.forEach { it.animate().cancel(); it.visibility = View.VISIBLE; if (T.animated) { it.alpha = 0f; it.animate().alpha(1f).setDuration(T.d(T.MED)).start() } else it.alpha = 1f }
@@ -320,7 +315,7 @@ class MainActivity : Activity() {
             { c.equip(prefs.look()); c.input(CharInput.Studio(StudioAction.CANCEL)); closeStudio() })
         studio = st
         homeContent.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
-        homeState = null; waitLabel.visibility = View.GONE; c.setWaiting(false)
+        homeState = null; c.setWaiting(false)
         c.input(CharInput.ScreenChanged)
         // The studio replaces the home content; the character steps forward into the space that frees up.
         homeContent.animate().cancel(); homeContent.animate().alpha(0f).setDuration(T.d(T.MED)).start()
@@ -502,7 +497,7 @@ class MainActivity : Activity() {
         frame.addView(homeContent, -1, -1)
         setContentView(frame)
 
-        // ----- Rail: clock, scope tabs, and one typographic row per app.
+        // ----- Clock, then the shelves, hero and header.
         val locale = Lang.locale(this)
         val datePattern = DateFormat.getBestDateTimePattern(locale, "EEEdMMM")
         clockCol = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
@@ -515,32 +510,17 @@ class MainActivity : Activity() {
         })
         clockCol.visibility = if (prefs.showClock) View.VISIBLE else View.INVISIBLE
 
-        val tabRow = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        listOf(R.string.favorites, R.string.recent, R.string.library).forEachIndexed { i, res -> tabRow.addView(tab(i, getString(res)), LinearLayout.LayoutParams(-2, -2).apply { marginEnd = s.px(4) }) }
-
-        railAdapter = RailAdapter(s, ::onRailFocus, ::onTile, { if (!okHeldIsBound()) menuFor(it) }, { btnOpen.requestFocus() }, { tabs[scope].requestFocus() })
-        rail = RailView(this).apply {
-            layoutManager = RailLayoutManager(this@MainActivity, 3)
-            adapter = railAdapter; clipChildren = true; clipToPadding = false; overScrollMode = View.OVER_SCROLL_NEVER
-            setPadding(0, s.px(8), 0, s.px(560))
-            addOnLayoutChangeListener { v, l, tp, r, b, _, _, _, _ -> v.clipBounds = android.graphics.Rect(0, 0, r - l, b - tp) }
-            itemAnimator = DefaultItemAnimator().apply {
-                supportsChangeAnimations = false
-                addDuration = T.d(T.MED); removeDuration = T.d(T.FAST); moveDuration = T.d(T.MED)
-            }
-        }
-        railBox = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL; clipChildren = false
-            addView(tabRow, LinearLayout.LayoutParams(-1, -2))
-            addView(rail, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = s.px(10) })
-        }
+        // ----- Shelves: Favorites, Recent and the Library as rows of artwork cards under the hero.
+        shelves = ShelfStack(this, s, listOf(getString(R.string.favorites), getString(R.string.recent), getString(R.string.library)),
+            listOf(getString(R.string.no_favorites), getString(R.string.no_recent), ""), s.px(cardW),
+            ShelfCallbacks(::onShelfFocus, ::onTile, { if (!okHeldIsBound()) menuFor(it) }, ::onShelfVertical, { e, w, h, done -> icons.load(e, w, h, done) }))
 
         // ----- Stage: big artwork, name, last-opened line, and the actions for the focused app.
         widgetHost = FrameLayout(this).apply { clipChildren = false }
         applyWidgets()
         header = LinearLayout(this).apply {
             gravity = Gravity.CENTER_VERTICAL
-            addView(clockCol, LinearLayout.LayoutParams(s.px(560 + 48), -2))     // widgets then line up with the stage
+            addView(clockCol, LinearLayout.LayoutParams(s.px(560 + 48), -2))     // widgets then line up with the hero and shelves
             addView(widgetHost, LinearLayout.LayoutParams(0, -1, 1f))
             addView(iconButton(R.drawable.ic_home, getString(R.string.back_to_start)) { focusStart() })
             addView(iconButton(R.drawable.ic_search, getString(R.string.search)) { openSearch() })
@@ -596,147 +576,64 @@ class MainActivity : Activity() {
             listOf(btnOpen, btnFav, btnMore).forEach { b ->
                 addView(b, LinearLayout.LayoutParams(-2, -2).apply { marginEnd = s.px(14) })
                 b.setOnKeyListener { _, code, e ->
-                    val toRail = if (rtl) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT
-                    if (e.action == KeyEvent.ACTION_DOWN && code == toRail && b === btnMore) { focusRail(lastIdx[scope]); true } else false
+                    if (e.action == KeyEvent.ACTION_DOWN && code == KeyEvent.KEYCODE_DPAD_DOWN) { focusShelf(scope, lastIdx[scope]); true } else false
                 }
             }
         }
+        // Hero: the artwork of the focused app, and beside it its name, last-opened line and actions.
+        val heroText = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL; clipChildren = false; gravity = Gravity.CENTER_VERTICAL
+            addView(stageTag, LinearLayout.LayoutParams(-1, -2))
+            addView(stageTitle, LinearLayout.LayoutParams(-1, -2).apply { topMargin = s.px(8) })
+            addView(stageMeta, LinearLayout.LayoutParams(-1, -2).apply { topMargin = s.px(10) })
+            addView(pills, LinearLayout.LayoutParams(-2, -2).apply { topMargin = s.px(28) })
+        }
         stageBody = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL; clipChildren = false
+            orientation = LinearLayout.HORIZONTAL; clipChildren = false; gravity = Gravity.CENTER_VERTICAL
             addView(artBox, LinearLayout.LayoutParams(s.px(artW), s.px(artH)))
-            addView(stageTag, LinearLayout.LayoutParams(-1, -2).apply { topMargin = s.px(30) })
-            addView(stageTitle, LinearLayout.LayoutParams(s.px(artW), -2).apply { topMargin = s.px(6) })
-            addView(stageMeta, LinearLayout.LayoutParams(s.px(artW), -2).apply { topMargin = s.px(8) })
-            addView(pills, LinearLayout.LayoutParams(-2, -2).apply { topMargin = s.px(26) })
+            addView(heroText, LinearLayout.LayoutParams(0, s.px(artH), 1f).apply { marginStart = s.px(44) })
         }
         stageEmpty = TextView(this).apply {
             textAlignment = View.TEXT_ALIGNMENT_VIEW_START; sizePx(s.px(T.BODY)); setTextColor(T.TEXT_DIM); typeface = Fonts.light
             text = getString(R.string.loading); setLineSpacing(0f, 1.2f)
         }
-        scopeHero = ScopeHero(this, s).apply { visibility = View.GONE }
-        val stageCol = LinearLayout(this).apply {
+        val hero = FrameLayout(this).apply {
+            clipChildren = false
+            addView(stageBody, FrameLayout.LayoutParams(-1, -2))
+            addView(stageEmpty, FrameLayout.LayoutParams(s.px(artW), -2).apply { topMargin = s.px(110) })
+        }
+        // body: [room for the character] [hero over the shelves]; the shelves run on to the screen edge so cards slide off it.
+        val shelfViewport = FrameLayout(this).apply { clipChildren = true; addView(shelves, FrameLayout.LayoutParams(-1, -2)) }
+        shelfBox = shelfViewport
+        val pane = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL; clipChildren = false
-            addView(FrameLayout(this@MainActivity).apply {
-                clipChildren = false
-                addView(stageBody, FrameLayout.LayoutParams(-2, -2))
-                addView(scopeHero, FrameLayout.LayoutParams(-2, -2).apply { topMargin = s.px(200) })
-            }, LinearLayout.LayoutParams(-2, -2).apply { topMargin = s.px(14) })
-            addView(stageEmpty, LinearLayout.LayoutParams(s.px(artW), -2).apply { topMargin = s.px(160) })
+            addView(hero, LinearLayout.LayoutParams(-1, -2).apply { topMargin = s.px(14); marginEnd = s.px(T.MARGIN) })
+            addView(shelfViewport, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = s.px(22) })
         }
-        // The label that names the active source while nothing is selected (centered under the header, above the waiting character).
-        waitTitle = TextView(this).apply { sizePx(s.px(40f)); typeface = Fonts.display; setTextColor(T.ACCENT); gravity = Gravity.CENTER; maxLines = 1; ellipsize = TextUtils.TruncateAt.END }
-        waitSub = TextView(this).apply { sizePx(s.px(T.BODY - 6)); typeface = Fonts.light; setTextColor(T.TEXT_DIM); gravity = Gravity.CENTER; maxLines = 2; ellipsize = TextUtils.TruncateAt.END; setLineSpacing(0f, 1.1f) }
-        waitLabel = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL; gravity = Gravity.CENTER_HORIZONTAL; visibility = View.GONE
-            setPadding(s.px(30), s.px(10), s.px(30), s.px(12))
-            background = rounded(0x40070B18, s.px(T.R_PILL))
-            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_YES
-            addView(waitTitle, LinearLayout.LayoutParams(-2, -2)); addView(waitSub, LinearLayout.LayoutParams(s.px(780), -2).apply { topMargin = s.px(2) })
-        }
-        frame.addView(waitLabel, FrameLayout.LayoutParams(-2, -2, Gravity.TOP or Gravity.CENTER_HORIZONTAL).apply { topMargin = s.px(118) })
-        waitLabel.minimumWidth = s.px(520)
-        // body: [space for the character] [stage] [rail]
         val body = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL; clipChildren = false
             addView(View(this@MainActivity), LinearLayout.LayoutParams(s.px(560), -1))
-            addView(stageCol, LinearLayout.LayoutParams(0, -1, 1f).apply { marginStart = s.px(48) })
-            addView(railBox, LinearLayout.LayoutParams(s.px(420), -1).apply { marginStart = s.px(32) })
+            addView(pane, LinearLayout.LayoutParams(0, -1, 1f).apply { marginStart = s.px(48); marginEnd = -s.px(T.MARGIN) })
         }
         homeContent.addView(body, LinearLayout.LayoutParams(-1, 0, 1f))
         stageBody.visibility = View.INVISIBLE
 
-        if (T.animated) listOf(railBox, header, stageBody).forEach { it.alpha = 0f; it.translationY = s.px(26f) }
+        if (T.animated) listOf(shelfViewport, header, stageBody).forEach { it.alpha = 0f; it.translationY = s.px(26f) }
     }
 
-    /** Scope tab: Favorites / Recent / Library. Focusing a tab switches the list immediately. */
-    private fun tab(i: Int, label: String): LinearLayout {
-        val txt = TextView(this).apply { text = label; sizePx(s.px(24f)); typeface = Fonts.medium; setTextColor(T.TEXT_DIM); maxLines = 1; ellipsize = TextUtils.TruncateAt.END; textAlignment = View.TEXT_ALIGNMENT_CENTER }
-        val bar = View(this).apply { background = rounded(T.ACCENT, s.px(2f)); alpha = 0f }
-        return LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL; isFocusable = true; isClickable = true
-            setPadding(s.px(13), s.px(10), s.px(13), s.px(10)); gravity = Gravity.CENTER_HORIZONTAL
-            background = StateListDrawable().apply {
-                addState(intArrayOf(android.R.attr.state_focused), rounded(T.GLASS_FOCUS, s.px(T.R_PILL), T.RING, s.px(T.RING_PX)))
-                addState(intArrayOf(android.R.attr.state_selected), rounded(T.GLASS, s.px(T.R_PILL), T.HAIRLINE, s.px(1)))
-                addState(intArrayOf(), rounded(Color.TRANSPARENT, s.px(T.R_PILL)))
-                setEnterFadeDuration(T.d(T.FOCUS).toInt()); setExitFadeDuration(T.d(T.FOCUS).toInt())
-            }
-            bar.visibility = View.GONE
-            addView(txt, LinearLayout.LayoutParams(-2, -2)); addView(bar, LinearLayout.LayoutParams(s.px(34), s.px(3)))
-            tag = Pair(txt, bar)
-            accessibilityDelegate = object : View.AccessibilityDelegate() {
-                override fun onInitializeAccessibilityNodeInfo(host: View, info: android.view.accessibility.AccessibilityNodeInfo) {
-                    super.onInitializeAccessibilityNodeInfo(host, info); info.isSelected = scope == i
-                }
-            }
-            setOnFocusChangeListener { _, f -> if (f) { if (scope != i) setScope(i); showHero(i) }; updateTabs() }
-            setOnClickListener { focusRail(lastIdx[i]) }
-            setOnKeyListener { _, code, e ->
-                if (e.action == KeyEvent.ACTION_DOWN && code == KeyEvent.KEYCODE_DPAD_DOWN) { focusRail(lastIdx[scope]); true } else false
-            }
-        }.also { tabs += it }
-    }
-
-    /** A scope tab has focus rather than an app: nothing is selected, so the character waits in the middle and the source is named. */
-    private fun showHero(i: Int) {
-        focusedEntry = null
-        stageBody.visibility = View.INVISIBLE; stageEmpty.visibility = View.GONE; scopeHero.visibility = View.GONE
-        applyHomeState(when { !loaded -> HomeState.LOADING; scopeItems().isEmpty() -> HomeState.EMPTY; else -> HomeState.SCOPE })
-    }
-
-    /** What the home screen is showing, which decides where the character stands and what the label says. */
-    private enum class HomeState { APP, SCOPE, EMPTY, LOADING, IDLE }
+    /** What the home screen is showing: the character waits (no app selected yet) or reacts to the focused app. */
+    private enum class HomeState { APP, EMPTY, LOADING, IDLE }
 
     private fun applyHomeState(st: HomeState) {
-        val names = intArrayOf(R.string.favorites, R.string.recent, R.string.library)
-        val scopeName = getString(names[scope.coerceIn(0, 2)])
-        if (st == HomeState.APP) { waitLabel.visibility = View.GONE }
-        else {
-            val n = scopeItems().size
-            waitTitle.text = getString(R.string.browsing_scope, scopeName)
-            waitTitle.setTextColor(glowColor)
-            waitSub.text = when (st) {
-                HomeState.LOADING -> getString(R.string.loading)                                   // still reading the app list
-                HomeState.EMPTY -> getString(when (scope) { 0 -> R.string.no_favorites; 1 -> R.string.no_recent; else -> R.string.no_hidden })   // this scope has nothing in it
-                else -> resources.getQuantityString(R.plurals.apps_count, n, n) + "  ·  " + getString(R.string.state_waiting)   // ordinary: nothing selected yet
-            }
-            waitLabel.visibility = View.VISIBLE
-        }
         if (homeState == st) return
         homeState = st
-        val c = character
-        c?.setWaiting(st != HomeState.APP)
+        character?.setWaiting(st != HomeState.APP)
         if (st != HomeState.APP) character?.input(CharInput.ScreenChanged)
-        moveCharacter(centered = st != HomeState.APP)
-    }
-
-    /** Glides the character to the middle of the screen while nothing is selected, and back to its place when an app is focused. */
-    private fun moveCharacter(centered: Boolean) {
-        val c = character ?: return
-        if (studio != null) return
-        frame.post {
-            val dx = if (centered) frame.width / 2f - (c.left + c.width / 2f) else 0f
-            val k = if (centered) 0.86f else 1f
-            c.pivotX = c.width / 2f; c.pivotY = c.height.toFloat()
-            val moveMs = T.d(T.MED + 160)
-            c.animate().cancel(); c.animate().translationX(dx).scaleX(k).scaleY(k).setDuration(moveMs).setInterpolator(T.OUT).start()
-            platform.animate().cancel(); platform.animate().translationX(dx).setDuration(moveMs).setInterpolator(T.OUT).start()
-        }
     }
 
     private fun unlockStar() {
         prefs.starUnlocked = true; prefs.starWorn = true
         character?.let { it.setLook(prefs.look()); it.input(CharInput.Studio(StudioAction.APPLY)) }
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun updateTabs() {
-        tabs.forEachIndexed { i, t ->
-            val (txt, bar) = t.tag as Pair<TextView, View>
-            val sel = i == scope
-            txt.setTextColor(if (t.isFocused) Color.WHITE else if (sel) T.TEXT else T.TEXT_DIM)
-            t.isSelected = sel
-        }
     }
 
     private fun iconButton(res: Int, desc: String, onClick: () -> Unit): View {
@@ -792,34 +689,30 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun scopeItems(): List<AppEntry> = when (scope) { 0 -> favList; 1 -> recentList; else -> allList }
-
-    private fun setScope(i: Int) {
-        if (scope != i) character?.input(CharInput.ScreenChanged)
-        scope = i
-        updateTabs()
-        // Fast D-pad movement can hand focus to a tab while the rail is still laying out; RecyclerView refuses
-        // adapter changes then, so the list update waits for that pass to finish.
-        if (rail.isComputingLayout) { val s0 = scope; rail.post { if (scope == s0) railAdapter.submit(scopeItems()) } } else railAdapter.submit(scopeItems())
-        updateStageEmpty()
-        // The list slides up into place; a new scope while this runs simply restarts it from where it is.
-        rail.animate().cancel()
-        if (T.animated) { rail.alpha = 0.35f; rail.translationY = s.px(14f); rail.animate().alpha(1f).translationY(0f).setDuration(T.d(T.FOCUS + 40)).setInterpolator(T.OUT).start() }
-        else { rail.alpha = 1f; rail.translationY = 0f }
-    }
-
+    /** Nothing is selected until a card has focus: before the list is read, or when every shelf is empty, the hero says so. */
     private fun updateStageEmpty() {
-        val none = scopeItems().isEmpty()
-        if (tabs.any { it.isFocused }) { showHero(scope); return }
-        stageEmpty.visibility = View.GONE
-        val appFocused = !none && focusedEntry != null && (rail.hasFocus() || stageBody.hasFocus())
-        val st = when { !loaded -> HomeState.LOADING; none -> HomeState.EMPTY; appFocused -> HomeState.APP; else -> HomeState.IDLE }
-        // The stage with its artwork card exists only while an app is selected; otherwise the character has the room.
-        stageBody.visibility = if (st == HomeState.APP) View.VISIBLE else View.INVISIBLE
+        val st = when { !loaded -> HomeState.LOADING; !shelves.anyApps() -> HomeState.EMPTY; focusedEntry != null -> HomeState.APP; else -> HomeState.IDLE }
+        stageEmpty.text = getString(if (st == HomeState.LOADING) R.string.loading else R.string.no_favorites)
+        stageEmpty.visibility = if (st == HomeState.LOADING || st == HomeState.EMPTY) View.VISIBLE else View.GONE
+        if (st != HomeState.APP) { stageBody.visibility = View.INVISIBLE }
         applyHomeState(st)
     }
 
-    private fun onRailFocus(e: AppEntry, pos: Int) { lastIdx[scope] = pos; showStage(e); character?.input(CharInput.AppFocus(e.kind)) }
+    private fun onShelfFocus(e: AppEntry, shelf: Int, pos: Int) {
+        scope = shelf; lastIdx[shelf] = pos
+        shelves.reveal(shelf); shelves.markFocused(shelf)
+        showStage(e); character?.input(CharInput.AppFocus(e.kind))
+    }
+
+    /** Up and Down move between shelves (skipping empty ones) at the same position, or from the first shelf up to the hero's actions. */
+    private fun onShelfVertical(shelf: Int, pos: Int, delta: Int) {
+        var to = shelf + delta
+        while (to in 0..shelves.last && shelves.size(to) == 0) to += delta
+        when {
+            to in 0..shelves.last -> focusShelf(to, minOf(pos, shelves.size(to) - 1).coerceAtLeast(lastIdx[to].takeIf { it < shelves.size(to) && pos == lastIdx[shelf] } ?: 0))
+            delta < 0 -> (if (btnOpen.isShown) btnOpen else null)?.requestFocus()
+        }                                                         // below the last shelf nothing happens
+    }
 
     private fun openedText(e: AppEntry): String = prefs.launchLog[e.key]?.let {
         android.text.format.DateUtils.getRelativeTimeSpanString(it, System.currentTimeMillis(), android.text.format.DateUtils.MINUTE_IN_MILLIS).toString()
@@ -828,7 +721,7 @@ class MainActivity : Activity() {
     /** Names the focused app and shows its artwork; the glow takes the artwork's accent colour. */
     private fun showStage(e: AppEntry) {
         focusedEntry = e; focusedKey = e.key
-        stageEmpty.visibility = View.GONE; scopeHero.visibility = View.GONE; stageBody.visibility = View.VISIBLE
+        stageEmpty.visibility = View.GONE; stageBody.visibility = View.VISIBLE
         applyHomeState(HomeState.APP)
         val accent = accentFor(e)
         val isFav = e.key in prefs.favorites
@@ -840,7 +733,7 @@ class MainActivity : Activity() {
         val real = if (e.virtual) View.GONE else View.VISIBLE
         btnFav.visibility = real; btnMore.visibility = real
         glowTo(accent)
-        railAdapter.tint(accent)
+        shelves.tint(scope, accent)
         val token = ++artToken
         stageArt.animate().cancel(); stageArt.alpha = if (T.animated) 0.25f else 1f
         artCardView.animate().cancel()
@@ -864,7 +757,7 @@ class MainActivity : Activity() {
         val favs = prefs.favorites
         prefs.favorites = if (e.key in favs) favs - e.key else favs + e.key
         render()
-        if (scope == 0 && e.key !in prefs.favorites) focusRail(lastIdx[0]) else showStage(e)
+        if (scope == 0 && e.key !in prefs.favorites) focusShelf(0, lastIdx[0]) else showStage(e)
     }
 
 
@@ -878,7 +771,7 @@ class MainActivity : Activity() {
         if (entered) return
         entered = true
         if (!T.animated) return
-        listOf(railBox to 0L, header to 60L, stageBody to 120L).forEach { (v, delay) ->
+        listOf(shelfBox to 0L, header to 60L, stageBody to 120L).forEach { (v, delay) ->
             v.animate().alpha(1f).translationY(0f).setStartDelay(T.d(delay)).setDuration(T.d(T.SLOW)).setInterpolator(T.OUT).start()
         }
     }
@@ -886,7 +779,7 @@ class MainActivity : Activity() {
     private fun artReady(e: AppEntry) {
         if (e.key != focusedKey) return
         val a = accentFor(e)
-        stageTag.setTextColor(a); railAdapter.tint(a); glowTo(a)
+        stageTag.setTextColor(a); shelves.tint(scope, a); glowTo(a)
     }
 
     // ---------- Data ----------
@@ -902,7 +795,7 @@ class MainActivity : Activity() {
                 all = apps
                 val firstLoad = !loaded
                 if (!prefs.seeded) prefs.favorites = AppRepo.seedFavorites(apps)
-                if (!loaded) { loaded = true; scope = if (prefs.favorites.any { k -> all.any { it.key == k && k !in prefs.hidden } }) 0 else 2; updateTabs() }
+                if (!loaded) { loaded = true; scope = if (prefs.favorites.any { k -> all.any { it.key == k && k !in prefs.hidden } }) 0 else 2 }
                 render()
                 if (firstLoad || currentFocus == null) restoreFocus()
                 frame.post { playEntrance() }
@@ -922,7 +815,7 @@ class MainActivity : Activity() {
         // The AdGuard shortcut lives at the end of the library until the real app is installed (or the user hides it).
         allList = if (!AppRepo.hasAdGuard(all) && ADGUARD_ENTRY.key !in prefs.hidden) vis + ADGUARD_ENTRY else vis
         recentList = prefs.launchLog.entries.sortedByDescending { it.value }.mapNotNull { byKey[it.key] }.take(12)
-        if (rail.isComputingLayout) rail.post { railAdapter.submit(scopeItems()) } else railAdapter.submit(scopeItems())
+        shelves.submit(0, favList); shelves.submit(1, recentList); shelves.submit(2, allList)
         updateStageEmpty()
     }
 
@@ -953,7 +846,7 @@ class MainActivity : Activity() {
                 catch (_: Exception) { Toast.makeText(this, getString(R.string.cant_open, "AdGuard"), Toast.LENGTH_LONG).show() }
             },
             MenuItem(getString(R.string.hide)) { d ->
-                prefs.hidden = prefs.hidden + ADGUARD_ENTRY.key; d.dismiss(); render(); focusRail(lastIdx[scope])
+                prefs.hidden = prefs.hidden + ADGUARD_ENTRY.key; d.dismiss(); render(); focusShelf(scope, lastIdx[scope])
             },
         )
         track(showMenu(s, "AdGuard", items) { box, _ ->
@@ -971,17 +864,17 @@ class MainActivity : Activity() {
         val idx = favs.indexOf(e.key)
         val at = lastIdx[scope]
         val items = mutableListOf(MenuItem(getString(R.string.open)) { it.dismiss(); launch(e) })
-        if (idx < 0) items += MenuItem(getString(R.string.add_fav)) { d -> prefs.favorites = favs + e.key; d.dismiss(); render(); focusRail(at) }
+        if (idx < 0) items += MenuItem(getString(R.string.add_fav)) { d -> prefs.favorites = favs + e.key; d.dismiss(); render(); focusShelf(scope, at) }
         else {
-            items += MenuItem(getString(R.string.remove_fav)) { d -> favs.removeAt(idx); prefs.favorites = favs; d.dismiss(); render(); focusRail(at) }
+            items += MenuItem(getString(R.string.remove_fav)) { d -> favs.removeAt(idx); prefs.favorites = favs; d.dismiss(); render(); focusShelf(scope, at) }
             if (inFavs) {
                 val keys = favList.map { it.key }
                 val vi = keys.indexOf(e.key)
-                if (vi > 0) items += MenuItem(getString(R.string.move_earlier)) { d -> swap(favs, e.key, keys[vi - 1]); d.dismiss(); render(); focusRail(vi - 1) }
-                if (vi < keys.lastIndex) items += MenuItem(getString(R.string.move_later)) { d -> swap(favs, e.key, keys[vi + 1]); d.dismiss(); render(); focusRail(vi + 1) }
+                if (vi > 0) items += MenuItem(getString(R.string.move_earlier)) { d -> swap(favs, e.key, keys[vi - 1]); d.dismiss(); render(); focusShelf(scope, vi - 1) }
+                if (vi < keys.lastIndex) items += MenuItem(getString(R.string.move_later)) { d -> swap(favs, e.key, keys[vi + 1]); d.dismiss(); render(); focusShelf(scope, vi + 1) }
             }
         }
-        items += MenuItem(getString(R.string.hide)) { d -> prefs.hidden = prefs.hidden + e.key; d.dismiss(); render(); focusRail(at) }
+        items += MenuItem(getString(R.string.hide)) { d -> prefs.hidden = prefs.hidden + e.key; d.dismiss(); render(); focusShelf(scope, at) }
         items += MenuItem(getString(R.string.app_info)) { d -> d.dismiss(); appInfo(e) }
         track(showMenu(s, e.label, items))
     }
@@ -1013,7 +906,7 @@ class MainActivity : Activity() {
 
     private fun refreshAccent() {
         val e = focusedEntry ?: return
-        val a = accentFor(e); stageTag.setTextColor(a); railAdapter.tint(a); glowTo(a)
+        val a = accentFor(e); stageTag.setTextColor(a); shelves.tint(scope, a); glowTo(a)
     }
 
     private fun applyGlow() { glowView.visibility = if (prefs.glow) View.VISIBLE else View.GONE; glowView.setStatic(prefs.performance) }
@@ -1289,25 +1182,15 @@ class MainActivity : Activity() {
 
     // ---------- Focus ----------
 
-    /** Puts focus on a rail row. The row may not exist yet right after a list change or a screen change, so it retries briefly. */
-    private fun focusRail(idx: Int, tries: Int = 14) {
-        val n = railAdapter.itemCount
-        if (n == 0) return
-        val i = idx.coerceIn(0, n - 1)
-        rail.scrollToPosition(i)
-        rail.post {
-            val v = rail.findViewHolderForAdapterPosition(i)?.itemView
-            if (v != null && v.isShown && v.requestFocus()) return@post
-            if (tries > 0) rail.postDelayed({ focusRail(i, tries - 1) }, 50)
-        }
-    }
+    /** Puts focus on a card in a shelf (the nearest shelf that has apps when that one is empty). */
+    private fun focusShelf(shelf: Int, pos: Int) = shelves.focus(shelf, pos)
 
     private fun focusStart() {
-        setScope(if (favList.isNotEmpty()) 0 else 2)
+        scope = if (favList.isNotEmpty()) 0 else 2
         lastIdx[scope] = 0
-        rail.postDelayed({ focusRail(0) }, 40)
+        shelves.postDelayed({ focusShelf(scope, 0) }, 40)
     }
 
-    private fun restoreFocus() { if (railAdapter.itemCount > 0) focusRail(lastIdx[scope]) else focusStart() }
+    private fun restoreFocus() { if (shelves.anyApps()) focusShelf(scope, lastIdx[scope]) else focusStart() }
 
 }

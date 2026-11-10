@@ -4,11 +4,11 @@ A fast, ad-free launcher for Android TV. No accounts, no tracking; the only netw
 
 ![Haven's home screen: a 3D character on the left, the focused app in the middle, the app list on the right](docs/images/screenshots/home.png)
 
-Haven replaces the usual Android TV home screen with something quieter: a 3D character in a small scene that follows the time of day and the weather, big artwork and the name of whatever is focused in the middle, and a typographic list of your apps at the end. Plain Kotlin views plus Google Filament for the 3D; one permission (internet, for the weather widget, used only after you pick a city).
+Haven replaces the usual Android TV home screen with something quieter: a 3D character in a small scene that follows the time of day and the weather, the artwork and actions of whatever is focused above shelves of app cards (Favorites, Recent, Library). Plain Kotlin views plus Google Filament for the 3D; one permission (internet, for the weather widget, used only after you pick a city).
 
 ## Highlights
 
-- **Stage and rail home screen** with Favorites, Recent and Library, live background colors taken from the focused app, and full D-pad and remote control.
+- **Shelf home screen** with Favorites, Recent and Library rows, live background colors taken from the focused app, and full D-pad and remote control.
 - **A 3D character** (Human, Wizard or Robot) with outfits and props you choose in the Character Studio. It reacts to the remote, sleeps in a bed at night, and holds an umbrella in rain, snow, storms and cold.
 - **Day and night** (automatic, or always day / always night) with a sunny or starlit scene, 3D rain and snow.
 - **Widgets** for the home screen and the screensaver: greeting, weather, day and year progress, moon, storage, memory, uptime.

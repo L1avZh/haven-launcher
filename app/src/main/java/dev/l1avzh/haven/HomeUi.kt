@@ -8,76 +8,69 @@ import android.view.Gravity
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
+import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.recyclerview.widget.DefaultItemAnimator
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 
-/** The app list on the home screen. Plain RecyclerView; Left/Right are allowed to leave it (toward the stage). */
-class RailView(ctx: Context) : RecyclerView(ctx) {
+/**
+ * One shelf of the home screen: a label above a horizontal row of artwork cards. Only the cards near the viewport exist
+ * (RecyclerView), and each loads its artwork through the shared [IconLoader] at card size, cancelling when recycled.
+ */
+class ShelfRecycler(ctx: Context) : RecyclerView(ctx) {
     override fun hasOverlappingRendering() = false
 }
 
-/**
- * Keeps the focused row on a fixed slot a few rows from the top: the cursor stays put and the list moves under it.
- */
-class RailLayoutManager(ctx: Context, private val anchorRows: Int) : LinearLayoutManager(ctx, VERTICAL, false) {
+/** Keeps the focused card on a fixed slot (the second one), so the cursor stays put and the shelf moves under it. */
+class ShelfLayoutManager(ctx: Context, private val slot: Int) : LinearLayoutManager(ctx, HORIZONTAL, false) {
     override fun requestChildRectangleOnScreen(
         parent: RecyclerView, child: View, rect: android.graphics.Rect, immediate: Boolean, focusedChildVisible: Boolean,
     ): Boolean {
-        val target = paddingTop + minOf(getPosition(child), anchorRows) * child.height
-        val dy = child.top - target
-        if (dy == 0) return false
-        if (immediate || !T.animated) parent.scrollBy(0, dy) else parent.smoothScrollBy(0, dy, T.OUT, T.d(T.MED + 40).toInt())
+        val step = child.width
+        val rtl = layoutDirection == View.LAYOUT_DIRECTION_RTL
+        val k = minOf(getPosition(child), slot) * step
+        val target = if (rtl) width - paddingRight - step - k else paddingLeft + k
+        val dx = child.left - target
+        if (dx == 0) return false
+        if (immediate || !T.animated) parent.scrollBy(dx, 0) else parent.smoothScrollBy(dx, 0, T.OUT, T.d(T.MED + 40).toInt())
         return true
     }
 }
 
-/**
- * One typographic row per app. The focused name grows and brightens, everything else recedes.
- * No artwork is loaded here; the stage shows the artwork of the focused app only.
- */
-class RailAdapter(
-    private val s: Scale,
-    private val onFocus: (AppEntry, Int) -> Unit,
-    private val onClick: (AppEntry) -> Unit,
-    private val onLong: (AppEntry) -> Unit,
-    private val onToStage: () -> Unit,
-    private val onUpFromTop: () -> Unit,
-) : RecyclerView.Adapter<RailAdapter.VH>() {
+/** What a shelf tells the home screen. Positions are indexes in that shelf's own list. */
+class ShelfCallbacks(
+    val onFocus: (AppEntry, Int, Int) -> Unit,
+    val onClick: (AppEntry) -> Unit,
+    val onLong: (AppEntry) -> Unit,
+    val onVertical: (shelf: Int, pos: Int, delta: Int) -> Unit,
+    val art: (AppEntry, Int, Int, (android.graphics.Bitmap?) -> Unit) -> IconLoader.Request,
+)
 
+/** A focusable card: scales with focus, and feels pressed while OK is held. */
+class CardRoot(ctx: Context) : LinearLayout(ctx) {
+    var rest = 1f
+    override fun onKeyDown(code: Int, e: KeyEvent): Boolean {
+        if (e.repeatCount == 0 && (code == KeyEvent.KEYCODE_DPAD_CENTER || code == KeyEvent.KEYCODE_ENTER) && T.animated) animate().scaleX(rest * 0.96f).scaleY(rest * 0.96f).setDuration(T.d(70)).start()
+        return super.onKeyDown(code, e)
+    }
+    override fun onKeyUp(code: Int, e: KeyEvent): Boolean {
+        if ((code == KeyEvent.KEYCODE_DPAD_CENTER || code == KeyEvent.KEYCODE_ENTER) && T.animated) animate().scaleX(rest).scaleY(rest).setDuration(T.d(140)).start()
+        return super.onKeyUp(code, e)
+    }
+}
+
+class CardAdapter(private val s: Scale, private val shelf: Int, val cardW: Int, private val cb: ShelfCallbacks) : RecyclerView.Adapter<CardAdapter.VH>() {
     var items: List<AppEntry> = emptyList(); private set
-    private var focusedHolder: VH? = null
     private var recycler: RecyclerView? = null
+    private var pending = -1
     override fun onAttachedToRecyclerView(rv: RecyclerView) { recycler = rv }
     override fun onDetachedFromRecyclerView(rv: RecyclerView) { if (recycler === rv) recycler = null }
 
-    /** Moves focus one row up or down by position, so a burst of key presses never depends on a row being laid out yet. */
-    private fun step(from: Int, delta: Int) {
-        val rv = recycler ?: return
-        // Presses that arrive before the previous target has been laid out and focused count from that target.
-        val to = (if (pending >= 0) pending else from) + delta
-        if (to < 0 || to >= items.size) return
-        pending = to
-        val holder = rv.findViewHolderForAdapterPosition(to)
-        if (holder != null) holder.itemView.requestFocus()
-        else { rv.scrollToPosition(to); focusLater(rv, to, 4) }
-    }
-
-    /** The target row appears after the next layout pass; try on the following frames, then give up and release the target. */
-    private fun focusLater(rv: RecyclerView, to: Int, tries: Int) {
-        rv.post {
-            val h = rv.findViewHolderForAdapterPosition(to)
-            when {
-                pending != to -> {}                                      // a newer press has moved the target on
-                h != null -> h.itemView.requestFocus()
-                tries > 0 -> focusLater(rv, to, tries - 1)
-                else -> pending = -1
-            }
-        }
-    }
-    private var pending = -1
+    val cardH get() = cardW * 9 / 16
 
     fun submit(list: List<AppEntry>) {
         pending = -1
@@ -92,58 +85,80 @@ class RailAdapter(
         diff.dispatchUpdatesTo(this)
     }
 
-    /** Colors the focused row's marker with the artwork accent once it is known. */
-    fun tint(color: Int) { focusedHolder?.dot?.background = dotShape(color) }
+    /** Moves focus along the shelf by position, so a burst of presses never depends on a card being laid out yet. */
+    private fun step(from: Int, delta: Int) {
+        val rv = recycler ?: return
+        val to = (if (pending >= 0) pending else from) + delta
+        if (to < 0 || to >= items.size) return
+        pending = to
+        val holder = rv.findViewHolderForAdapterPosition(to)
+        if (holder != null) holder.itemView.requestFocus() else { rv.scrollToPosition(to); focusLater(rv, to, 4) }
+    }
 
-    class VH(val row: LinearLayout, val dot: View, val name: TextView) : RecyclerView.ViewHolder(row) { var bound: String? = null }
+    private fun focusLater(rv: RecyclerView, to: Int, tries: Int) {
+        rv.post {
+            val h = rv.findViewHolderForAdapterPosition(to)
+            when {
+                pending != to -> {}
+                h != null -> h.itemView.requestFocus()
+                tries > 0 -> focusLater(rv, to, tries - 1)
+                else -> pending = -1
+            }
+        }
+    }
 
-    private fun dotShape(c: Int) = GradientDrawable().apply { shape = GradientDrawable.OVAL; setColor(c) }
+    class VH(val root: CardRoot, val art: ImageView, val name: TextView) : RecyclerView.ViewHolder(root) { var req: IconLoader.Request? = null; var bound: String? = null }
 
     override fun onCreateViewHolder(parent: ViewGroup, type: Int): VH {
         val ctx = parent.context
-        val dot = View(ctx).apply { background = dotShape(0x66FFFFFF); alpha = 0f; importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO }
-        val name = TextView(ctx).apply {
-            sizePx(s.px(40f)); setTextColor(T.TEXT); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
-            textAlignment = View.TEXT_ALIGNMENT_VIEW_START; typeface = Fonts.light; includeFontPadding = false; alpha = 0.5f
-        }
-        val row = PressRow(ctx).apply {
-            orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL
-            isFocusable = true; isClickable = true; isLongClickable = true
-            layoutParams = RecyclerView.LayoutParams(-1, s.px(92))
-            setPaddingRelative(s.px(22), 0, s.px(22), 0)
-            // The focused row sits in a glass capsule with a bright ring; the drawable fades itself in and out, so rapid
-            // D-pad movement retargets instead of queueing.
+        val gap = s.px(24)
+        val radius = s.px(T.R_CARD)
+        val art = ImageView(ctx).apply { scaleType = ImageView.ScaleType.FIT_XY }
+        val ring = View(ctx).apply {
+            importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
             background = StateListDrawable().apply {
-                addState(intArrayOf(android.R.attr.state_focused), rounded(T.GLASS_HI, s.px(T.R_PILL + 8), T.RING, s.px(T.RING_PX)))
-                addState(intArrayOf(), rounded(Color.TRANSPARENT, s.px(T.R_PILL + 8)))
-                setEnterFadeDuration(T.d(T.FOCUS).toInt()); setExitFadeDuration(T.d(T.FOCUS).toInt())
+                addState(intArrayOf(android.R.attr.state_focused), rounded(Color.TRANSPARENT, radius, T.RING, s.px(T.RING_PX)))
+                addState(intArrayOf(), rounded(Color.TRANSPARENT, radius, 0x22FFFFFF, s.px(1)))
             }
+            isDuplicateParentStateEnabled = true
         }
-        row.addView(dot, LinearLayout.LayoutParams(s.px(14), s.px(14)).apply { marginEnd = s.px(22) })
-        row.addView(name, LinearLayout.LayoutParams(0, -2, 1f))
-        val vh = VH(row, dot, name)
-        row.setOnFocusChangeListener { _, f ->
-            val rtl = row.layoutDirection == View.LAYOUT_DIRECTION_RTL
-            name.pivotX = if (rtl) name.width.toFloat() else 0f; name.pivotY = name.height / 2f
-            val sc = if (f && T.animated) 1f + 0.16f * T.motion else 1f
-            name.animate().scaleX(sc).scaleY(sc).alpha(if (f) 1f else 0.5f).setDuration(T.d(T.FOCUS)).setInterpolator(T.OUT).start()
-            dot.animate().alpha(if (f) 1f else 0f).setDuration(T.d(T.FAST)).start()
+        val box = FrameLayout(ctx).apply {
+            background = rounded(T.CARD, radius); clipToOutline = true
+            outlineProvider = object : android.view.ViewOutlineProvider() { override fun getOutline(v: View, o: android.graphics.Outline) { o.setRoundRect(0, 0, v.width, v.height, radius) } }
+            addView(art, FrameLayout.LayoutParams(-1, -1)); addView(ring, FrameLayout.LayoutParams(-1, -1))
+        }
+        val name = TextView(ctx).apply {
+            sizePx(s.px(T.LABEL + 2)); setTextColor(T.TEXT); maxLines = 1; ellipsize = android.text.TextUtils.TruncateAt.END
+            textAlignment = View.TEXT_ALIGNMENT_VIEW_START; typeface = Fonts.medium; alpha = 0.6f
+        }
+        val root = CardRoot(ctx).apply {
+            orientation = LinearLayout.VERTICAL; isFocusable = true; isClickable = true; isLongClickable = true; clipChildren = false
+            layoutParams = RecyclerView.LayoutParams(cardW + gap, -2)
+            setPaddingRelative(gap / 2, 0, gap / 2, 0)
+            addView(box, LinearLayout.LayoutParams(cardW, cardH))
+            addView(name, LinearLayout.LayoutParams(cardW, -2).apply { topMargin = s.px(12) })
+        }
+        val vh = VH(root, art, name)
+        root.setOnFocusChangeListener { v, f ->
+            val sc = if (f && T.animated) 1f + 0.08f * T.motion else 1f
+            root.rest = sc
+            v.pivotX = v.width / 2f; v.pivotY = cardH / 2f
+            v.animate().scaleX(sc).scaleY(sc).translationZ(if (f && T.animated) s.px(16f) else 0f).setDuration(T.d(T.FOCUS)).setInterpolator(T.OUT).start()
+            name.animate().alpha(if (f) 1f else 0.6f).setDuration(T.d(T.FOCUS)).start()
             vh.bound?.let { k -> val fam = Fonts.familyFor(k); name.typeface = if (f) fam.second else fam.first }
-            if (f) { focusedHolder = vh; val p = vh.bindingAdapterPosition; if (p == pending) pending = -1; items.getOrNull(p)?.let { onFocus(it, p) } }
-            else if (focusedHolder === vh) focusedHolder = null
+            if (f) { val p = vh.bindingAdapterPosition; if (p == pending) pending = -1; items.getOrNull(p)?.let { cb.onFocus(it, shelf, p) } }
         }
-        row.setOnKeyListener { _, code, e ->
-            val rtl = row.layoutDirection == View.LAYOUT_DIRECTION_RTL
-            // the rail sits at the end side of the screen now, so the stage is toward the start
-            val toStage = if (rtl) KeyEvent.KEYCODE_DPAD_RIGHT else KeyEvent.KEYCODE_DPAD_LEFT
-            val away = if (rtl) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT
-            if (e.action != KeyEvent.ACTION_DOWN) false
-            else when {
-                code == toStage -> { onToStage(); true }
-                code == away -> true                         // nothing lives on that side; never jump elsewhere
-                code == KeyEvent.KEYCODE_DPAD_UP && vh.bindingAdapterPosition == 0 -> { onUpFromTop(); true }
-                code == KeyEvent.KEYCODE_DPAD_UP -> { vh.bindingAdapterPosition.takeIf { it >= 0 }?.let { step(it, -1) }; true }
-                code == KeyEvent.KEYCODE_DPAD_DOWN -> { vh.bindingAdapterPosition.takeIf { it >= 0 }?.let { step(it, 1) }; true }   // the last row stays put
+        root.setOnKeyListener { _, code, e ->
+            val rtl = root.layoutDirection == View.LAYOUT_DIRECTION_RTL
+            val before = if (rtl) KeyEvent.KEYCODE_DPAD_RIGHT else KeyEvent.KEYCODE_DPAD_LEFT
+            val after = if (rtl) KeyEvent.KEYCODE_DPAD_LEFT else KeyEvent.KEYCODE_DPAD_RIGHT
+            val p = vh.bindingAdapterPosition
+            if (e.action != KeyEvent.ACTION_DOWN || p < 0) false
+            else when (code) {
+                before -> { step(p, -1); true }                  // the ends hold still; nothing else lives beside a shelf
+                after -> { step(p, 1); true }
+                KeyEvent.KEYCODE_DPAD_UP -> { cb.onVertical(shelf, p, -1); true }
+                KeyEvent.KEYCODE_DPAD_DOWN -> { cb.onVertical(shelf, p, 1); true }
                 else -> false
             }
         }
@@ -155,14 +170,109 @@ class RailAdapter(
         h.bound = e.key
         h.name.text = e.label
         h.name.typeface = Fonts.familyFor(e.key).first
-        h.row.contentDescription = e.label
-        h.row.setOnClickListener { v ->
-            if (T.animated) v.animate().alpha(0.7f).setDuration(T.d(T.FAST - 40)).withEndAction { v.alpha = 1f; onClick(e) }.start() else onClick(e)
-        }
-        h.row.setOnLongClickListener { onLong(e); true }
+        h.root.contentDescription = e.label
+        h.root.setOnClickListener { cb.onClick(e) }
+        h.root.setOnLongClickListener { cb.onLong(e); true }
+        h.req?.cancel(); h.art.setImageDrawable(null)
+        val key = e.key
+        h.req = cb.art(e, cardW, cardH) { bmp -> if (h.bound == key && bmp != null) h.art.setImageBitmap(bmp) }
     }
 
+    override fun onViewRecycled(h: VH) { h.req?.cancel(); h.req = null; h.bound = null; h.art.setImageDrawable(null) }
     override fun getItemCount() = items.size
+}
+
+/**
+ * The three shelves (Favorites, Recent, Library) stacked under the hero. Two show at a time; moving to the third
+ * slides the stack up by one shelf. An empty shelf keeps its label and a quiet one-line hint and is skipped by Up/Down.
+ */
+class ShelfStack(ctx: Context, private val s: Scale, titles: List<String>, hints: List<String>, cardW: Int, private val cb: ShelfCallbacks) : LinearLayout(ctx) {
+    private val adapters = titles.indices.map { CardAdapter(s, it, cardW, cb) }
+    private val recyclers = mutableListOf<ShelfRecycler>()
+    private val labels = mutableListOf<TextView>()
+    private val hintViews = mutableListOf<TextView>()
+    private val shelves = mutableListOf<LinearLayout>()
+    private var offsetShelf = 0
+    val last get() = adapters.lastIndex
+
+    init {
+        orientation = VERTICAL; clipChildren = false; clipToPadding = false
+        titles.forEachIndexed { i, title ->
+            val label = TextView(ctx).apply {
+                text = title; sizePx(s.px(T.LABEL + 4)); typeface = Fonts.medium; setTextColor(T.TEXT_DIM); maxLines = 1
+                textAlignment = View.TEXT_ALIGNMENT_VIEW_START; setPaddingRelative(s.px(12), 0, 0, 0)
+            }
+            val rv = ShelfRecycler(ctx).apply {
+                layoutManager = ShelfLayoutManager(ctx, 1); adapter = adapters[i]
+                clipChildren = false; clipToPadding = false; overScrollMode = View.OVER_SCROLL_NEVER
+                setPaddingRelative(s.px(12), s.px(18), s.px(T.MARGIN), s.px(26))
+                itemAnimator = DefaultItemAnimator().apply { supportsChangeAnimations = false; addDuration = T.d(T.MED); removeDuration = T.d(T.FAST); moveDuration = T.d(T.MED) }
+            }
+            val hint = TextView(ctx).apply {
+                text = hints[i]; sizePx(s.px(T.LABEL + 2)); setTextColor(T.TEXT_DIM); typeface = Fonts.light; visibility = View.GONE
+                textAlignment = View.TEXT_ALIGNMENT_VIEW_START; setPaddingRelative(s.px(12), s.px(22), s.px(T.MARGIN), s.px(22))
+            }
+            val shelf = LinearLayout(ctx).apply {
+                orientation = VERTICAL; clipChildren = false
+                addView(label, LayoutParams(-1, -2)); addView(rv, LayoutParams(-1, -2)); addView(hint, LayoutParams(-1, -2))
+            }
+            recyclers += rv; labels += label; hintViews += hint; shelves += shelf
+            addView(shelf, LayoutParams(-1, -2))
+            if (i > 1) shelf.alpha = 0f                       // only two shelves show until the stack slides
+        }
+    }
+
+    /** The stack is taller than the viewport that clips it: measure it with all the room it wants, not what is left. */
+    override fun onMeasure(w: Int, h: Int) = super.onMeasure(w, MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED))
+
+    fun size(shelf: Int) = adapters[shelf].items.size
+    fun items(shelf: Int) = adapters[shelf].items
+    fun anyApps() = adapters.any { it.items.isNotEmpty() }
+
+    fun submit(shelf: Int, list: List<AppEntry>) {
+        val rv = recyclers[shelf]
+        val apply = { adapters[shelf].submit(list); rv.visibility = if (list.isEmpty()) GONE else VISIBLE; hintViews[shelf].visibility = if (list.isEmpty()) VISIBLE else GONE }
+        if (rv.isComputingLayout) rv.post(apply) else apply()
+    }
+
+    /** The nearest shelf that has apps, looking from [from] in [dir] first and then the other way; -1 when all are empty. */
+    fun nonEmpty(from: Int, dir: Int = 1): Int {
+        var i = from.coerceIn(0, last)
+        while (i in 0..last) { if (size(i) > 0) return i; i += dir }
+        i = from.coerceIn(0, last) - dir
+        while (i in 0..last) { if (size(i) > 0) return i; i -= dir }
+        return -1
+    }
+
+    /** Puts focus on a card. The card may not exist yet right after a list or screen change, so it retries briefly. */
+    fun focus(shelf: Int, pos: Int, tries: Int = 14) {
+        val sh = nonEmpty(shelf).takeIf { it >= 0 } ?: return
+        val n = size(sh); val i = pos.coerceIn(0, n - 1)
+        reveal(sh)
+        val rv = recyclers[sh]
+        rv.scrollToPosition(i)
+        rv.post {
+            val v = rv.findViewHolderForAdapterPosition(i)?.itemView
+            if (v != null && v.isShown && v.requestFocus()) return@post
+            if (tries > 0) rv.postDelayed({ focus(sh, i, tries - 1) }, 50)
+        }
+    }
+
+    /** Slides the stack so the focused shelf is one of the two on screen. */
+    fun reveal(shelf: Int) {
+        val want = if (shelf >= 2) 1 else 0
+        if (want == offsetShelf && translationY == targetY(want)) return
+        offsetShelf = want
+        animate().cancel()
+        val y = targetY(want)
+        if (T.animated) animate().translationY(y).setDuration(T.d(T.MED)).setInterpolator(T.OUT).start() else translationY = y
+        shelves.forEachIndexed { i, v -> val gone = i < want || i > want + 1; v.animate().cancel(); if (T.animated) v.animate().alpha(if (gone) 0f else 1f).setDuration(T.d(T.MED)).start() else v.alpha = if (gone) 0f else 1f }
+    }
+
+    private fun targetY(want: Int) = if (want == 0 || shelves.size < 2) 0f else -shelves[1].top.toFloat()
+
+    fun markFocused(shelf: Int) { labels.forEachIndexed { i, l -> l.setTextColor(if (i == shelf) T.TEXT else T.TEXT_DIM) } }
+    fun tint(shelf: Int, color: Int) { labels.getOrNull(shelf)?.setTextColor(color) }
 }
 
 /** Shrinks a little while OK is held, so a press is felt before the action runs. */
@@ -211,56 +321,4 @@ fun stagePill(ctx: Context, s: Scale, primary: Boolean, label: String, onClick: 
         v.animate().scaleX(sc).scaleY(sc).translationZ(if (f && T.animated) s.px(14f) else 0f).setDuration(T.d(T.FOCUS)).setInterpolator(T.OUT).start()
     }
     setOnClickListener { onClick() }
-}
-
-/**
- * Shown on the stage while a scope tab (not an app) has focus: the scope's name in the display face with a
- * light that slowly sweeps across the letters, and a one-line summary.
- */
-class ScopeHero(ctx: Context, private val s: Scale) : LinearLayout(ctx) {
-    private val title = TextView(ctx).apply {
-        sizePx(s.px(104f)); typeface = Fonts.display; includeFontPadding = false; maxLines = 1
-        textAlignment = View.TEXT_ALIGNMENT_VIEW_START; setTextColor(Color.WHITE)
-    }
-    private val sub = TextView(ctx).apply {
-        sizePx(s.px(34f)); typeface = Fonts.light; setTextColor(T.TEXT_DIM); textAlignment = View.TEXT_ALIGNMENT_VIEW_START
-    }
-    private val rule = View(ctx)
-    private var accent = T.ACCENT
-    private var sweep: android.animation.ValueAnimator? = null
-    private val m = android.graphics.Matrix()
-    private var shader: android.graphics.LinearGradient? = null
-
-    init {
-        orientation = VERTICAL
-        addView(title, LayoutParams(-2, -2))
-        addView(rule, LayoutParams(s.px(96), s.px(4)).apply { topMargin = s.px(30) })
-        addView(sub, LayoutParams(-2, -2).apply { topMargin = s.px(22) })
-    }
-
-    fun set(name: String, summary: String, color: Int) {
-        title.text = name; sub.text = summary; accent = color
-        rule.background = rounded(color, s.px(2f))
-        val w = s.px(900f).toFloat()
-        shader = android.graphics.LinearGradient(0f, 0f, w, 0f,
-            intArrayOf(0x88FFFFFF.toInt(), Color.WHITE, 0x88FFFFFF.toInt(), 0xFF000000.toInt() or (color and 0xFFFFFF), 0x88FFFFFF.toInt()),
-            floatArrayOf(0f, 0.25f, 0.5f, 0.75f, 1f), android.graphics.Shader.TileMode.MIRROR)
-        title.paint.shader = shader
-        title.invalidate()
-        restart()
-    }
-
-    private fun restart() {
-        sweep?.cancel()
-        if (!T.animated || !isShown) return
-        sweep = android.animation.ValueAnimator.ofFloat(0f, s.px(1800f).toFloat()).apply {
-            duration = 6500; repeatCount = android.animation.ValueAnimator.INFINITE; interpolator = android.view.animation.LinearInterpolator()
-            addUpdateListener { m.setTranslate(it.animatedValue as Float, 0f); shader?.setLocalMatrix(m); title.invalidate() }
-            start()
-        }
-    }
-
-    override fun onVisibilityChanged(v: View, vis: Int) { super.onVisibilityChanged(v, vis); if (vis == VISIBLE) restart() else sweep?.cancel() }
-    override fun onVisibilityAggregated(visible: Boolean) { super.onVisibilityAggregated(visible); if (visible) restart() else sweep?.cancel() }
-    override fun onDetachedFromWindow() { sweep?.cancel(); super.onDetachedFromWindow() }
 }

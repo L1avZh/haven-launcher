@@ -113,7 +113,7 @@ a pose from the side (see [day-night.md](day-night.md)).
 | Input | Beat |
 |---|---|
 | Focus moves to something | glance (head and chest turn toward its screen position), at most one per 90 ms |
-| A tab, category or screen changes | small chest lift and settle |
+| A shelf, category or screen changes | small chest lift and settle |
 | OK pressed | nod, widened eyes and a small lift of the free hand (key repeats never restart it) |
 | OK held | both hands lift, once per hold (a busy hand stays where it is) |
 | Back pressed | small step back and an open-hand dismissal with the left hand |
@@ -136,9 +136,9 @@ account or network request involved.
 
 ## Home states
 
-The home screen is always in one of: an app is focused, a scope tab is focused, the scope is empty, apps are loading, or nothing is selected.
-In every state except "an app is focused" the character glides to the middle of the screen in a waiting pose and a label names the active source
-("Browsing Favorites", "Browsing Recent" or "Browsing Library") with distinct copy for loading, an empty scope and ordinary no-selection.
+The home screen is always in one of: an app is focused, apps are loading, every shelf is empty, or nothing is selected yet.
+The character stays on the start side next to the shelves in every state; in all but "an app is focused" it holds its waiting pose. The hero area
+says "Getting your apps ready…" while loading and shows the empty-favorites hint when there is nothing at all.
 
 ## Motion, performance and lifecycle
 

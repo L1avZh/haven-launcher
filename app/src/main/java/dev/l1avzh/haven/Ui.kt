@@ -86,7 +86,7 @@ class IconLoader(private val pm: PackageManager) {
     private val accents = ConcurrentHashMap<String, Int>()
     /** Bumped when a package changes, so a decode that started before the change cannot put stale art back. */
     private val epochs = ConcurrentHashMap<String, Int>()
-    private val pool = ThreadPoolExecutor(1, 2, 10, TimeUnit.SECONDS, LinkedBlockingQueue<Runnable>(8), ThreadPoolExecutor.DiscardOldestPolicy())
+    private val pool = ThreadPoolExecutor(1, 2, 10, TimeUnit.SECONDS, LinkedBlockingQueue<Runnable>(64), ThreadPoolExecutor.DiscardOldestPolicy())
     private val main = Handler(Looper.getMainLooper())
     @Volatile private var closed = false
 
