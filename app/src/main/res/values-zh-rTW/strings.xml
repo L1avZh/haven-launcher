@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven 不是預設主畫面應用程式。按「確定」在系統中選擇它。</string>
     <string name="home_d_na">此裝置沒有主畫面應用程式選擇器。手動步驟請參閱安裝指南。</string>
     <string name="home_firmware">部分電視盒即使選擇了其他主畫面應用程式，仍會開啟自家的啟動器；Haven 無法改變這一點。</string>
+    <string name="sec_home">主畫面</string>
+    <string name="d_sec_home">外觀、小工具和螢幕保護程式</string>
+    <string name="sec_char">角色與氛圍</string>
+    <string name="d_sec_char">夥伴、白天與夜晚</string>
+    <string name="sec_remote">遙控器與主畫面應用程式</string>
+    <string name="d_sec_remote">按鍵與主畫面設定</string>
+    <string name="sec_system">系統</string>
+    <string name="d_sec_system">語言、時間與重設</string>
+    <string name="widgets_on_fmt">已開啟 %1$s 個</string>
     <plurals name="apps_count">
         <item quantity="other">%d 個應用程式</item>
     </plurals>

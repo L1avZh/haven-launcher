@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven ነባሪ የመነሻ መተግበሪያ አይደለም። በሲስተሙ ለመምረጥ OK ይጫኑ።</string>
     <string name="home_d_na">ይህ መሣሪያ የመነሻ መተግበሪያ መምረጫ የለውም። የእጅ ደረጃዎችን በመጫኛ መመሪያው ይመልከቱ።</string>
     <string name="home_firmware">አንዳንድ የቲቪ ሳጥኖች ሌላ መተግበሪያ ቢመረጥም የራሳቸውን ማስጀመሪያ ይከፍታሉ፤ Haven ይህን መቀየር አይችልም።</string>
+    <string name="sec_home">መነሻ ማያ</string>
+    <string name="d_sec_home">መልክ፣ ምግባሮች እና ማያ ማቆያ</string>
+    <string name="sec_char">ገጸ ባህሪ እና ድባብ</string>
+    <string name="d_sec_char">ጓደኛ፣ ቀን እና ሌሊት</string>
+    <string name="sec_remote">ሪሞት እና የመነሻ መተግበሪያ</string>
+    <string name="d_sec_remote">አዝራሮች እና የመነሻ ቅንብር</string>
+    <string name="sec_system">ስርዓት</string>
+    <string name="d_sec_system">ቋንቋ፣ ሰዓት እና ዳግም ማስጀመር</string>
+    <string name="widgets_on_fmt">%1$s በርተዋል</string>
     <plurals name="apps_count">
         <item quantity="one">%d መተግበሪያ</item>
         <item quantity="other">%d መተግበሪያዎች</item>

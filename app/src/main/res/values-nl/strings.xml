@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven is niet de standaard startapp. Druk op OK om hem in het systeem te kiezen.</string>
     <string name="home_d_na">Dit apparaat heeft geen keuze voor de startapp. Zie de installatiegids voor de handmatige stappen.</string>
     <string name="home_firmware">Sommige tv-boxen openen steeds hun eigen launcher, ook als een andere startapp is gekozen; Haven kan dat niet veranderen.</string>
+    <string name="sec_home">Startscherm</string>
+    <string name="d_sec_home">Uiterlijk, widgets en screensaver</string>
+    <string name="sec_char">Personage en sfeer</string>
+    <string name="d_sec_char">Metgezel, dag en nacht</string>
+    <string name="sec_remote">Afstandsbediening en Home-app</string>
+    <string name="d_sec_remote">Knoppen en Home-instelling</string>
+    <string name="sec_system">Systeem</string>
+    <string name="d_sec_system">Taal, tijd en resetten</string>
+    <string name="widgets_on_fmt">%1$s aan</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="other">%d apps</item>

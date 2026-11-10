@@ -260,6 +260,15 @@
     <string name="home_d_no">O Haven não é o aplicativo de início padrão. Pressione OK para escolhê-lo no sistema.</string>
     <string name="home_d_na">Este aparelho não tem seletor de aplicativo de início. Veja o guia de instalação para os passos manuais.</string>
     <string name="home_firmware">Algumas TV boxes continuam abrindo o próprio launcher mesmo com outro aplicativo de início; o Haven não pode mudar isso.</string>
+    <string name="sec_home">Ecrã principal</string>
+    <string name="d_sec_home">Aspeto, widgets e proteção de ecrã</string>
+    <string name="sec_char">Personagem e ambiente</string>
+    <string name="d_sec_char">Companheiro, dia e noite</string>
+    <string name="sec_remote">Comando e Home</string>
+    <string name="d_sec_remote">Botões e definição de Home</string>
+    <string name="sec_system">Sistema</string>
+    <string name="d_sec_system">Idioma, hora e repor</string>
+    <string name="widgets_on_fmt">%1$s ativos</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="many">%d de apps</item>

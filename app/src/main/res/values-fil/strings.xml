@@ -260,6 +260,15 @@
     <string name="home_d_no">Hindi ang Haven ang default na Home app. Pindutin ang OK para piliin ito sa system.</string>
     <string name="home_d_na">Walang pamili ng Home app ang device na ito. Tingnan ang gabay sa pag-install para sa mga manu-manong hakbang.</string>
     <string name="home_firmware">Ang ilang TV box ay patuloy na nagbubukas ng sarili nilang launcher kahit may ibang napiling app; hindi ito mababago ng Haven.</string>
+    <string name="sec_home">Home screen</string>
+    <string name="d_sec_home">Hitsura, mga widget at screensaver</string>
+    <string name="sec_char">Karakter at ambiance</string>
+    <string name="d_sec_char">Kasama, araw at gabi</string>
+    <string name="sec_remote">Remote at Home app</string>
+    <string name="d_sec_remote">Mga button at setting ng Home</string>
+    <string name="sec_system">System</string>
+    <string name="d_sec_system">Wika, oras at i-reset</string>
+    <string name="widgets_on_fmt">%1$s naka-on</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="other">%d na app</item>

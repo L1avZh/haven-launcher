@@ -39,6 +39,13 @@ class TapRow(override val title: String, val value: String, val taps: Int, val d
 /** The quiet Easter-egg entry: a faint mark with a hint. Three OK presses in a row reveal the signature. */
 class Secret(override val title: String, val onReveal: () -> Unit) : Item()
 
+/** A row that opens a subpage in the same panel; Back returns to it with the same row focused. */
+class Page(override val title: String, override val desc: String?, val value: (() -> String?)? = null, val items: () -> List<Item>) : Item()
+/** A long list of exclusive options (cities, hours): opens a list with the current value highlighted; picking one returns. */
+class Picker(override val title: String, override val desc: String?, val options: List<String>, val index: () -> Int, val set: (Int) -> Unit) : Item()
+/** One option inside a picker page. */
+class Option(override val title: String, val selected: Boolean, val pick: () -> Unit) : Item()
+
 class Category(val icon: Int, val title: String, val desc: String, val items: () -> List<Item>)
 
 /** Animated on/off switch. Accent-coloured track when on; the thumb slides in the layout direction. */
@@ -96,6 +103,11 @@ class SettingsScreen(
     private val rows = LinearLayout(act).apply { orientation = LinearLayout.VERTICAL }
     private val panelScroll = ScrollView(act)
     private var selected = startAt.coerceIn(0, cats.lastIndex)
+    /** Subpages opened above the section's own rows; [Frame.parentFocus] is the row to refocus when the page closes. */
+    private class Frame(val title: String, val desc: String?, val items: () -> List<Item>, val parentFocus: Int, val initialFocus: Int = 0)
+    private val stack = ArrayList<Frame>()
+    private var restoredFocus = -1
+    private var building = false
     private val rtl get() = layoutDirection == LAYOUT_DIRECTION_RTL
     private val rebuild = Runnable { buildPanel(animate = true) }
 
@@ -139,17 +151,35 @@ class SettingsScreen(
             addView(panelIcon, LinearLayout.LayoutParams(s.px(40), s.px(40)).apply { marginEnd = s.px(18) }); addView(panelTitle) })
         right.addView(panelDesc, LinearLayout.LayoutParams(-1, -2).apply { topMargin = s.px(6); bottomMargin = s.px(26) })
         panelScroll.apply { isVerticalScrollBarEnabled = false; overScrollMode = OVER_SCROLL_NEVER; clipChildren = false; addView(rows) }
-        right.addView(panelScroll, LinearLayout.LayoutParams(-1, 0, 1f))
+        right.addView(panelScroll, LinearLayout.LayoutParams(-1, 0, 1f).apply { topMargin = s.px(18) })
         root.addView(right, LinearLayout.LayoutParams(0, -1, 1f))
 
         buildPanel(animate = false)
         if (T.animated) { alpha = 0f; root.translationY = s.px(24f) }
     }
 
+    /** Where the user was, kept in memory across an activity re-creation: the rows that opened each subpage, then the focused row. */
+    class Saved(val section: Int, val path: List<Int>, val focus: Int)
+    companion object { var saved: Saved? = null }
+
+    fun saveForRecreate() {
+        val f = findFocus(); val idx = (0 until rows.childCount).firstOrNull { rows.getChildAt(it) === f } ?: 0
+        saved = Saved(selected, stack.map { it.parentFocus }, idx)
+    }
+
+    private fun restoreSaved() {
+        val sv = saved ?: return; saved = null
+        if (sv.section != selected) return
+        for (i in sv.path) { val it = currentItems().getOrNull(i); if (it is Page || it is Picker) open(it, i) else return }
+        restoredFocus = sv.focus
+        buildPanel(animate = false, focusIdx = sv.focus)
+    }
+
     fun show(parent: FrameLayout) {
+        restoreSaved()
         parent.addView(this, -1, -1)
         if (T.animated) { animate().alpha(1f).setDuration(T.d(T.MED)).start(); getChildAt(0).animate().translationY(0f).setDuration(T.d(T.MED + 40)).setInterpolator(T.OUT).start() }
-        post { catViews[selected].requestFocus() }
+        post { if (restoredFocus >= 0) rows.getChildAt(restoredFocus.coerceAtMost(rows.childCount - 1))?.requestFocus() ?: catViews[selected].requestFocus() else catViews[selected].requestFocus() }
     }
 
     fun close(done: () -> Unit) {
@@ -158,6 +188,7 @@ class SettingsScreen(
 
     /** Back: from the rows go to the categories; from the categories ask the owner to close. */
     fun back() {
+        if (stack.isNotEmpty()) { pop(); return }
         val f = findFocus()
         if (f != null && !catViews.contains(f) && !isInside(f, catViews)) catViews[selected].requestFocus() else onClose()
     }
@@ -167,9 +198,27 @@ class SettingsScreen(
     /** Rebuild the rows, keeping the same row focused (used after a setting changes what other rows show). */
     fun refresh() {
         val f = findFocus(); val idx = (0 until rows.childCount).firstOrNull { rows.getChildAt(it) === f }
-        buildPanel(animate = false)
-        idx?.let { rows.getChildAt(it.coerceAtMost(rows.childCount - 1))?.requestFocus() }
+        buildPanel(animate = false, focusIdx = idx ?: -1)
     }
+
+    private fun currentItems(): List<Item> = stack.lastOrNull()?.items?.invoke() ?: cats[selected].items()
+
+    private fun open(item: Item, fromRow: Int) {
+        when (item) {
+            is Page -> stack += Frame(item.title, item.desc, item.items, fromRow)
+            is Picker -> stack += Frame(item.title, item.desc, {
+                item.options.mapIndexed { i, o -> Option(o, i == item.index()) { item.set(i); pop() } }
+            }, fromRow, item.index())
+            else -> return
+        }
+    }
+
+    private fun pop() {
+        val fr = stack.removeLastOrNull() ?: return
+        buildPanel(animate = false, focusIdx = fr.parentFocus)
+    }
+
+    private fun push(item: Item, fromRow: Int) { open(item, fromRow); buildPanel(animate = true, focusIdx = stack.last().initialFocus) }
 
     private fun categoryCard(i: Int, c: Category): View {
         val iconBox = FrameLayout(act).apply { background = rounded(0x1AFFFFFF, s.px(26f)) }
@@ -195,7 +244,8 @@ class SettingsScreen(
         card.setOnFocusChangeListener { _, f ->
             bar.animate().alpha(if (f || selected == i) 1f else 0f).setDuration(T.d(T.FAST)).start()
             icon.setColorFilter(if (f || selected == i) T.TEXT else T.TEXT_DIM)
-            if (f) { selected = i; onSelect(i); main.removeCallbacks(rebuild); main.postDelayed(rebuild, 70) }
+            if (f && building) return@setOnFocusChangeListener   // removing the focused row makes Android refocus the first card; that is not a user choice
+            if (f) { val changed = selected != i; if (changed) stack.clear(); selected = i; onSelect(i); main.removeCallbacks(rebuild); if (changed) main.postDelayed(rebuild, 70) }   // same section: nothing to rebuild (and a rebuild would drop row focus)
             else bar.animate().alpha(if (selected == i && findFocus() != null && !catViews.contains(findFocus())) 1f else 0f).setDuration(T.d(T.FAST)).start()
         }
         card.setOnKeyListener { _, code, e ->
@@ -208,21 +258,27 @@ class SettingsScreen(
         return card
     }
 
-    private fun buildPanel(animate: Boolean) {
-        val c = cats[selected]
-        panelTitle.text = c.title; panelDesc.text = c.desc; panelIcon.setImageResource(c.icon)
+    private fun buildPanel(animate: Boolean, focusIdx: Int = -1) {
+        main.removeCallbacks(rebuild)
+        val c = cats[selected]; val fr = stack.lastOrNull()
+        panelTitle.text = fr?.title ?: c.title; panelIcon.setImageResource(c.icon)
+        val d = if (fr != null) fr.desc else c.desc
+        panelDesc.text = d.orEmpty(); panelDesc.visibility = if (d.isNullOrEmpty()) GONE else VISIBLE
         catViews.forEachIndexed { i, v -> v.isSelected = i == selected }
+        building = true
         rows.removeAllViews()
-        c.items().forEach { rows.addView(rowFor(it), LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = s.px(8) }) }
+        currentItems().forEachIndexed { i, it -> rows.addView(rowFor(it, i), LinearLayout.LayoutParams(-1, -2).apply { bottomMargin = s.px(8) }) }
         panelScroll.scrollTo(0, 0)
         if (animate && T.animated) {
             rows.animate().cancel()
             rows.alpha = 0f; rows.translationY = s.px(14f)
             rows.animate().alpha(1f).translationY(0f).setDuration(T.d(T.FOCUS + 40)).setInterpolator(T.OUT).start()
         } else { rows.alpha = 1f; rows.translationY = 0f }
+        building = false
+        if (focusIdx >= 0 && rows.childCount > 0) rows.getChildAt(focusIdx.coerceAtMost(rows.childCount - 1)).requestFocus()
     }
 
-    private fun rowFor(item: Item): View {
+    private fun rowFor(item: Item, index: Int): View {
         if (item is Secret) return secretRow(item)
         val bar = View(act).apply { background = rounded(T.ACCENT, s.px(3f)); alpha = 0f; importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO }
         val tt = TextView(act).apply { text = item.title; sizePx(s.px(T.BODY)); setTextColor(T.TEXT); textAlignment = TEXT_ALIGNMENT_VIEW_START }
@@ -275,6 +331,30 @@ class SettingsScreen(
                     }
                 }
             }
+            is Page, is Picker -> {
+                val shown = if (item is Page) item.value?.invoke() else (item as Picker).let { it.options.getOrNull(it.index()) }
+                shown?.let { row.addView(valueText(it).apply { setTextColor(T.TEXT) }) }
+                row.addView(TextView(act).apply { text = if (rtl) "‹" else "›"; sizePx(s.px(40f)); setTextColor(T.TEXT_DIM); setPaddingRelative(s.px(14), 0, 0, 0) })
+                row.setOnClickListener { push(item, index) }
+                row.accessibilityDelegate = object : AccessibilityDelegate() {
+                    override fun onInitializeAccessibilityNodeInfo(host: View, info: android.view.accessibility.AccessibilityNodeInfo) {
+                        super.onInitializeAccessibilityNodeInfo(host, info); info.className = "android.widget.Button"
+                    }
+                }
+            }
+            is Option -> {
+                if (item.selected) {
+                    tt.setTextColor(T.ACCENT)
+                    row.addView(TextView(act).apply { text = "✓"; sizePx(s.px(34f)); setTextColor(T.ACCENT) })
+                }
+                row.setOnClickListener { item.pick() }
+                row.accessibilityDelegate = object : AccessibilityDelegate() {
+                    override fun onInitializeAccessibilityNodeInfo(host: View, info: android.view.accessibility.AccessibilityNodeInfo) {
+                        super.onInitializeAccessibilityNodeInfo(host, info)
+                        info.className = "android.widget.RadioButton"; info.isCheckable = true; info.isChecked = item.selected
+                    }
+                }
+            }
             is Info -> item.value?.let { row.addView(valueText(it).apply { setTextColor(T.TEXT) }) }
             is TapRow -> {
                 val v = valueText(item.value).apply { setTextColor(T.TEXT) }; row.addView(v)
@@ -295,11 +375,11 @@ class SettingsScreen(
         }
         row.setOnFocusChangeListener { v, f ->
             bar.animate().alpha(if (f) 1f else 0f).setDuration(T.d(T.FAST)).start()
-            tt.setTextColor(if (f) Color.WHITE else T.TEXT)
+            tt.setTextColor(if (item is Option && item.selected) T.ACCENT else if (f) Color.WHITE else T.TEXT)
         }
         row.setOnKeyListener { _, code, e ->
             val out = if (rtl) KeyEvent.KEYCODE_DPAD_RIGHT else KeyEvent.KEYCODE_DPAD_LEFT   // toward the categories
-            if (e.action == KeyEvent.ACTION_DOWN && code == out) { catViews[selected].requestFocus(); true } else false
+            if (e.action == KeyEvent.ACTION_DOWN && code == out) { if (stack.isNotEmpty()) pop() else catViews[selected].requestFocus(); true } else false
         }
         return row
     }

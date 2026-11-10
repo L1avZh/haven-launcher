@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven nu este aplicația Acasă implicită. Apăsați OK pentru a o alege în sistem.</string>
     <string name="home_d_na">Acest dispozitiv nu are selector de aplicație Acasă. Vedeți ghidul de instalare pentru pașii manuali.</string>
     <string name="home_firmware">Unele TV box-uri își deschid în continuare propriul launcher chiar dacă e aleasă altă aplicație; Haven nu poate schimba asta.</string>
+    <string name="sec_home">Ecran principal</string>
+    <string name="d_sec_home">Aspect, widgeturi și economizor</string>
+    <string name="sec_char">Personaj și atmosferă</string>
+    <string name="d_sec_char">Companion, zi și noapte</string>
+    <string name="sec_remote">Telecomandă și aplicația Home</string>
+    <string name="d_sec_remote">Butoane și setarea Home</string>
+    <string name="sec_system">Sistem</string>
+    <string name="d_sec_system">Limbă, oră și resetare</string>
+    <string name="widgets_on_fmt">%1$s active</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplicație</item>
         <item quantity="few">%d aplicații</item>

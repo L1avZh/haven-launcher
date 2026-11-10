@@ -30,7 +30,7 @@ The port for `connect` is different from the pairing port and can change after a
 
 ## Making Haven the Home app
 
-**In Haven:** Settings > General > *Default Home app*. The row shows what Android reports and what pressing OK will do:
+**In Haven:** Settings > Remote & Home app > *Default Home app*. The row shows what Android reports and what pressing OK will do:
 
 | Row | Meaning | OK does |
 |---|---|---|
@@ -72,7 +72,7 @@ firmware's choice, and nothing inside Haven can change it.
 | `cmd package resolve-activity` for a Home intent | `com.google.android.apps.tv.launcherx/.home.HomeActivity` (the resolver disagrees with the role) |
 | Home key injected with `adb shell input keyevent KEYCODE_HOME` (this is a key delivered to Android, not the LG remote) | opened Google's launcher, not Haven |
 | Standby (`KEYCODE_SLEEP`) then wake | the box dropped off the network and woke into Google's launcher; the role was still held by Haven afterwards |
-| Settings > General > Default Home app | showed "Haven" with the firmware caveat |
+| Settings > Remote & Home app > Default Home app | showed "Haven" with the firmware caveat |
 | Real LG remote Home button, display off/on, reboot | **not tested** (no way to press the remote from here, and a reboot would drop wireless debugging) | To go back:
 
 ```bash

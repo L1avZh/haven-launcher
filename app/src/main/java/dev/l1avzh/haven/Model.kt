@@ -215,9 +215,10 @@ class Prefs(ctx: Context) {
         get() = sp.getBoolean("return_start_home", true)
         set(v) { sp.edit().putBoolean("return_start_home", v).apply() }
 
+    /** Last open Settings section (0..5). New key: the old "settings_cat" indexed the previous 11 categories and is simply ignored. */
     var settingsCategory: Int
-        get() = sp.getInt("settings_cat", 0)
-        set(v) { sp.edit().putInt("settings_cat", v).apply() }
+        get() = sp.getInt("settings_section", 0)
+        set(v) { sp.edit().putInt("settings_section", v).apply() }
 
     /** Back to first-run state. The launcher language is owned by the system and is left alone. */
     fun resetAll() { sp.edit().clear().apply() }

@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven не е началното приложение по подразбиране. Натиснете OK, за да го изберете в системата.</string>
     <string name="home_d_na">Това устройство няма избор на начално приложение. Ръчните стъпки са в ръководството за инсталиране.</string>
     <string name="home_firmware">Някои ТВ приставки продължават да отварят своя лаунчер, дори когато е избрано друго приложение; Haven не може да го промени.</string>
+    <string name="sec_home">Начален екран</string>
+    <string name="d_sec_home">Вид, джаджи и скрийнсейвър</string>
+    <string name="sec_char">Герой и атмосфера</string>
+    <string name="d_sec_char">Спътник, ден и нощ</string>
+    <string name="sec_remote">Дистанционно и начално приложение</string>
+    <string name="d_sec_remote">Бутони и настройка на началния екран</string>
+    <string name="sec_system">Система</string>
+    <string name="d_sec_system">Език, час и нулиране</string>
+    <string name="widgets_on_fmt">Включени: %1$s</string>
     <plurals name="apps_count">
         <item quantity="one">%d приложение</item>
         <item quantity="other">%d приложения</item>

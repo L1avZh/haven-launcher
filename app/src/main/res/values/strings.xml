@@ -261,6 +261,15 @@
     <string name="home_d_no">Haven is not the default Home app. Press OK to choose it in the system.</string>
     <string name="home_d_na">This device has no Home app chooser. See the installation guide for the manual steps.</string>
     <string name="home_firmware">Some TV boxes keep opening their own launcher even when another Home app is selected; Haven cannot change that.</string>
+    <string name="sec_home">Home screen</string>
+    <string name="d_sec_home">Look, widgets and screensaver</string>
+    <string name="sec_char">Character &amp; atmosphere</string>
+    <string name="d_sec_char">Companion, day and night</string>
+    <string name="sec_remote">Remote &amp; Home app</string>
+    <string name="d_sec_remote">Remote buttons and the Home setting</string>
+    <string name="sec_system">System</string>
+    <string name="d_sec_system">Language, time and reset</string>
+    <string name="widgets_on_fmt">%1$s on</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="other">%d apps</item>

@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven は既定のホームアプリではありません。OK を押してシステムで選択してください。</string>
     <string name="home_d_na">この端末にはホームアプリの選択画面がありません。手動の手順はインストールガイドをご覧ください。</string>
     <string name="home_firmware">別のホームアプリを選んでも、独自のランチャーを開き続けるテレビボックスがあります。Haven には変更できません。</string>
+    <string name="sec_home">ホーム画面</string>
+    <string name="d_sec_home">外観、ウィジェット、スクリーンセーバー</string>
+    <string name="sec_char">キャラクターと雰囲気</string>
+    <string name="d_sec_char">コンパニオン、昼と夜</string>
+    <string name="sec_remote">リモコンとホームアプリ</string>
+    <string name="d_sec_remote">ボタンとホームの設定</string>
+    <string name="sec_system">システム</string>
+    <string name="d_sec_system">言語、時刻、リセット</string>
+    <string name="widgets_on_fmt">%1$s 件オン</string>
     <plurals name="apps_count">
         <item quantity="other">%d 個のアプリ</item>
     </plurals>

@@ -260,6 +260,15 @@
     <string name="home_d_no">Nid Haven yw\'r ap Cartref diofyn. Pwyswch OK i\'w ddewis yn y system.</string>
     <string name="home_d_na">Does gan y ddyfais hon ddim dewisydd ap Cartref. Gweler y canllaw gosod am y camau â llaw.</string>
     <string name="home_firmware">Mae rhai blychau teledu\'n dal i agor eu lansiwr eu hunain hyd yn oed pan ddewisir ap arall; ni all Haven newid hynny.</string>
+    <string name="sec_home">Sgrin gartref</string>
+    <string name="d_sec_home">Golwg, teclynnau a chadw sgrin</string>
+    <string name="sec_char">Cymeriad ac awyrgylch</string>
+    <string name="d_sec_char">Cydymaith, dydd a nos</string>
+    <string name="sec_remote">Teclyn rheoli ac ap Cartref</string>
+    <string name="d_sec_remote">Botymau a gosodiad Cartref</string>
+    <string name="sec_system">System</string>
+    <string name="d_sec_system">Iaith, amser ac ailosod</string>
+    <string name="widgets_on_fmt">%1$s ymlaen</string>
     <plurals name="apps_count">
         <item quantity="zero">%d ap</item>
         <item quantity="one">%d ap</item>

@@ -14,7 +14,7 @@ The full list with direction and confidence tier is in [TRANSLATIONS.md](../TRAN
 ## How it works
 
 - Strings live in normal Android resources (`values-xx`). On Android 13 and newer the system owns the per-app language (it appears in system settings and `res/xml/locales_config.xml` lists the tags). On older versions Haven applies the saved language itself.
-- Settings > Language & region > Language lists every language by its own name, plus System default. Changing it recreates the screen and reopens Settings.
+- Settings > System > Language & region > Language lists every language by its own name, plus System default. Changing it recreates the screen and reopens Settings.
 - Plurals use the correct categories per language. Dates use the locale's own pattern.
 - Uppercase and letter spacing are only applied to Latin, Cyrillic and Greek text; letter spacing would break joined Arabic and Indic scripts.
 - Right-to-left: the layout mirrors with start/end attributes. The row of tiles, the settings pages, focus movement and animations follow the layout direction. The Easter egg draws in fixed screen coordinates so it never mirrors.

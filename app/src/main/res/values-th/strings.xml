@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven ไม่ใช่แอปหน้าหลักเริ่มต้น กด OK เพื่อเลือกในระบบ</string>
     <string name="home_d_na">อุปกรณ์นี้ไม่มีตัวเลือกแอปหน้าหลัก ดูขั้นตอนแบบแมนนวลในคู่มือการติดตั้ง</string>
     <string name="home_firmware">ทีวีบ็อกซ์บางรุ่นยังเปิดตัวเรียกใช้ของตัวเองแม้เลือกแอปอื่นแล้ว Haven เปลี่ยนเรื่องนี้ไม่ได้</string>
+    <string name="sec_home">หน้าจอหลัก</string>
+    <string name="d_sec_home">รูปลักษณ์ วิดเจ็ต และภาพพักหน้าจอ</string>
+    <string name="sec_char">ตัวละครและบรรยากาศ</string>
+    <string name="d_sec_char">เพื่อนคู่ใจ กลางวันและกลางคืน</string>
+    <string name="sec_remote">รีโมตและแอปหน้าหลัก</string>
+    <string name="d_sec_remote">ปุ่มและการตั้งค่าหน้าหลัก</string>
+    <string name="sec_system">ระบบ</string>
+    <string name="d_sec_system">ภาษา เวลา และรีเซ็ต</string>
+    <string name="widgets_on_fmt">เปิดอยู่ %1$s</string>
     <plurals name="apps_count">
         <item quantity="other">%d แอป</item>
     </plurals>

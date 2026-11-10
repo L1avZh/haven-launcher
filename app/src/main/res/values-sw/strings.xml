@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven si programu chaguomsingi ya Mwanzo. Bonyeza OK ili kuichagua kwenye mfumo.</string>
     <string name="home_d_na">Kifaa hiki hakina kichaguzi cha programu ya Mwanzo. Tazama mwongozo wa usakinishaji kwa hatua za mikono.</string>
     <string name="home_firmware">Baadhi ya visanduku vya TV huendelea kufungua kizindua chao hata programu nyingine ikichaguliwa; Haven haiwezi kubadilisha hilo.</string>
+    <string name="sec_home">Skrini ya kwanza</string>
+    <string name="d_sec_home">Mwonekano, wijeti na kiokoa skrini</string>
+    <string name="sec_char">Mhusika na mazingira</string>
+    <string name="d_sec_char">Mwenzi, mchana na usiku</string>
+    <string name="sec_remote">Rimoti na programu ya Mwanzo</string>
+    <string name="d_sec_remote">Vitufe na mpangilio wa Mwanzo</string>
+    <string name="sec_system">Mfumo</string>
+    <string name="d_sec_system">Lugha, saa na kuweka upya</string>
+    <string name="widgets_on_fmt">%1$s zimewashwa</string>
     <plurals name="apps_count">
         <item quantity="one">Programu %d</item>
         <item quantity="other">Programu %d</item>

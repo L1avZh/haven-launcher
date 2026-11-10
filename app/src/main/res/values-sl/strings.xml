@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven ni privzeta domača aplikacija. Pritisnite OK, da ga izberete v sistemu.</string>
     <string name="home_d_na">Ta naprava nima izbire domače aplikacije. Ročni koraki so v navodilih za namestitev.</string>
     <string name="home_firmware">Nekatere televizijske škatle še vedno odprejo svoj zaganjalnik, tudi če je izbrana druga aplikacija; Haven tega ne more spremeniti.</string>
+    <string name="sec_home">Domači zaslon</string>
+    <string name="d_sec_home">Videz, pripomočki in ohranjevalnik</string>
+    <string name="sec_char">Lik in vzdušje</string>
+    <string name="d_sec_char">Spremljevalec, dan in noč</string>
+    <string name="sec_remote">Daljinec in domača aplikacija</string>
+    <string name="d_sec_remote">Gumbi in nastavitev domačega zaslona</string>
+    <string name="sec_system">Sistem</string>
+    <string name="d_sec_system">Jezik, čas in ponastavitev</string>
+    <string name="widgets_on_fmt">Vklopljeno: %1$s</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplikacija</item>
         <item quantity="two">%d aplikaciji</item>

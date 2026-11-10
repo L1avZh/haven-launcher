@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven no és l\'aplicació d\'inici predeterminada. Premeu OK per triar-la al sistema.</string>
     <string name="home_d_na">Aquest dispositiu no té selector d\'aplicació d\'inici. Consulteu la guia d\'instal·lació per als passos manuals.</string>
     <string name="home_firmware">Algunes caixes de TV continuen obrint el seu propi launcher encara que s\'esculli una altra aplicació; Haven no ho pot canviar.</string>
+    <string name="sec_home">Pantalla d\'inici</string>
+    <string name="d_sec_home">Aspecte, ginys i estalvi de pantalla</string>
+    <string name="sec_char">Personatge i ambient</string>
+    <string name="d_sec_char">Company, dia i nit</string>
+    <string name="sec_remote">Comandament i inici</string>
+    <string name="d_sec_remote">Botons i ajust d\'inici</string>
+    <string name="sec_system">Sistema</string>
+    <string name="d_sec_system">Idioma, hora i restabliment</string>
+    <string name="widgets_on_fmt">%1$s actius</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplicació</item>
         <item quantity="many">%d d’aplicacions</item>

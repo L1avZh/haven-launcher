@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven is nie die verstek-tuisprogram nie. Druk OK om dit in die stelsel te kies.</string>
     <string name="home_d_na">Hierdie toestel het nie \'n keuse vir tuisprogram nie. Sien die installasiegids vir die handmatige stappe.</string>
     <string name="home_firmware">Sommige TV-bokse maak steeds hul eie launcher oop selfs wanneer \'n ander program gekies is; Haven kan dit nie verander nie.</string>
+    <string name="sec_home">Tuisskerm</string>
+    <string name="d_sec_home">Voorkoms, legstukke en skermsparer</string>
+    <string name="sec_char">Karakter en atmosfeer</string>
+    <string name="d_sec_char">Metgesel, dag en nag</string>
+    <string name="sec_remote">Afstandbeheer en Tuis-toep</string>
+    <string name="d_sec_remote">Knoppies en Tuis-instelling</string>
+    <string name="sec_system">Stelsel</string>
+    <string name="d_sec_system">Taal, tyd en herstel</string>
+    <string name="widgets_on_fmt">%1$s aan</string>
     <plurals name="apps_count">
         <item quantity="one">%d toepassing</item>
         <item quantity="other">%d toepassings</item>

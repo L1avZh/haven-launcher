@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven ليس تطبيق الشاشة الرئيسية الافتراضي. اضغط OK لاختياره في النظام.</string>
     <string name="home_d_na">لا يوفّر هذا الجهاز أداة اختيار تطبيق الشاشة الرئيسية. راجع دليل التثبيت للخطوات اليدوية.</string>
     <string name="home_firmware">تواصل بعض أجهزة التلفاز فتح مشغّلها الخاص حتى عند اختيار تطبيق آخر؛ لا يستطيع Haven تغيير ذلك.</string>
+    <string name="sec_home">الشاشة الرئيسية</string>
+    <string name="d_sec_home">المظهر والأدوات وشاشة التوقف</string>
+    <string name="sec_char">الشخصية والأجواء</string>
+    <string name="d_sec_char">الرفيق والنهار والليل</string>
+    <string name="sec_remote">جهاز التحكم وتطبيق الرئيسية</string>
+    <string name="d_sec_remote">الأزرار وإعداد الرئيسية</string>
+    <string name="sec_system">النظام</string>
+    <string name="d_sec_system">اللغة والوقت وإعادة الضبط</string>
+    <string name="widgets_on_fmt">%1$s قيد التشغيل</string>
     <plurals name="apps_count">
         <item quantity="zero">لا تطبيقات</item>
         <item quantity="one">تطبيق واحد</item>

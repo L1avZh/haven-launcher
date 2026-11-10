@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven bukan aplikasi Beranda default. Tekan OK untuk memilihnya di sistem.</string>
     <string name="home_d_na">Perangkat ini tidak memiliki pemilih aplikasi Beranda. Lihat panduan instalasi untuk langkah manual.</string>
     <string name="home_firmware">Beberapa TV box tetap membuka launcher sendiri meski aplikasi lain dipilih; Haven tidak dapat mengubahnya.</string>
+    <string name="sec_home">Layar utama</string>
+    <string name="d_sec_home">Tampilan, widget, dan screensaver</string>
+    <string name="sec_char">Karakter &amp; suasana</string>
+    <string name="d_sec_char">Pendamping, siang dan malam</string>
+    <string name="sec_remote">Remote &amp; aplikasi Home</string>
+    <string name="d_sec_remote">Tombol dan pengaturan Home</string>
+    <string name="sec_system">Sistem</string>
+    <string name="d_sec_system">Bahasa, waktu, dan reset</string>
+    <string name="widgets_on_fmt">%1$s aktif</string>
     <plurals name="apps_count">
         <item quantity="other">%d aplikasi</item>
     </plurals>

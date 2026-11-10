@@ -260,6 +260,15 @@
     <string name="home_d_no">Το Haven δεν είναι η προεπιλεγμένη εφαρμογή αρχικής οθόνης. Πατήστε OK για να το επιλέξετε στο σύστημα.</string>
     <string name="home_d_na">Αυτή η συσκευή δεν έχει επιλογέα εφαρμογής αρχικής οθόνης. Δείτε τον οδηγό εγκατάστασης για τα χειροκίνητα βήματα.</string>
     <string name="home_firmware">Ορισμένα TV box ανοίγουν πάντα το δικό τους launcher ακόμη κι αν επιλεγεί άλλη εφαρμογή· το Haven δεν μπορεί να το αλλάξει.</string>
+    <string name="sec_home">Αρχική οθόνη</string>
+    <string name="d_sec_home">Εμφάνιση, widgets και προφύλαξη οθόνης</string>
+    <string name="sec_char">Χαρακτήρας και ατμόσφαιρα</string>
+    <string name="d_sec_char">Σύντροφος, μέρα και νύχτα</string>
+    <string name="sec_remote">Τηλεχειριστήριο και αρχική</string>
+    <string name="d_sec_remote">Κουμπιά και ρύθμιση αρχικής</string>
+    <string name="sec_system">Σύστημα</string>
+    <string name="d_sec_system">Γλώσσα, ώρα και επαναφορά</string>
+    <string name="widgets_on_fmt">%1$s ενεργά</string>
     <plurals name="apps_count">
         <item quantity="one">%d εφαρμογή</item>
         <item quantity="other">%d εφαρμογές</item>

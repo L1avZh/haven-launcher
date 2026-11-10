@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven ei ole oletuskotisovellus. Valitse se järjestelmässä painamalla OK.</string>
     <string name="home_d_na">Tässä laitteessa ei ole kotisovelluksen valintaa. Katso käsin tehtävät vaiheet asennusoppaasta.</string>
     <string name="home_firmware">Jotkin TV-boksit avaavat edelleen oman käynnistimensä, vaikka toinen kotisovellus olisi valittu; Haven ei voi muuttaa sitä.</string>
+    <string name="sec_home">Aloitusnäyttö</string>
+    <string name="d_sec_home">Ulkoasu, widgetit ja näytönsäästäjä</string>
+    <string name="sec_char">Hahmo ja tunnelma</string>
+    <string name="d_sec_char">Kumppani, päivä ja yö</string>
+    <string name="sec_remote">Kaukosäädin ja kotisovellus</string>
+    <string name="d_sec_remote">Painikkeet ja kotiasetus</string>
+    <string name="sec_system">Järjestelmä</string>
+    <string name="d_sec_system">Kieli, aika ja nollaus</string>
+    <string name="widgets_on_fmt">%1$s käytössä</string>
     <plurals name="apps_count">
         <item quantity="one">%d sovellus</item>
         <item quantity="other">%d sovellusta</item>

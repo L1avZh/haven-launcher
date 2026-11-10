@@ -260,6 +260,15 @@
     <string name="home_d_no">Níl Haven ar an aip Baile réamhshocraithe. Brúigh OK chun é a roghnú sa chóras.</string>
     <string name="home_d_na">Níl roghnóir aip Baile ar an ngléas seo. Féach an treoir suiteála le haghaidh céimeanna láimhe.</string>
     <string name="home_firmware">Osclaíonn roinnt boscaí teilifíse a lainseálaí féin fós fiú nuair a roghnaítear aip eile; ní féidir le Haven é sin a athrú.</string>
+    <string name="sec_home">Scáileán baile</string>
+    <string name="d_sec_home">Cuma, giuirléidí agus spárálaí scáileáin</string>
+    <string name="sec_char">Carachtar agus atmaisféar</string>
+    <string name="d_sec_char">Compánach, lá agus oíche</string>
+    <string name="sec_remote">Iargúlta agus aip Baile</string>
+    <string name="d_sec_remote">Cnaipí agus socrú an Bhaile</string>
+    <string name="sec_system">Córas</string>
+    <string name="d_sec_system">Teanga, am agus athshocrú</string>
+    <string name="widgets_on_fmt">%1$s ar siúl</string>
     <plurals name="apps_count">
         <item quantity="one">%d aip</item>
         <item quantity="two">%d aip</item>

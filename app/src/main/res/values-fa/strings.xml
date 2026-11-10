@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven برنامه صفحه اصلی پیش‌فرض نیست. برای انتخاب آن در سیستم OK را بزنید.</string>
     <string name="home_d_na">این دستگاه انتخاب‌گر برنامه صفحه اصلی ندارد. مراحل دستی را در راهنمای نصب ببینید.</string>
     <string name="home_firmware">برخی جعبه‌های تلویزیون حتی با انتخاب برنامه دیگر، لانچر خودشان را باز می‌کنند؛ Haven نمی‌تواند این را تغییر دهد.</string>
+    <string name="sec_home">صفحه اصلی</string>
+    <string name="d_sec_home">ظاهر، ابزارک‌ها و محافظ صفحه</string>
+    <string name="sec_char">شخصیت و فضا</string>
+    <string name="d_sec_char">همراه، روز و شب</string>
+    <string name="sec_remote">کنترل و برنامه خانه</string>
+    <string name="d_sec_remote">دکمه‌ها و تنظیم خانه</string>
+    <string name="sec_system">سیستم</string>
+    <string name="d_sec_system">زبان، ساعت و بازنشانی</string>
+    <string name="widgets_on_fmt">%1$s روشن</string>
     <plurals name="apps_count">
         <item quantity="one">%d برنامه</item>
         <item quantity="other">%d برنامه</item>

@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven није подразумевана почетна апликација. Притисните OK да га изаберете у систему.</string>
     <string name="home_d_na">Овај уређај нема избор почетне апликације. Ручни кораци су у водичу за инсталацију.</string>
     <string name="home_firmware">Неки ТВ уређаји и даље отварају сопствени лаунчер чак и када је изабрана друга апликација; Haven то не може да промени.</string>
+    <string name="sec_home">Početni ekran</string>
+    <string name="d_sec_home">Izgled, vidžeti i čuvar ekrana</string>
+    <string name="sec_char">Lik i atmosfera</string>
+    <string name="d_sec_char">Pratilac, dan i noć</string>
+    <string name="sec_remote">Daljinski i početna aplikacija</string>
+    <string name="d_sec_remote">Tasteri i podešavanje početnog ekrana</string>
+    <string name="sec_system">Sistem</string>
+    <string name="d_sec_system">Jezik, vreme i resetovanje</string>
+    <string name="widgets_on_fmt">Uključeno: %1$s</string>
     <plurals name="apps_count">
         <item quantity="one">%d апликација</item>
         <item quantity="few">%d апликације</item>

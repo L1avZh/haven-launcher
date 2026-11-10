@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven nije zadana početna aplikacija. Pritisnite OK da ga odaberete u sustavu.</string>
     <string name="home_d_na">Ovaj uređaj nema odabir početne aplikacije. Ručni koraci su u vodiču za instalaciju.</string>
     <string name="home_firmware">Neki TV uređaji i dalje otvaraju vlastiti launcher čak i kad je odabrana druga aplikacija; Haven to ne može promijeniti.</string>
+    <string name="sec_home">Početni zaslon</string>
+    <string name="d_sec_home">Izgled, widgeti i čuvar zaslona</string>
+    <string name="sec_char">Lik i atmosfera</string>
+    <string name="d_sec_char">Pratitelj, dan i noć</string>
+    <string name="sec_remote">Daljinski i početna aplikacija</string>
+    <string name="d_sec_remote">Tipke i postavka početnog zaslona</string>
+    <string name="sec_system">Sustav</string>
+    <string name="d_sec_system">Jezik, vrijeme i poništavanje</string>
+    <string name="widgets_on_fmt">Uključeno: %1$s</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplikacija</item>
         <item quantity="few">%d aplikacije</item>

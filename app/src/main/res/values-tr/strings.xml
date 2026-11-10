@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven varsayılan Ana ekran uygulaması değil. Sistemde seçmek için Tamam\'a basın.</string>
     <string name="home_d_na">Bu cihazda Ana ekran uygulaması seçici yok. Elle yapılacak adımlar için kurulum kılavuzuna bakın.</string>
     <string name="home_firmware">Bazı TV kutuları başka bir Ana ekran uygulaması seçilse bile kendi başlatıcısını açar; Haven bunu değiştiremez.</string>
+    <string name="sec_home">Ana ekran</string>
+    <string name="d_sec_home">Görünüm, widget\'lar ve ekran koruyucu</string>
+    <string name="sec_char">Karakter ve atmosfer</string>
+    <string name="d_sec_char">Yoldaş, gündüz ve gece</string>
+    <string name="sec_remote">Kumanda ve Ana ekran uygulaması</string>
+    <string name="d_sec_remote">Düğmeler ve Ana ekran ayarı</string>
+    <string name="sec_system">Sistem</string>
+    <string name="d_sec_system">Dil, saat ve sıfırlama</string>
+    <string name="widgets_on_fmt">%1$s açık</string>
     <plurals name="apps_count">
         <item quantity="one">%d uygulama</item>
         <item quantity="other">%d uygulama</item>

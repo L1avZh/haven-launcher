@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven není výchozí domovská aplikace. Stiskněte OK a vyberte ji v systému.</string>
     <string name="home_d_na">Toto zařízení nemá výběr domovské aplikace. Ruční kroky najdete v instalační příručce.</string>
     <string name="home_firmware">Některé TV boxy stále otevírají vlastní launcher, i když je vybrána jiná aplikace; Haven to nemůže změnit.</string>
+    <string name="sec_home">Domovská obrazovka</string>
+    <string name="d_sec_home">Vzhled, widgety a spořič</string>
+    <string name="sec_char">Postava a atmosféra</string>
+    <string name="d_sec_char">Společník, den a noc</string>
+    <string name="sec_remote">Ovladač a domovská aplikace</string>
+    <string name="d_sec_remote">Tlačítka a nastavení domovské obrazovky</string>
+    <string name="sec_system">Systém</string>
+    <string name="d_sec_system">Jazyk, čas a obnovení</string>
+    <string name="widgets_on_fmt">Zapnuto: %1$s</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplikace</item>
         <item quantity="few">%d aplikace</item>

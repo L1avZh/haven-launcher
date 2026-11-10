@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven 不是默认主屏幕应用。按“确定”在系统中选择它。</string>
     <string name="home_d_na">此设备没有主屏幕应用选择器。手动步骤请参阅安装指南。</string>
     <string name="home_firmware">部分电视盒子即使选择了其他主屏幕应用，仍会打开自带的启动器；Haven 无法改变这一点。</string>
+    <string name="sec_home">主屏幕</string>
+    <string name="d_sec_home">外观、小组件和屏保</string>
+    <string name="sec_char">角色与氛围</string>
+    <string name="d_sec_char">伙伴、白天与夜晚</string>
+    <string name="sec_remote">遥控器与主屏幕应用</string>
+    <string name="d_sec_remote">按键与主屏幕设置</string>
+    <string name="sec_system">系统</string>
+    <string name="d_sec_system">语言、时间和重置</string>
+    <string name="widgets_on_fmt">已开启 %1$s 个</string>
     <plurals name="apps_count">
         <item quantity="other">%d 个应用</item>
     </plurals>

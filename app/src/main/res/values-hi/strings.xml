@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven डिफ़ॉल्ट होम ऐप नहीं है। सिस्टम में चुनने के लिए OK दबाएँ।</string>
     <string name="home_d_na">इस डिवाइस में होम ऐप चुनने की सुविधा नहीं है। मैन्युअल चरणों के लिए इंस्टॉलेशन गाइड देखें।</string>
     <string name="home_firmware">कुछ टीवी बॉक्स दूसरा होम ऐप चुनने पर भी अपना लॉन्चर खोलते हैं; Haven इसे बदल नहीं सकता।</string>
+    <string name="sec_home">होम स्क्रीन</string>
+    <string name="d_sec_home">रूप, विजेट और स्क्रीनसेवर</string>
+    <string name="sec_char">किरदार और माहौल</string>
+    <string name="d_sec_char">साथी, दिन और रात</string>
+    <string name="sec_remote">रिमोट और होम ऐप</string>
+    <string name="d_sec_remote">बटन और होम सेटिंग</string>
+    <string name="sec_system">सिस्टम</string>
+    <string name="d_sec_system">भाषा, समय और रीसेट</string>
+    <string name="widgets_on_fmt">%1$s चालू</string>
     <plurals name="apps_count">
         <item quantity="one">%d ऐप</item>
         <item quantity="other">%d ऐप</item>

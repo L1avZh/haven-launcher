@@ -27,7 +27,7 @@ Requires Android 8.0 or newer and a D-pad remote. I have tested it on one device
 
 ## More
 
-[Building](docs/building.md) · [Architecture](docs/architecture.md) · [Characters and scene](docs/character.md) · [Day, night and weather](docs/day-night.md) · [Remote control](docs/remote-control.md) · [Known limitations](docs/limitations.md) · [Localization](docs/localization.md) · [Asset pipeline](docs/assets/README.md) · [Changelog](CHANGELOG.md)
+[Building](docs/building.md) · [Architecture](docs/architecture.md) · [Characters and scene](docs/character.md) · [Day, night and weather](docs/day-night.md) · [Settings](docs/settings.md) · [Remote control](docs/remote-control.md) · [Known limitations](docs/limitations.md) · [Localization](docs/localization.md) · [Asset pipeline](docs/assets/README.md) · [Changelog](CHANGELOG.md)
 
 ## License and credits
 

@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven er ekki sjálfgefið heimaforrit. Ýttu á OK til að velja það í kerfinu.</string>
     <string name="home_d_na">Þetta tæki er ekki með val á heimaforriti. Sjá uppsetningarleiðbeiningar fyrir handvirk skref.</string>
     <string name="home_firmware">Sumir sjónvarpskassar opna áfram eigin ræsiforrit þótt annað heimaforrit sé valið; Haven getur ekki breytt því.</string>
+    <string name="sec_home">Heimaskjár</string>
+    <string name="d_sec_home">Útlit, græjur og skjáhvíla</string>
+    <string name="sec_char">Persóna og andrúmsloft</string>
+    <string name="d_sec_char">Förunautur, dagur og nótt</string>
+    <string name="sec_remote">Fjarstýring og heimaforrit</string>
+    <string name="d_sec_remote">Hnappar og stilling heimaforrits</string>
+    <string name="sec_system">Kerfi</string>
+    <string name="d_sec_system">Tungumál, tími og endurstilling</string>
+    <string name="widgets_on_fmt">%1$s í gangi</string>
     <plurals name="apps_count">
         <item quantity="one">%d forrit</item>
         <item quantity="other">%d forrit</item>

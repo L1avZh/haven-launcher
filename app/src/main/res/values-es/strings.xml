@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven no es la aplicación de inicio predeterminada. Pulsa OK para elegirla en el sistema.</string>
     <string name="home_d_na">Este dispositivo no tiene selector de aplicación de inicio. Consulta la guía de instalación para los pasos manuales.</string>
     <string name="home_firmware">Algunas cajas de TV siguen abriendo su propio launcher aunque se elija otra aplicación de inicio; Haven no puede cambiarlo.</string>
+    <string name="sec_home">Pantalla de inicio</string>
+    <string name="d_sec_home">Aspecto, widgets y salvapantallas</string>
+    <string name="sec_char">Personaje y ambiente</string>
+    <string name="d_sec_char">Compañero, día y noche</string>
+    <string name="sec_remote">Mando e inicio</string>
+    <string name="d_sec_remote">Botones y ajuste de inicio</string>
+    <string name="sec_system">Sistema</string>
+    <string name="d_sec_system">Idioma, hora y restablecer</string>
+    <string name="widgets_on_fmt">%1$s activos</string>
     <plurals name="apps_count">
         <item quantity="one">%d app</item>
         <item quantity="many">%d de apps</item>

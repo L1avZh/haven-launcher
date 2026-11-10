@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven nie jest domyślną aplikacją startową. Naciśnij OK, aby wybrać go w systemie.</string>
     <string name="home_d_na">To urządzenie nie ma wyboru aplikacji startowej. Kroki ręczne są w przewodniku instalacji.</string>
     <string name="home_firmware">Niektóre dekodery TV nadal otwierają własny launcher, nawet gdy wybrano inną aplikację; Haven nie może tego zmienić.</string>
+    <string name="sec_home">Ekran główny</string>
+    <string name="d_sec_home">Wygląd, widżety i wygaszacz</string>
+    <string name="sec_char">Postać i atmosfera</string>
+    <string name="d_sec_char">Towarzysz, dzień i noc</string>
+    <string name="sec_remote">Pilot i aplikacja startowa</string>
+    <string name="d_sec_remote">Przyciski i ustawienie ekranu głównego</string>
+    <string name="sec_system">System</string>
+    <string name="d_sec_system">Język, czas i reset</string>
+    <string name="widgets_on_fmt">Włączone: %1$s</string>
     <plurals name="apps_count">
         <item quantity="one">%d aplikacja</item>
         <item quantity="few">%d aplikacje</item>

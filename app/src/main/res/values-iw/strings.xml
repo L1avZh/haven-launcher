@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven אינו אפליקציית הבית. לחץ OK כדי לבחור בו במערכת.</string>
     <string name="home_d_na">במכשיר זה אין בורר לאפליקציית הבית. ראה את מדריך ההתקנה לשלבים ידניים.</string>
     <string name="home_firmware">חלק ממתאמי הטלוויזיה ממשיכים לפתוח את המשגר שלהם גם כשנבחרה אפליקציית בית אחרת; Haven לא יכול לשנות זאת.</string>
+    <string name="sec_home">מסך הבית</string>
+    <string name="d_sec_home">מראה, ווידג\'טים ושומר מסך</string>
+    <string name="sec_char">דמות ואווירה</string>
+    <string name="d_sec_char">בן לוויה, יום ולילה</string>
+    <string name="sec_remote">שלט ואפליקציית בית</string>
+    <string name="d_sec_remote">כפתורי השלט והגדרת הבית</string>
+    <string name="sec_system">מערכת</string>
+    <string name="d_sec_system">שפה, שעה ואיפוס</string>
+    <string name="widgets_on_fmt">%1$s פעילים</string>
     <plurals name="apps_count">
         <item quantity="one">אפליקציה אחת</item>
         <item quantity="two">שתי אפליקציות</item>

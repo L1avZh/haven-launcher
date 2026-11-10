@@ -260,6 +260,15 @@
     <string name="home_d_no">I-Haven ayiyona i-app yasekhaya ezenzakalelayo. Cindezela i-OK ukuyikhetha esistimini.</string>
     <string name="home_d_na">Le divayisi ayinakho ukukhetha i-app yasekhaya. Bheka umhlahlandlela wokufaka ngezinyathelo zesandla.</string>
     <string name="home_firmware">Amanye amabhokisi e-TV asavula isiqalisi sawo ngisho nalapho kukhethwe enye i-app; i-Haven ayikwazi ukuguqula lokho.</string>
+    <string name="sec_home">Isikrini sasekhaya</string>
+    <string name="d_sec_home">Ukubukeka, amawijethi nesigcini sesikrini</string>
+    <string name="sec_char">Isiqephu nomkhathi</string>
+    <string name="d_sec_char">Umlingani, imini nobusuku</string>
+    <string name="sec_remote">Isilawuli kude nohlelo lokusebenza lweKhaya</string>
+    <string name="d_sec_remote">Izinkinobho nesilungiselelo seKhaya</string>
+    <string name="sec_system">Isistimu</string>
+    <string name="d_sec_system">Ulimi, isikhathi nokusetha kabusha</string>
+    <string name="widgets_on_fmt">%1$s ivuliwe</string>
     <plurals name="apps_count">
         <item quantity="one">Uhlelo lokusebenza olu-%d</item>
         <item quantity="other">Izinhlelo zokusebenza ezingu-%d</item>

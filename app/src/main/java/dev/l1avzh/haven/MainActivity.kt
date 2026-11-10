@@ -1045,39 +1045,79 @@ class MainActivity : Activity() {
         val agVersion = ag?.let { try { packageManager.getPackageInfo(it.pkg, 0).versionName } catch (_: Exception) { "" } }
         val appInfo = try { packageManager.getPackageInfo(packageName, 0) } catch (_: Exception) { null }
 
-        val general = Category(R.drawable.ic_cat_general, g(R.string.cat_general), g(R.string.d_general)) { listOf(
-            Toggle(g(R.string.return_start_home), g(R.string.return_start_home_d), { prefs.returnStartOnHome }, { prefs.returnStartOnHome = it }),
-            run { val st = HomeRole.status(this)      // read fresh on every rebuild, so returning from the system screen shows what Android now says
-                Action(g(R.string.home_status), g(when (st) { HomeStatus.HELD -> R.string.home_d_yes; HomeStatus.NOT_HELD -> R.string.home_d_no; HomeStatus.UNSUPPORTED -> R.string.home_d_na }),
-                    { g(when (st) { HomeStatus.HELD -> R.string.home_v_yes; HomeStatus.NOT_HELD -> R.string.home_v_no; HomeStatus.UNSUPPORTED -> R.string.home_v_na }) }) { chooseHome(st) } },
-            Action(g(R.string.reset_all), g(R.string.reset_all_d)) { confirmRestore() },
+        val reopen = { settings?.saveForRecreate(); prefs.reopenSettings = true; main.postDelayed({ recreate() }, T.d(T.MED)) }
+        fun onCount(csv: String) = getString(R.string.widgets_on_fmt, nf.format(Widgets.parse(csv).size))
+
+        // Weather city and units sit right under the weather widget's own switch, on both widget pages.
+        fun weatherRows(): List<Item> = listOf(
+            Picker(g(R.string.weather_city), g(R.string.weather_city_d), listOf(g(R.string.weather_unset)) + Weather.CITIES.map { it.name },
+                { prefs.weatherCity }, { prefs.weatherCity = it; Weather.selectionChanged(prefs); if (it > 0) { prefs.homeWidgets = Widgets.toggle(prefs.homeWidgets, "weather", true); applyWidgets() } }),
+            Choice(g(R.string.weather_unit), null, listOf(g(R.string.celsius), g(R.string.fahrenheit)), { prefs.weatherUnit }, { prefs.weatherUnit = it; WidgetStrip.refreshAll() }),
+        )
+        fun widgetRows(get: () -> String, put: (String) -> Unit, after: () -> Unit): List<Item> = Widgets.ALL.flatMap { d ->
+            listOf<Item>(Toggle(g(d.nameRes), null, { d.id in Widgets.parse(get()) }, { put(Widgets.toggle(get(), d.id, it)); after() })) + if (d.id == "weather") weatherRows() else emptyList()
+        }
+        val widgetsPage = Page(g(R.string.cat_widgets), null) { listOf(
+            Page(g(R.string.widgets_home), null, { onCount(prefs.homeWidgets) }) { widgetRows({ prefs.homeWidgets }, { prefs.homeWidgets = it }) { applyWidgets() } },
+            Page(g(R.string.widgets_saver), null, { onCount(prefs.saverWidgets) }) { widgetRows({ prefs.saverWidgets }, { prefs.saverWidgets = it }) { } },
         ) }
-        val appearance = Category(R.drawable.ic_cat_appearance, g(R.string.cat_appearance), g(R.string.d_appearance)) { listOf(
+
+        val home = Category(R.drawable.ic_cat_appearance, g(R.string.sec_home), g(R.string.d_sec_home)) { listOf(
             Choice(g(R.string.wallpaper), null, WALLPAPERS.map { getString(it.nameRes) }, { prefs.wallpaper }, { prefs.wallpaper = it; applyWallpaper() }),
-            Choice(g(R.string.accent_color), g(R.string.accent_color_d),
+            Choice(g(R.string.accent_color), null,
                 listOf(R.string.accent_auto, R.string.accent_blue, R.string.accent_green, R.string.accent_coral, R.string.accent_gold, R.string.accent_violet).map { getString(it) },
                 { prefs.accentMode }, { prefs.accentMode = it; refreshAccent() }, swatches = listOf(T.TEXT_DIM) + accentColors.toList()),
-            Choice(g(R.string.dimming), g(R.string.dimming_d), listOf(g(R.string.off), g(R.string.level_light), g(R.string.level_medium), g(R.string.level_strong)),
+            Choice(g(R.string.dimming), null, listOf(g(R.string.off), g(R.string.level_light), g(R.string.level_medium), g(R.string.level_strong)),
                 { prefs.dimming }, { prefs.dimming = it; dimView.setBackgroundColor(dimColor()) }),
-            Choice(g(R.string.card_size), g(R.string.card_size_d), listOf(g(R.string.size_small), g(R.string.size_medium), g(R.string.size_large)),
-                { prefs.cardSize }, { prefs.cardSize = it; prefs.reopenSettings = true; main.postDelayed({ recreate() }, T.d(T.MED)) }),
-            Choice(g(R.string.screensaver), g(R.string.screensaver_d), SAVER_MINUTES.map { if (it == 0) g(R.string.off) else getString(R.string.minutes_fmt, it) },
-                { prefs.saver }, { prefs.saver = it; armSaver() }),
-            Choice(g(R.string.daynight_mode), g(R.string.daynight_mode_d), listOf(g(R.string.dn_auto), g(R.string.dn_day), g(R.string.dn_night)),
-                { prefs.dayNightMode }, { prefs.dayNightMode = it; applyMood(true) }),
-            Choice(g(R.string.night_from), null, (0..23).map { "%02d:00".format(it) }, { prefs.nightFrom }, { prefs.nightFrom = it; applyMood(true) }),
-            Choice(g(R.string.night_to), null, (0..23).map { "%02d:00".format(it) }, { prefs.nightTo }, { prefs.nightTo = it; applyMood(true) }),
+            Choice(g(R.string.card_size), null, listOf(g(R.string.size_small), g(R.string.size_medium), g(R.string.size_large)),
+                { prefs.cardSize }, { prefs.cardSize = it; reopen() }),
             Toggle(g(R.string.clock), null, { prefs.showClock }, { prefs.showClock = it; clockCol.visibility = if (it) View.VISIBLE else View.INVISIBLE }),
+            widgetsPage,
+            Choice(g(R.string.screensaver), null, SAVER_MINUTES.map { if (it == 0) g(R.string.off) else getString(R.string.minutes_fmt, it) },
+                { prefs.saver }, { prefs.saver = it; armSaver() }),
+            Choice(g(R.string.animation), null, listOf(g(R.string.anim_full), g(R.string.anim_subtle), g(R.string.off)),
+                { 2 - prefs.animLevel }, { prefs.animLevel = 2 - it; T.init(this, prefs.animLevel, prefs.performance); syncCharacter() }),
+            Toggle(g(R.string.accent_glow), g(R.string.accent_glow_d), { prefs.glow }, { prefs.glow = it; applyGlow() }),
+            Toggle(g(R.string.performance), g(R.string.performance_d), { prefs.performance }, { prefs.performance = it; T.init(this, prefs.animLevel, it); syncCharacter(); applyGlow() }),
         ) }
+        val characterCat = Category(R.drawable.ic_character, g(R.string.sec_char), g(R.string.d_sec_char)) { buildList {
+            add(Toggle(g(R.string.show_character), g(R.string.show_character_d), { prefs.characterEnabled }, { prefs.characterEnabled = it; reopen() }))
+            add(Action(g(R.string.character_studio), null) { closeSettings(); main.postDelayed({ openStudio() }, T.d(T.FAST + 120)) })
+            add(Toggle(g(R.string.sleep_night), g(R.string.sleep_night_d), { prefs.sleepAtNight }, { prefs.sleepAtNight = it; applyMood(true) }))
+            add(Toggle(g(R.string.weather_reacts), g(R.string.weather_reacts_d), { prefs.weatherReactions }, { prefs.weatherReactions = it; applyMood(true) }))
+            add(Toggle(g(R.string.saver_char), null, { prefs.saverCharacter }, { prefs.saverCharacter = it }))
+            add(Choice(g(R.string.daynight_mode), g(R.string.daynight_mode_d), listOf(g(R.string.dn_auto), g(R.string.dn_day), g(R.string.dn_night)),
+                { prefs.dayNightMode }, { prefs.dayNightMode = it; applyMood(true); settings?.refresh() }))
+            // The schedule only matters in Automatic mode (and only when no fresh weather reading decides), so it is hidden otherwise.
+            if (prefs.dayNightMode == 0) {
+                val hours = (0..23).map { "%02d:00".format(it) }
+                add(Picker(g(R.string.night_from), null, hours, { prefs.nightFrom }, { prefs.nightFrom = it; applyMood(true) }))
+                add(Picker(g(R.string.night_to), null, hours, { prefs.nightTo }, { prefs.nightTo = it; applyMood(true) }))
+            }
+        } }
         val apps = Category(R.drawable.ic_cat_apps, g(R.string.cat_apps), g(R.string.d_apps)) { listOf(
             Action(g(R.string.manage_apps), null) { openManageApps() },
             Action(g(R.string.hidden_apps), null, { resources.getQuantityString(R.plurals.apps_count, hiddenCount, hiddenCount) }) { openHidden() },
             Toggle(g(R.string.show_system_apps), g(R.string.show_system_apps_d), { prefs.showSystemApps }, { prefs.showSystemApps = it; loadApps() }),
             Choice(g(R.string.sort_apps), null, listOf(g(R.string.sort_az), g(R.string.sort_new)), { prefs.sortMode }, { prefs.sortMode = it; loadApps() }),
-            Action(g(R.string.app_shortcuts), g(R.string.app_shortcuts_d)) { openMappings(0) },
             Action(g(R.string.refresh), null) { loadApps() },
+            Page("AdGuard", g(R.string.d_adguard), { if (ag != null) getString(R.string.ag_installed, agVersion) else g(R.string.not_installed) }) { listOf(
+                Info(g(R.string.ag_status), null, if (ag != null) getString(R.string.ag_installed, agVersion) else g(R.string.not_installed)),
+                if (ag != null) Action(g(R.string.ag_launch), null) { launch(ag) }
+                else Action(g(R.string.adguard_open_page), null) {
+                    try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(ADGUARD_PAGE)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                    catch (_: Exception) { Toast.makeText(this, getString(R.string.cant_open, "AdGuard"), Toast.LENGTH_LONG).show() }
+                },
+                Info(g(R.string.ag_compat), getString(R.string.ag_compat_d, android.os.Build.VERSION.RELEASE)),
+                Info(g(R.string.ag_verify), null),
+                Info(g(R.string.adguard_note), null),
+            ) },
         ) }
-        val remote = Category(R.drawable.ic_cat_remote, g(R.string.remote_control), g(R.string.d_remote)) { listOf(
+        val remote = Category(R.drawable.ic_cat_remote, g(R.string.sec_remote), g(R.string.d_sec_remote)) { listOf(
+            run { val st = HomeRole.status(this)      // read fresh on every rebuild, so returning from the system screen shows what Android now says
+                Action(g(R.string.home_status), g(when (st) { HomeStatus.HELD -> R.string.home_d_yes; HomeStatus.NOT_HELD -> R.string.home_d_no; HomeStatus.UNSUPPORTED -> R.string.home_d_na }),
+                    { g(when (st) { HomeStatus.HELD -> R.string.home_v_yes; HomeStatus.NOT_HELD -> R.string.home_v_no; HomeStatus.UNSUPPORTED -> R.string.home_v_na }) }) { chooseHome(st) } },
+            Toggle(g(R.string.return_start_home), g(R.string.return_start_home_d), { prefs.returnStartOnHome }, { prefs.returnStartOnHome = it }),
             Action(g(R.string.button_test), g(R.string.tester_note)) { startTester() },
             Action(g(R.string.custom_mappings), null, { onOff(prefs.mappingsEnabled) }) { openMappings(0) },
             Toggle(g(R.string.numbers_open_favs), g(R.string.numbers_open_favs_d), { prefs.numbersOpenFavs }, { prefs.numbersOpenFavs = it }),
@@ -1085,49 +1125,22 @@ class MainActivity : Activity() {
             Action(g(R.string.input_devices), null, { nf.format(listInputDevices().size) }) { openDevices() },
             Info(g(R.string.floating_home), g(R.string.floating_home_d)),
         ) }
-        val language = Category(R.drawable.ic_cat_language, g(R.string.cat_language), g(R.string.d_language)) { listOf(
-            Action(g(R.string.language), null, { currentLanguageName() }) { openLanguage() },
-            Choice(g(R.string.time_format), null, listOf(g(R.string.system_default), g(R.string.time_12), g(R.string.time_24)), { prefs.timeFormat }, { prefs.timeFormat = it; applyTimeFormat(timeClock) }),
-            Info(g(R.string.text_direction), null, g(if (Lang.isRtl(this)) R.string.dir_rtl else R.string.dir_ltr)),
-            Info(g(R.string.languages_available), null, nf.format(LANGUAGES.size + 0)),
+        val system = Category(R.drawable.ic_cat_general, g(R.string.sec_system), g(R.string.d_sec_system)) { listOf(
+            Page(g(R.string.cat_language), null, { currentLanguageName() }) { listOf(
+                Action(g(R.string.language), null, { currentLanguageName() }) { openLanguage() },
+                Choice(g(R.string.time_format), null, listOf(g(R.string.system_default), g(R.string.time_12), g(R.string.time_24)), { prefs.timeFormat }, { prefs.timeFormat = it; applyTimeFormat(timeClock) }),
+                Info(g(R.string.text_direction), null, g(if (Lang.isRtl(this)) R.string.dir_rtl else R.string.dir_ltr)),
+                Info(g(R.string.languages_available), null, nf.format(LANGUAGES.size + 0)),
+            ) },
+            Page(g(R.string.cat_privacy), g(R.string.d_privacy)) { listOf(
+                Info(g(R.string.priv_stored), getString(R.string.priv_counts, nf.format(prefs.favorites.size), nf.format(prefs.hidden.size), nf.format(prefs.bindings.size))),
+                Info(g(R.string.priv_network), null, if (prefs.weatherCity > 0) g(R.string.priv_net_weather) else g(R.string.none)),
+                Info(g(R.string.priv_permissions), null, g(R.string.priv_perm_internet)),
+                Info(g(R.string.priv_diag), null, g(R.string.none)),
+                Info(g(R.string.priv_note), null),
+            ) },
+            Action(g(R.string.reset_all), g(R.string.reset_all_d)) { confirmRestore() },
         ) }
-        val display = Category(R.drawable.ic_cat_display, g(R.string.cat_display), g(R.string.d_display)) { listOf(
-            Choice(g(R.string.animation), g(R.string.animation_d), listOf(g(R.string.anim_full), g(R.string.anim_subtle), g(R.string.off)),
-                { 2 - prefs.animLevel }, { prefs.animLevel = 2 - it; T.init(this, prefs.animLevel, prefs.performance); syncCharacter() }),
-            Toggle(g(R.string.accent_glow), g(R.string.accent_glow_d), { prefs.glow }, { prefs.glow = it; applyGlow() }),
-            Toggle(g(R.string.performance), g(R.string.performance_d), { prefs.performance }, { prefs.performance = it; T.init(this, prefs.animLevel, it); syncCharacter(); applyGlow() }),
-        ) }
-        val adguard = Category(R.drawable.ic_cat_adguard, "AdGuard", g(R.string.d_adguard)) { listOf(
-            Info(g(R.string.ag_status), null, if (ag != null) getString(R.string.ag_installed, agVersion) else g(R.string.not_installed)),
-            if (ag != null) Action(g(R.string.ag_launch), null) { launch(ag) }
-            else Action(g(R.string.adguard_open_page), null) {
-                try { startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(ADGUARD_PAGE)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
-                catch (_: Exception) { Toast.makeText(this, getString(R.string.cant_open, "AdGuard"), Toast.LENGTH_LONG).show() }
-            },
-            Info(g(R.string.ag_compat), getString(R.string.ag_compat_d, android.os.Build.VERSION.RELEASE)),
-            Info(g(R.string.ag_verify), null),
-            Info(g(R.string.adguard_note), null),
-        ) }
-        val privacy = Category(R.drawable.ic_cat_privacy, g(R.string.cat_privacy), g(R.string.d_privacy)) { listOf(
-            Info(g(R.string.priv_stored), getString(R.string.priv_counts, nf.format(prefs.favorites.size), nf.format(prefs.hidden.size), nf.format(prefs.bindings.size))),
-            Info(g(R.string.priv_network), null, if (prefs.weatherCity > 0) g(R.string.priv_net_weather) else g(R.string.none)),
-            Info(g(R.string.priv_permissions), null, g(R.string.priv_perm_internet)),
-            Info(g(R.string.priv_diag), null, g(R.string.none)),
-            Info(g(R.string.priv_note), null),
-            Action(g(R.string.reset_all), null) { confirmRestore() },
-        ) }
-        val widgets = Category(R.drawable.ic_cat_apps, g(R.string.cat_widgets), g(R.string.d_widgets)) {
-            val homeOn = Widgets.parse(prefs.homeWidgets); val saverOn = Widgets.parse(prefs.saverWidgets)
-            listOf<Item>(Info(g(R.string.widgets_home), null)) +
-                Widgets.ALL.map { d -> Toggle(g(d.nameRes), null, { d.id in Widgets.parse(prefs.homeWidgets) }, { prefs.homeWidgets = Widgets.toggle(prefs.homeWidgets, d.id, it); applyWidgets() }) } +
-                listOf<Item>(
-                    Choice(g(R.string.weather_city), g(R.string.weather_city_d), listOf(g(R.string.weather_unset)) + Weather.CITIES.map { it.name },
-                        { prefs.weatherCity }, { prefs.weatherCity = it; Weather.selectionChanged(prefs); if (it > 0) { prefs.homeWidgets = Widgets.toggle(prefs.homeWidgets, "weather", true); applyWidgets() } }),
-                    Choice(g(R.string.weather_unit), null, listOf(g(R.string.celsius), g(R.string.fahrenheit)), { prefs.weatherUnit }, { prefs.weatherUnit = it; WidgetStrip.refreshAll() }),
-                ) +
-                Info(g(R.string.widgets_saver), null) +
-                Widgets.ALL.map { d -> Toggle(g(d.nameRes), null, { d.id in Widgets.parse(prefs.saverWidgets) }, { prefs.saverWidgets = Widgets.toggle(prefs.saverWidgets, d.id, it) }) }
-        }
         val about = Category(R.drawable.ic_cat_about, g(R.string.cat_about), g(R.string.d_about)) { listOf(
             Info(g(R.string.app_name), null, getString(R.string.ver_build, appInfo?.versionName ?: "", nf.format(buildNumber(appInfo)))),
             TapRow(g(R.string.developer), "L1avZh", 7, { prefs.starUnlocked }, g(R.string.star_unlocked)) { unlockStar() },
@@ -1136,14 +1149,7 @@ class MainActivity : Activity() {
             Secret(g(R.string.egg_hint)) { showEgg() },
             if (eggRevealed) Info(g(R.string.egg_sequence), null) else Action(g(R.string.egg_reveal), null) { eggRevealed = true; settings?.refresh() },
         ) }
-        val characterCat = Category(R.drawable.ic_character, g(R.string.cat_character), g(R.string.d_character)) { listOf(
-            Toggle(g(R.string.show_character), g(R.string.show_character_d), { prefs.characterEnabled }, { prefs.characterEnabled = it; prefs.reopenSettings = true; main.postDelayed({ recreate() }, T.d(T.MED)) }),
-            Toggle(g(R.string.sleep_night), g(R.string.sleep_night_d), { prefs.sleepAtNight }, { prefs.sleepAtNight = it; applyMood(true) }),
-            Toggle(g(R.string.weather_reacts), g(R.string.weather_reacts_d), { prefs.weatherReactions }, { prefs.weatherReactions = it; applyMood(true) }),
-            Toggle(g(R.string.saver_char), null, { prefs.saverCharacter }, { prefs.saverCharacter = it }),
-            Action(g(R.string.character_studio), null) { closeSettings(); main.postDelayed({ openStudio() }, T.d(T.FAST + 120)) },
-        ) }
-        return listOf(general, appearance, characterCat, widgets, apps, remote, language, display, adguard, privacy, about)
+        return listOf(home, characterCat, apps, remote, system, about)
     }
 
     @Suppress("DEPRECATION")
@@ -1207,7 +1213,7 @@ class MainActivity : Activity() {
     private fun chooseLanguage(d: Dialog, tag: String) {
         d.dismiss()
         if (tag == Lang.current(this)) return
-        prefs.reopenSettings = true
+        settings?.saveForRecreate(); prefs.reopenSettings = true
         Lang.apply(this, tag)
     }
 

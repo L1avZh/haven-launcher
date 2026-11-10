@@ -260,6 +260,15 @@
     <string name="home_d_no">A Haven nem az alapértelmezett kezdőalkalmazás. Nyomja meg az OK-t a rendszerben való kiválasztásához.</string>
     <string name="home_d_na">Ezen az eszközön nincs kezdőalkalmazás-választó. A kézi lépéseket a telepítési útmutató tartalmazza.</string>
     <string name="home_firmware">Néhány TV-box akkor is a saját launcherét nyitja meg, ha másik kezdőalkalmazás van kiválasztva; a Haven ezt nem változtathatja meg.</string>
+    <string name="sec_home">Főképernyő</string>
+    <string name="d_sec_home">Megjelenés, widgetek és képernyővédő</string>
+    <string name="sec_char">Karakter és hangulat</string>
+    <string name="d_sec_char">Társ, nappal és éjszaka</string>
+    <string name="sec_remote">Távirányító és kezdőalkalmazás</string>
+    <string name="d_sec_remote">Gombok és kezdőképernyő-beállítás</string>
+    <string name="sec_system">Rendszer</string>
+    <string name="d_sec_system">Nyelv, idő és visszaállítás</string>
+    <string name="widgets_on_fmt">%1$s bekapcsolva</string>
     <plurals name="apps_count">
         <item quantity="one">%d alkalmazás</item>
         <item quantity="other">%d alkalmazás</item>

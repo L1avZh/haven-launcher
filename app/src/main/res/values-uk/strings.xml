@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven не є програмою головного екрана за замовчуванням. Натисніть OK, щоб вибрати її в системі.</string>
     <string name="home_d_na">На цьому пристрої немає вибору програми головного екрана. Ручні кроки є в посібнику зі встановлення.</string>
     <string name="home_firmware">Деякі ТВ-приставки все одно відкривають свій лаунчер, навіть якщо вибрано іншу програму; Haven не може цього змінити.</string>
+    <string name="sec_home">Головний екран</string>
+    <string name="d_sec_home">Вигляд, віджети та заставка</string>
+    <string name="sec_char">Персонаж і атмосфера</string>
+    <string name="d_sec_char">Супутник, день і ніч</string>
+    <string name="sec_remote">Пульт і головний застосунок</string>
+    <string name="d_sec_remote">Кнопки та налаштування головного екрана</string>
+    <string name="sec_system">Система</string>
+    <string name="d_sec_system">Мова, час і скидання</string>
+    <string name="widgets_on_fmt">Увімкнено: %1$s</string>
     <plurals name="apps_count">
         <item quantity="one">%d застосунок</item>
         <item quantity="few">%d застосунки</item>

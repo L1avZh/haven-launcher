@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven은 기본 홈 앱이 아닙니다. OK를 눌러 시스템에서 선택하세요.</string>
     <string name="home_d_na">이 기기에는 홈 앱 선택 기능이 없습니다. 수동 절차는 설치 가이드를 참고하세요.</string>
     <string name="home_firmware">일부 TV 박스는 다른 홈 앱을 선택해도 자체 런처를 계속 엽니다. Haven은 이를 바꿀 수 없습니다.</string>
+    <string name="sec_home">홈 화면</string>
+    <string name="d_sec_home">모양, 위젯, 화면 보호기</string>
+    <string name="sec_char">캐릭터 및 분위기</string>
+    <string name="d_sec_char">동반자, 낮과 밤</string>
+    <string name="sec_remote">리모컨 및 홈 앱</string>
+    <string name="d_sec_remote">버튼 및 홈 설정</string>
+    <string name="sec_system">시스템</string>
+    <string name="d_sec_system">언어, 시간, 초기화</string>
+    <string name="widgets_on_fmt">%1$s개 켜짐</string>
     <plurals name="apps_count">
         <item quantity="other">앱 %d개</item>
     </plurals>

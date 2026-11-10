@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven ডিফল্ট হোম অ্যাপ নয়। সিস্টেমে বেছে নিতে OK চাপুন।</string>
     <string name="home_d_na">এই ডিভাইসে হোম অ্যাপ বাছাইয়ের ব্যবস্থা নেই। ম্যানুয়াল ধাপের জন্য ইনস্টলেশন গাইড দেখুন।</string>
     <string name="home_firmware">কিছু টিভি বক্স অন্য হোম অ্যাপ বেছে নিলেও নিজস্ব লঞ্চার খোলে; Haven তা বদলাতে পারে না।</string>
+    <string name="sec_home">হোম স্ক্রিন</string>
+    <string name="d_sec_home">চেহারা, উইজেট ও স্ক্রিনসেভার</string>
+    <string name="sec_char">চরিত্র ও পরিবেশ</string>
+    <string name="d_sec_char">সঙ্গী, দিন ও রাত</string>
+    <string name="sec_remote">রিমোট ও হোম অ্যাপ</string>
+    <string name="d_sec_remote">বোতাম ও হোম সেটিং</string>
+    <string name="sec_system">সিস্টেম</string>
+    <string name="d_sec_system">ভাষা, সময় ও রিসেট</string>
+    <string name="widgets_on_fmt">%1$s চালু</string>
     <plurals name="apps_count">
         <item quantity="one">%dটি অ্যাপ</item>
         <item quantity="other">%dটি অ্যাপ</item>

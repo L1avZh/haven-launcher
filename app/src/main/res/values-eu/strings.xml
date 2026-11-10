@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven ez da hasierako aplikazio lehenetsia. Sakatu OK sisteman aukeratzeko.</string>
     <string name="home_d_na">Gailu honek ez du hasierako aplikazioaren hautatzailerik. Ikusi instalazio-gida eskuzko urratsetarako.</string>
     <string name="home_firmware">TV kutxa batzuek beren launcherra irekitzen dute beste aplikazio bat aukeratuta ere; Havenek ezin du hori aldatu.</string>
+    <string name="sec_home">Hasierako pantaila</string>
+    <string name="d_sec_home">Itxura, widgetak eta pantaila-babeslea</string>
+    <string name="sec_char">Pertsonaia eta giroa</string>
+    <string name="d_sec_char">Lagun, eguna eta gaua</string>
+    <string name="sec_remote">Urrutiko agagintea eta hasiera</string>
+    <string name="d_sec_remote">Botoiak eta hasierako ezarpena</string>
+    <string name="sec_system">Sistema</string>
+    <string name="d_sec_system">Hizkuntza, ordua eta berrezarpena</string>
+    <string name="widgets_on_fmt">%1$s aktibo</string>
     <plurals name="apps_count">
         <item quantity="one">Aplikazio %d</item>
         <item quantity="other">%d aplikazio</item>

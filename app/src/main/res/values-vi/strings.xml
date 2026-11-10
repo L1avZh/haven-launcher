@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven không phải ứng dụng Màn hình chính mặc định. Nhấn OK để chọn trong hệ thống.</string>
     <string name="home_d_na">Thiết bị này không có bộ chọn ứng dụng Màn hình chính. Xem hướng dẫn cài đặt để biết các bước thủ công.</string>
     <string name="home_firmware">Một số TV box vẫn mở launcher riêng dù đã chọn ứng dụng khác; Haven không thể thay đổi điều đó.</string>
+    <string name="sec_home">Màn hình chính</string>
+    <string name="d_sec_home">Giao diện, tiện ích và trình bảo vệ màn hình</string>
+    <string name="sec_char">Nhân vật và không khí</string>
+    <string name="d_sec_char">Bạn đồng hành, ngày và đêm</string>
+    <string name="sec_remote">Điều khiển và ứng dụng chủ</string>
+    <string name="d_sec_remote">Nút bấm và cài đặt màn hình chính</string>
+    <string name="sec_system">Hệ thống</string>
+    <string name="d_sec_system">Ngôn ngữ, giờ và đặt lại</string>
+    <string name="widgets_on_fmt">Đang bật: %1$s</string>
     <plurals name="apps_count">
         <item quantity="other">%d ứng dụng</item>
     </plurals>

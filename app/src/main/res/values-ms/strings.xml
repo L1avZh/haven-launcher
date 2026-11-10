@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven bukan apl Utama lalai. Tekan OK untuk memilihnya dalam sistem.</string>
     <string name="home_d_na">Peranti ini tiada pemilih apl Utama. Lihat panduan pemasangan untuk langkah manual.</string>
     <string name="home_firmware">Sesetengah kotak TV masih membuka pelancar sendiri walaupun apl lain dipilih; Haven tidak dapat mengubahnya.</string>
+    <string name="sec_home">Skrin utama</string>
+    <string name="d_sec_home">Rupa, widget dan penyelamat skrin</string>
+    <string name="sec_char">Watak &amp; suasana</string>
+    <string name="d_sec_char">Teman, siang dan malam</string>
+    <string name="sec_remote">Alat kawalan &amp; apl Utama</string>
+    <string name="d_sec_remote">Butang dan tetapan Utama</string>
+    <string name="sec_system">Sistem</string>
+    <string name="d_sec_system">Bahasa, masa dan set semula</string>
+    <string name="widgets_on_fmt">%1$s aktif</string>
     <plurals name="apps_count">
         <item quantity="other">%d apl</item>
     </plurals>

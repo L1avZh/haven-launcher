@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven డిఫాల్ట్ హోమ్ యాప్ కాదు. సిస్టమ్‌లో ఎంచుకోవడానికి OK నొక్కండి.</string>
     <string name="home_d_na">ఈ పరికరంలో హోమ్ యాప్ ఎంపిక లేదు. మాన్యువల్ దశల కోసం ఇన్‌స్టాలేషన్ గైడ్ చూడండి.</string>
     <string name="home_firmware">కొన్ని టీవీ బాక్సులు మరో యాప్ ఎంచుకున్నా తమ లాంచర్‌నే తెరుస్తాయి; Haven దాన్ని మార్చలేదు.</string>
+    <string name="sec_home">హోమ్ స్క్రీన్</string>
+    <string name="d_sec_home">రూపం, విడ్జెట్లు, స్క్రీన్‌సేవర్</string>
+    <string name="sec_char">పాత్ర &amp; వాతావరణం</string>
+    <string name="d_sec_char">తోడు, పగలు &amp; రాత్రి</string>
+    <string name="sec_remote">రిమోట్ &amp; హోమ్ యాప్</string>
+    <string name="d_sec_remote">బటన్లు &amp; హోమ్ సెట్టింగ్</string>
+    <string name="sec_system">సిస్టమ్</string>
+    <string name="d_sec_system">భాష, సమయం, రీసెట్</string>
+    <string name="widgets_on_fmt">%1$s ఆన్</string>
     <plurals name="apps_count">
         <item quantity="one">%d యాప్</item>
         <item quantity="other">%d యాప్‌లు</item>

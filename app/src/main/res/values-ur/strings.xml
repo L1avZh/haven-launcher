@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven ڈیفالٹ ہوم ایپ نہیں ہے۔ سسٹم میں منتخب کرنے کے لیے OK دبائیں۔</string>
     <string name="home_d_na">اس آلے میں ہوم ایپ منتخب کرنے کا اختیار نہیں۔ دستی مراحل کے لیے انسٹالیشن گائیڈ دیکھیں۔</string>
     <string name="home_firmware">کچھ ٹی وی باکس دوسری ایپ منتخب ہونے پر بھی اپنا لانچر کھولتے ہیں؛ Haven اسے تبدیل نہیں کر سکتا۔</string>
+    <string name="sec_home">ہوم اسکرین</string>
+    <string name="d_sec_home">ظاہری شکل، ویجٹس اور اسکرین سیور</string>
+    <string name="sec_char">کردار اور ماحول</string>
+    <string name="d_sec_char">ساتھی، دن اور رات</string>
+    <string name="sec_remote">ریموٹ اور ہوم ایپ</string>
+    <string name="d_sec_remote">بٹن اور ہوم کی ترتیب</string>
+    <string name="sec_system">سسٹم</string>
+    <string name="d_sec_system">زبان، وقت اور ری سیٹ</string>
+    <string name="widgets_on_fmt">%1$s آن</string>
     <plurals name="apps_count">
         <item quantity="one">%d ایپ</item>
         <item quantity="other">%d ایپس</item>

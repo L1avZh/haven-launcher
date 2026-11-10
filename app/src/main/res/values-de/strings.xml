@@ -260,6 +260,15 @@
     <string name="home_d_no">Haven ist nicht der Standard-Startbildschirm. Drücken Sie OK, um ihn im System zu wählen.</string>
     <string name="home_d_na">Dieses Gerät hat keine Auswahl für den Startbildschirm. Die manuellen Schritte stehen in der Installationsanleitung.</string>
     <string name="home_firmware">Manche TV-Boxen öffnen weiterhin ihren eigenen Launcher, auch wenn ein anderer gewählt ist; Haven kann das nicht ändern.</string>
+    <string name="sec_home">Startbildschirm</string>
+    <string name="d_sec_home">Aussehen, Widgets und Bildschirmschoner</string>
+    <string name="sec_char">Figur &amp; Atmosphäre</string>
+    <string name="d_sec_char">Begleiter, Tag und Nacht</string>
+    <string name="sec_remote">Fernbedienung &amp; Home-App</string>
+    <string name="d_sec_remote">Tasten und Home-Einstellung</string>
+    <string name="sec_system">System</string>
+    <string name="d_sec_system">Sprache, Uhrzeit und Zurücksetzen</string>
+    <string name="widgets_on_fmt">%1$s aktiv</string>
     <plurals name="apps_count">
         <item quantity="one">%d App</item>
         <item quantity="other">%d Apps</item>
