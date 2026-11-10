@@ -246,7 +246,7 @@
     <string name="sleep_night_d">Om natten ligger figuren under et tæppe.</string>
     <string name="weather_reacts">Vejrreaktioner</string>
     <string name="weather_reacts_d">Holder en paraply og skifter stilling i regn, sne, storm og kulde.</string>
-    <string name="saver_char">Sovende figur på pauseskærmen</string>
+    <string name="saver_char">Figur i pauseskærmen</string>
     <string name="credits_models">3D-karaktermodeller</string>
     <string name="prop_candle">Lys</string>
     <string name="prop_book">Bog</string>

@@ -14,7 +14,7 @@ Sleep at night
 The character lies down under a blanket at night.
 Weather reactions
 Holds an umbrella and changes stance in rain, snow, storms and cold.
-Sleeping character on screensaver
+Character on screensaver
 """)
 L('he', """
 יום ולילה
@@ -28,7 +28,7 @@ L('he', """
 בלילה הדמות שוכבת מתחת לשמיכה.
 תגובות למזג אוויר
 מחזיקה מטריה ומשנה יציבה בגשם, שלג, סערה וקור.
-דמות ישנה בשומר המסך
+דמות בשומר המסך
 """)
 L('fr', """
 Jour et nuit
@@ -42,7 +42,7 @@ Dormir la nuit
 La nuit, le personnage s'allonge sous une couverture.
 Réactions à la météo
 Tient un parapluie et change de posture sous la pluie, la neige, l'orage et le froid.
-Personnage endormi sur l'économiseur
+Personnage dans l'écran de veille
 """)
 L('de', """
 Tag und Nacht
@@ -56,7 +56,7 @@ Nachts schlafen
 Nachts legt sich die Figur unter eine Decke.
 Wetterreaktionen
 Hält bei Regen, Schnee, Sturm und Kälte einen Regenschirm und ändert die Haltung.
-Schlafende Figur im Bildschirmschoner
+Figur im Bildschirmschoner
 """)
 L('es', """
 Día y noche
@@ -70,7 +70,7 @@ Dormir de noche
 De noche el personaje se acuesta bajo una manta.
 Reacciones al tiempo
 Sostiene un paraguas y cambia de postura con lluvia, nieve, tormenta y frío.
-Personaje dormido en el salvapantallas
+Personaje en el salvapantallas
 """)
 L('pt', """
 Dia e noite
@@ -84,7 +84,7 @@ Dormir à noite
 À noite o personagem deita sob um cobertor.
 Reações ao tempo
 Segura um guarda-chuva e muda de postura com chuva, neve, tempestade e frio.
-Personagem dormindo na proteção de tela
+Personagem na proteção de ecrã
 """)
 L('it', """
 Giorno e notte
@@ -98,7 +98,7 @@ Dormire di notte
 Di notte il personaggio si sdraia sotto una coperta.
 Reazioni al meteo
 Tiene un ombrello e cambia postura con pioggia, neve, temporale e freddo.
-Personaggio che dorme nello screensaver
+Personaggio nel salvaschermo
 """)
 L('nl', """
 Dag en nacht
@@ -112,7 +112,7 @@ Slapen 's nachts
 's Nachts ligt het personage onder een deken.
 Weerreacties
 Houdt een paraplu vast en verandert van houding bij regen, sneeuw, storm en kou.
-Slapend personage op de screensaver
+Personage in de screensaver
 """)
 L('pl', """
 Dzień i noc
@@ -126,7 +126,7 @@ Sen w nocy
 W nocy postać leży pod kocem.
 Reakcje na pogodę
 Trzyma parasol i zmienia postawę podczas deszczu, śniegu, burzy i mrozu.
-Śpiąca postać w wygaszaczu
+Postać w wygaszaczu
 """)
 L('ru', """
 День и ночь
@@ -140,7 +140,7 @@ L('ru', """
 Ночью персонаж лежит под одеялом.
 Реакции на погоду
 Держит зонт и меняет позу в дождь, снег, грозу и холод.
-Спящий персонаж на заставке
+Персонаж в заставке
 """)
 L('uk', """
 День і ніч
@@ -154,7 +154,7 @@ L('uk', """
 Уночі персонаж лежить під ковдрою.
 Реакції на погоду
 Тримає парасольку й змінює позу в дощ, сніг, грозу та холод.
-Сплячий персонаж на заставці
+Персонаж у заставці
 """)
 L('sv', """
 Dag och natt
@@ -168,7 +168,7 @@ Sova på natten
 På natten ligger figuren under en filt.
 Väderreaktioner
 Håller ett paraply och ändrar hållning vid regn, snö, storm och kyla.
-Sovande figur i skärmsläckaren
+Karaktär i skärmsläckaren
 """)
 L('nb', """
 Dag og natt
@@ -182,7 +182,7 @@ Sove om natten
 Om natten ligger figuren under et teppe.
 Værreaksjoner
 Holder en paraply og endrer holdning i regn, snø, storm og kulde.
-Sovende figur på skjermspareren
+Figur i skjermspareren
 """)
 L('da', """
 Dag og nat
@@ -196,7 +196,7 @@ Sove om natten
 Om natten ligger figuren under et tæppe.
 Vejrreaktioner
 Holder en paraply og skifter stilling i regn, sne, storm og kulde.
-Sovende figur på pauseskærmen
+Figur i pauseskærmen
 """)
 L('fi', """
 Päivä ja yö
@@ -210,7 +210,7 @@ Nukkuminen yöllä
 Yöllä hahmo makaa peiton alla.
 Sääreaktiot
 Pitää sateenvarjoa ja vaihtaa asentoa sateessa, lumessa, myrskyssä ja pakkasessa.
-Nukkuva hahmo näytönsäästäjässä
+Hahmo näytönsäästäjässä
 """)
 L('el', """
 Ημέρα και νύχτα
@@ -224,7 +224,7 @@ L('el', """
 Τη νύχτα ο χαρακτήρας ξαπλώνει κάτω από μια κουβέρτα.
 Αντιδράσεις στον καιρό
 Κρατά ομπρέλα και αλλάζει στάση σε βροχή, χιόνι, καταιγίδα και κρύο.
-Κοιμισμένος χαρακτήρας στην προφύλαξη
+Χαρακτήρας στην προφύλαξη οθόνης
 """)
 L('cs', """
 Den a noc
@@ -238,7 +238,7 @@ Spát v noci
 V noci postava leží pod dekou.
 Reakce na počasí
 Drží deštník a mění postoj v dešti, sněhu, bouři a zimě.
-Spící postava v spořiči
+Postava ve spořiči
 """)
 L('sk', """
 Deň a noc
@@ -252,7 +252,7 @@ Spať v noci
 V noci postava leží pod perinou.
 Reakcie na počasie
 Drží dáždnik a mení postoj v daždi, snehu, búrke a zime.
-Spiaca postava v šetriči
+Postava v šetriči
 """)
 L('hu', """
 Nappal és éjszaka
@@ -266,7 +266,7 @@ Alvás éjjel
 Éjjel a karakter takaró alatt fekszik.
 Időjárási reakciók
 Esernyőt tart és testtartást vált esőben, hóban, viharban és hidegben.
-Alvó karakter a képernyővédőn
+Karakter a képernyővédőn
 """)
 L('ro', """
 Zi și noapte
@@ -280,7 +280,7 @@ Somn noaptea
 Noaptea personajul se întinde sub o pătură.
 Reacții la vreme
 Ține o umbrelă și își schimbă poziția în ploaie, ninsoare, furtună și frig.
-Personaj adormit pe screensaver
+Personaj în economizor
 """)
 L('bg', """
 Ден и нощ
@@ -294,7 +294,7 @@ L('bg', """
 Нощем героят лежи под одеяло.
 Реакции към времето
 Държи чадър и сменя стойката при дъжд, сняг, буря и студ.
-Спящ герой на скрийнсейвъра
+Герой в скрийнсейвъра
 """)
 L('hr', """
 Dan i noć
@@ -308,7 +308,7 @@ Spavanje noću
 Noću lik leži ispod deke.
 Reakcije na vrijeme
 Drži kišobran i mijenja stav po kiši, snijegu, oluji i hladnoći.
-Lik koji spava na čuvaru zaslona
+Lik u čuvaru zaslona
 """)
 L('sr', """
 Дан и ноћ
@@ -322,7 +322,7 @@ L('sr', """
 Ноћу лик лежи испод ћебета.
 Реакције на време
 Држи кишобран и мења став по киши, снегу, олуји и хладноћи.
-Лик који спава на чувару екрана
+Lik u čuvaru ekrana
 """)
 L('sl', """
 Dan in noč
@@ -336,7 +336,7 @@ Spanje ponoči
 Ponoči lik leži pod odejo.
 Odzivi na vreme
 Drži dežnik in spremeni držo v dežju, snegu, nevihti in mrazu.
-Spečo lik v ohranjevalniku
+Lik v ohranjevalniku
 """)
 L('tr', """
 Gündüz ve gece
@@ -350,7 +350,7 @@ Geceleri uyu
 Geceleri karakter battaniyenin altında yatar.
 Hava tepkileri
 Yağmur, kar, fırtına ve soğukta şemsiye tutar ve duruşunu değiştirir.
-Ekran koruyucuda uyuyan karakter
+Ekran koruyucuda karakter
 """)
 L('is', """
 Dagur og nótt
@@ -364,7 +364,7 @@ Sofa á nóttunni
 Á nóttunni liggur persónan undir teppi.
 Veðurviðbrögð
 Heldur á regnhlíf og skiptir um stöðu í rigningu, snjó, stormi og kulda.
-Sofandi persóna á skjáhvílu
+Persóna í skjáhvílu
 """)
 L('ga', """
 Lá agus oíche
@@ -378,7 +378,7 @@ Codladh san oíche
 San oíche luíonn an carachtar faoi phluid.
 Frithghníomhartha aimsire
 Coinníonn scáth fearthainne agus athraíonn seasamh i mbáisteach, sneachta, stoirm agus fuacht.
-Carachtar ina chodladh ar an spárálaí scáileáin
+Carachtar sa spárálaí scáileáin
 """)
 L('ca', """
 Dia i nit
@@ -392,7 +392,7 @@ Dormir de nit
 De nit el personatge s'estira sota una manta.
 Reaccions al temps
 Sosté un paraigua i canvia de postura amb pluja, neu, tempesta i fred.
-Personatge adormit al protector de pantalla
+Personatge a l'estalvi de pantalla
 """)
 L('eu', """
 Eguna eta gaua
@@ -406,7 +406,7 @@ Lo egin gauez
 Gauez pertsonaia manta azpian etzaten da.
 Eguraldi-erreakzioak
 Aterkia hartzen du eta jarrera aldatzen du euria, elurra, ekaitza eta hotza dagoenean.
-Pertsonaia lotan pantaila-babesean
+Pertsonaia pantaila-babeslean
 """)
 L('cy', """
 Dydd a nos
@@ -420,7 +420,7 @@ Cysgu yn y nos
 Yn y nos mae'r cymeriad yn gorwedd o dan flanced.
 Ymatebion tywydd
 Yn dal ymbarél ac yn newid ystum mewn glaw, eira, storm ac oerfel.
-Cymeriad yn cysgu ar yr arbedwr sgrin
+Cymeriad ar y sgrin gadw
 """)
 L('ar', """
 النهار والليل
@@ -434,7 +434,7 @@ L('ar', """
 في الليل تستلقي الشخصية تحت بطانية.
 تفاعلات الطقس
 تحمل مظلة وتغيّر وقفتها في المطر والثلج والعواصف والبرد.
-شخصية نائمة على شاشة التوقف
+الشخصية في شاشة التوقف
 """)
 L('fa', """
 روز و شب
@@ -448,7 +448,7 @@ L('fa', """
 شب‌ها شخصیت زیر پتو دراز می‌کشد.
 واکنش به آب‌وهوا
 در باران، برف، طوفان و سرما چتر می‌گیرد و حالتش را تغییر می‌دهد.
-شخصیت خواب روی محافظ صفحه
+شخصیت در محافظ صفحه
 """)
 L('ur', """
 دن اور رات
@@ -462,7 +462,7 @@ L('ur', """
 رات کو کردار کمبل کے نیچے لیٹ جاتا ہے۔
 موسم کے ردعمل
 بارش، برف، طوفان اور سردی میں چھتری تھامتا اور انداز بدلتا ہے۔
-اسکرین سیور پر سوتا کردار
+اسکرین سیور میں کردار
 """)
 L('zh-CN', """
 白天与夜晚
@@ -476,7 +476,7 @@ L('zh-CN', """
 夜晚角色会盖着毯子躺下。
 天气反应
 在雨、雪、风暴和寒冷中撑伞并改变姿势。
-屏保上的睡觉角色
+屏保中的角色
 """)
 L('zh-TW', """
 白天與夜晚
@@ -490,7 +490,7 @@ L('zh-TW', """
 夜晚角色會蓋著毯子躺下。
 天氣反應
 在雨、雪、風暴和寒冷中撐傘並改變姿勢。
-螢幕保護程式上的睡覺角色
+螢幕保護程式中的角色
 """)
 L('ja', """
 昼と夜
@@ -504,7 +504,7 @@ L('ja', """
 夜になるとキャラクターは毛布をかけて横になります。
 天気への反応
 雨・雪・嵐・寒さで傘を持ち、ポーズを変えます。
-スクリーンセーバーで眠るキャラクター
+スクリーンセーバーのキャラクター
 """)
 L('ko', """
 낮과 밤
@@ -518,7 +518,7 @@ L('ko', """
 밤에는 캐릭터가 담요를 덮고 눕습니다.
 날씨 반응
 비, 눈, 폭풍, 추위에 우산을 들고 자세를 바꿉니다.
-화면 보호기에서 자는 캐릭터
+화면 보호기의 캐릭터
 """)
 L('hi', """
 दिन और रात
@@ -532,7 +532,7 @@ L('hi', """
 रात में किरदार कंबल के नीचे लेट जाता है।
 मौसम प्रतिक्रियाएँ
 बारिश, बर्फ़, तूफ़ान और ठंड में छाता पकड़ता है और मुद्रा बदलता है।
-स्क्रीनसेवर पर सोता किरदार
+स्क्रीनसेवर में किरदार
 """)
 L('bn', """
 দিন ও রাত
@@ -546,7 +546,7 @@ L('bn', """
 রাতে চরিত্রটি কম্বলের নিচে শুয়ে পড়ে।
 আবহাওয়ার প্রতিক্রিয়া
 বৃষ্টি, তুষার, ঝড় ও ঠান্ডায় ছাতা ধরে ও ভঙ্গি বদলায়।
-স্ক্রিনসেভারে ঘুমন্ত চরিত্র
+স্ক্রিনসেভারে চরিত্র
 """)
 L('ta', """
 பகல் மற்றும் இரவு
@@ -560,7 +560,7 @@ L('ta', """
 இரவில் கதாபாத்திரம் போர்வைக்குள் படுத்துக்கொள்ளும்.
 வானிலை எதிர்வினைகள்
 மழை, பனி, புயல், குளிரில் குடை பிடித்து நிலையை மாற்றும்.
-திரைக்காப்பில் தூங்கும் கதாபாத்திரம்
+திரைக்காப்பில் கதாபாத்திரம்
 """)
 L('te', """
 పగలు మరియు రాత్రి
@@ -574,7 +574,7 @@ L('te', """
 రాత్రి పాత్ర దుప్పటి కింద పడుకుంటుంది.
 వాతావరణ స్పందనలు
 వర్షం, మంచు, తుఫాను, చలిలో గొడుగు పట్టి భంగిమ మారుస్తుంది.
-స్క్రీన్‌సేవర్‌లో నిద్రపోతున్న పాత్ర
+స్క్రీన్‌సేవర్‌లో పాత్ర
 """)
 L('th', """
 กลางวันและกลางคืน
@@ -588,7 +588,7 @@ L('th', """
 ตอนกลางคืนตัวละครจะนอนห่มผ้า
 ปฏิกิริยาต่อสภาพอากาศ
 ถือร่มและเปลี่ยนท่าทางเมื่อฝน หิมะ พายุ และอากาศหนาว
-ตัวละครนอนหลับบนภาพพักหน้าจอ
+ตัวละครในภาพพักหน้าจอ
 """)
 L('vi', """
 Ngày và đêm
@@ -602,7 +602,7 @@ Ngủ vào ban đêm
 Ban đêm nhân vật nằm dưới chăn.
 Phản ứng với thời tiết
 Cầm ô và đổi tư thế khi mưa, tuyết, bão và lạnh.
-Nhân vật ngủ trên màn hình chờ
+Nhân vật trên màn hình chờ
 """)
 L('in', """
 Siang dan malam
@@ -616,7 +616,7 @@ Tidur di malam hari
 Malam hari karakter berbaring di bawah selimut.
 Reaksi cuaca
 Memegang payung dan mengubah sikap saat hujan, salju, badai, dan dingin.
-Karakter tidur di screensaver
+Karakter di screensaver
 """)
 L('ms', """
 Siang dan malam
@@ -630,7 +630,7 @@ Tidur pada waktu malam
 Pada waktu malam watak berbaring di bawah selimut.
 Reaksi cuaca
 Memegang payung dan menukar postur ketika hujan, salji, ribut dan sejuk.
-Watak tidur pada penyelamat skrin
+Watak pada penyelamat skrin
 """)
 L('fil', """
 Araw at gabi
@@ -644,7 +644,7 @@ Matulog sa gabi
 Sa gabi, nakahiga ang karakter sa ilalim ng kumot.
 Mga reaksyon sa panahon
 Humahawak ng payong at nagbabago ng tindig sa ulan, niyebe, bagyo at lamig.
-Natutulog na karakter sa screensaver
+Karakter sa screensaver
 """)
 L('sw', """
 Mchana na usiku
@@ -658,7 +658,7 @@ Kulala usiku
 Usiku mhusika hulala chini ya blanketi.
 Miitikio ya hali ya hewa
 Hushika mwavuli na kubadilisha mkao wakati wa mvua, theluji, dhoruba na baridi.
-Mhusika anayelala kwenye kiokoa skrini
+Mhusika kwenye kiokoa skrini
 """)
 L('af', """
 Dag en nag
@@ -672,7 +672,7 @@ Slaap snags
 Snags lê die karakter onder 'n kombers.
 Weerreaksies
 Hou 'n sambreel vas en verander houding in reën, sneeu, storm en koue.
-Slapende karakter op die skermbeskermer
+Karakter op die skermsparer
 """)
 L('am', """
 ቀን እና ሌሊት
@@ -686,7 +686,7 @@ L('am', """
 በሌሊት ገጸ ባሕሪው ከብርድ ልብስ በታች ይተኛል።
 የአየር ሁኔታ ምላሾች
 በዝናብ፣ በበረዶ፣ በማዕበል እና በቅዝቃዜ ጃንጥላ ይይዛል አቋሙንም ይቀይራል።
-በስክሪን ማቆያ ላይ የሚተኛ ገጸ ባሕሪ
+ገጸ ባህሪ በማያ ማቆያ
 """)
 L('zu', """
 Imini nobusuku
@@ -700,5 +700,5 @@ Lala ebusuku
 Ebusuku umlingiswa ulala ngaphansi kwengubo.
 Ukusabela kwezulu
 Ubamba isambulela futhi aguqule isimo emvuleni, eqhweni, esiphepheleni nasebusika.
-Umlingiswa olele esilondolozini sesikrini
+Isiqephu esigcinini sesikrini
 """)

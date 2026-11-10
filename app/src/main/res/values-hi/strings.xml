@@ -246,7 +246,7 @@
     <string name="sleep_night_d">रात में किरदार कंबल के नीचे लेट जाता है।</string>
     <string name="weather_reacts">मौसम प्रतिक्रियाएँ</string>
     <string name="weather_reacts_d">बारिश, बर्फ़, तूफ़ान और ठंड में छाता पकड़ता है और मुद्रा बदलता है।</string>
-    <string name="saver_char">स्क्रीनसेवर पर सोता किरदार</string>
+    <string name="saver_char">स्क्रीनसेवर में किरदार</string>
     <string name="credits_models">3D कैरेक्टर मॉडल</string>
     <string name="prop_candle">मोमबत्ती</string>
     <string name="prop_book">किताब</string>

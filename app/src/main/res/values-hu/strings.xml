@@ -246,7 +246,7 @@
     <string name="sleep_night_d">Éjjel a karakter takaró alatt fekszik.</string>
     <string name="weather_reacts">Időjárási reakciók</string>
     <string name="weather_reacts_d">Esernyőt tart és testtartást vált esőben, hóban, viharban és hidegben.</string>
-    <string name="saver_char">Alvó karakter a képernyővédőn</string>
+    <string name="saver_char">Karakter a képernyővédőn</string>
     <string name="credits_models">3D karaktermodellek</string>
     <string name="prop_candle">Gyertya</string>
     <string name="prop_book">Könyv</string>

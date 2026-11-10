@@ -246,7 +246,7 @@
     <string name="sleep_night_d">夜になるとキャラクターは毛布をかけて横になります。</string>
     <string name="weather_reacts">天気への反応</string>
     <string name="weather_reacts_d">雨・雪・嵐・寒さで傘を持ち、ポーズを変えます。</string>
-    <string name="saver_char">スクリーンセーバーで眠るキャラクター</string>
+    <string name="saver_char">スクリーンセーバーのキャラクター</string>
     <string name="credits_models">3D キャラクターモデル</string>
     <string name="prop_candle">ろうそく</string>
     <string name="prop_book">本</string>

@@ -246,7 +246,7 @@
     <string name="sleep_night_d">夜晚角色會蓋著毯子躺下。</string>
     <string name="weather_reacts">天氣反應</string>
     <string name="weather_reacts_d">在雨、雪、風暴和寒冷中撐傘並改變姿勢。</string>
-    <string name="saver_char">螢幕保護程式上的睡覺角色</string>
+    <string name="saver_char">螢幕保護程式中的角色</string>
     <string name="credits_models">3D 角色模型</string>
     <string name="prop_candle">蠟燭</string>
     <string name="prop_book">書</string>

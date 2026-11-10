@@ -5,7 +5,7 @@ Settings has six sections. Everything works with the D-pad, OK and Back: Back le
 | Section | Contents |
 |---|---|
 | Home screen | Wallpaper, accent color, background dimming, card size, clock, **Widgets** (page), screensaver delay, animation, accent glow, performance mode |
-| Character & atmosphere | Show character, Character Studio, sleep at night, weather reactions, sleeping character on the screensaver, day/night mode and (Automatic only) night start and end |
+| Character & atmosphere | Show character, Character Studio, sleep at night, weather reactions, character on the screensaver, day/night mode and (Automatic only) night start and end |
 | Applications | Manage applications, hidden apps, show system apps, sort, refresh app list, **AdGuard** (page) |
 | Remote & Home app | Default Home app status, return to start on Home, button test, custom mappings, number keys open favorites, return shortcut, input devices, floating-home note |
 | System | **Language & region** (page: language, time format, text direction, languages available), **Privacy & security** (page), restore default settings (the only Reset All, with its one confirmation) |

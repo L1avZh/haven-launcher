@@ -246,7 +246,7 @@
     <string name="sleep_night_d">রাতে চরিত্রটি কম্বলের নিচে শুয়ে পড়ে।</string>
     <string name="weather_reacts">আবহাওয়ার প্রতিক্রিয়া</string>
     <string name="weather_reacts_d">বৃষ্টি, তুষার, ঝড় ও ঠান্ডায় ছাতা ধরে ও ভঙ্গি বদলায়।</string>
-    <string name="saver_char">স্ক্রিনসেভারে ঘুমন্ত চরিত্র</string>
+    <string name="saver_char">স্ক্রিনসেভারে চরিত্র</string>
     <string name="credits_models">থ্রিডি চরিত্র মডেল</string>
     <string name="prop_candle">মোমবাতি</string>
     <string name="prop_book">বই</string>

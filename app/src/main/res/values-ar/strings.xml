@@ -246,7 +246,7 @@
     <string name="sleep_night_d">في الليل تستلقي الشخصية تحت بطانية.</string>
     <string name="weather_reacts">تفاعلات الطقس</string>
     <string name="weather_reacts_d">تحمل مظلة وتغيّر وقفتها في المطر والثلج والعواصف والبرد.</string>
-    <string name="saver_char">شخصية نائمة على شاشة التوقف</string>
+    <string name="saver_char">الشخصية في شاشة التوقف</string>
     <string name="credits_models">نماذج الشخصيات ثلاثية الأبعاد</string>
     <string name="prop_candle">شمعة</string>
     <string name="prop_book">كتاب</string>

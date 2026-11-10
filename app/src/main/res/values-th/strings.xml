@@ -246,7 +246,7 @@
     <string name="sleep_night_d">ตอนกลางคืนตัวละครจะนอนห่มผ้า</string>
     <string name="weather_reacts">ปฏิกิริยาต่อสภาพอากาศ</string>
     <string name="weather_reacts_d">ถือร่มและเปลี่ยนท่าทางเมื่อฝน หิมะ พายุ และอากาศหนาว</string>
-    <string name="saver_char">ตัวละครนอนหลับบนภาพพักหน้าจอ</string>
+    <string name="saver_char">ตัวละครในภาพพักหน้าจอ</string>
     <string name="credits_models">โมเดลตัวละคร 3 มิติ</string>
     <string name="prop_candle">เทียน</string>
     <string name="prop_book">หนังสือ</string>

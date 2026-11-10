@@ -246,7 +246,7 @@
     <string name="sleep_night_d">Ночью персонаж лежит под одеялом.</string>
     <string name="weather_reacts">Реакции на погоду</string>
     <string name="weather_reacts_d">Держит зонт и меняет позу в дождь, снег, грозу и холод.</string>
-    <string name="saver_char">Спящий персонаж на заставке</string>
+    <string name="saver_char">Персонаж в заставке</string>
     <string name="credits_models">3D-модели персонажей</string>
     <string name="prop_candle">Свеча</string>
     <string name="prop_book">Книга</string>

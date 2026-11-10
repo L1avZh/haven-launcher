@@ -246,7 +246,7 @@
     <string name="sleep_night_d">Sa gabi, nakahiga ang karakter sa ilalim ng kumot.</string>
     <string name="weather_reacts">Mga reaksyon sa panahon</string>
     <string name="weather_reacts_d">Humahawak ng payong at nagbabago ng tindig sa ulan, niyebe, bagyo at lamig.</string>
-    <string name="saver_char">Natutulog na karakter sa screensaver</string>
+    <string name="saver_char">Karakter sa screensaver</string>
     <string name="credits_models">Mga 3D na modelo ng karakter</string>
     <string name="prop_candle">Kandila</string>
     <string name="prop_book">Aklat</string>

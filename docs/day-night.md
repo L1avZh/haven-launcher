@@ -51,18 +51,20 @@ particles hold still.
   the widget to Fahrenheit does not change the behavior.
 * Sleeping wins over weather, so the character never sleeps with an umbrella. With *Sleep at night* off, weather shows at night too.
 * The umbrella is a temporary override. The prop saved in the Studio is not touched and comes back when the weather clears or the character wakes.
-* Settings → Character has **Sleep at night**, **Weather reactions** (turns the umbrella and stances off) and **Sleeping character on screensaver**.
+* Settings → Character has **Sleep at night**, **Weather reactions** (turns the umbrella and stances off) and **Character on screensaver**.
 * The umbrella and the bed come from `world.glb` and attach to whichever character is active, so this works for every one of them.
 * With reduced motion the held poses (lying down, umbrella arm) still show; only the breathing, shiver and gusting are removed.
 * When the umbrella is up the camera backs off and rises a little for head-room; when sleeping it comes in to frame a lying figure.
 
 ## The screensaver
 
-Black base under a dimmed live background and the day or night sky, then one block: the clock (Unbounded), the date, a thin rule, and the
-widget cards. At night with the character enabled and *Sleeping character on screensaver* on, a small sleeping character lies beside the clock.
-The block, character included, fades out, moves to a new spot and fades in every 25 seconds, and the background hue shifts at the same time. Any
-key wakes it. The timeout, wake-up and lifecycle are unchanged; it creates its own character view only while it is on screen and destroys it when
-it closes (the home character is paused meanwhile).
+The home screen's bundled landscape (credits in [assets/ASSET_CREDITS.md](assets/ASSET_CREDITS.md)) under a darker, calmer wash than the home screen's (darker still at night),
+then one block on the start side: the clock (Unbounded), the date, a thin rule, and the widget cards (your saved widgets, in your order). With the character enabled and
+*Character on screensaver* on, the selected character stands on the end side (right in left-to-right languages), or lies on the bed at night when *Sleep at night* is on. It has
+no falling rain or snow here and a soft contact shadow instead of a ground patch. The floating dots are gone. Nothing stays lit in one place: the text block fades and moves to a
+new spot every 25 seconds, the photograph glides a few percent one way and back over each 25 seconds, and the figure shifts a few pixels. With reduced motion the glide is
+barely perceptible and the character holds a still pose; performance mode shortens the glide and lowers the character's frame rate. Any key wakes it. The timeout, wake-up and
+lifecycle are unchanged: no wake lock is taken, and the screensaver creates its own character view only while it is on screen and destroys it when it closes (the home character is paused meanwhile).
 
 ## Testing without waiting for the weather
 

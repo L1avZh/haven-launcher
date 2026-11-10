@@ -246,7 +246,7 @@
     <string name="sleep_night_d">\'s Nachts ligt het personage onder een deken.</string>
     <string name="weather_reacts">Weerreacties</string>
     <string name="weather_reacts_d">Houdt een paraplu vast en verandert van houding bij regen, sneeuw, storm en kou.</string>
-    <string name="saver_char">Slapend personage op de screensaver</string>
+    <string name="saver_char">Personage in de screensaver</string>
     <string name="credits_models">3D-personagemodellen</string>
     <string name="prop_candle">Kaars</string>
     <string name="prop_book">Boek</string>

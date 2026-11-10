@@ -246,7 +246,7 @@
     <string name="sleep_night_d">Yöllä hahmo makaa peiton alla.</string>
     <string name="weather_reacts">Sääreaktiot</string>
     <string name="weather_reacts_d">Pitää sateenvarjoa ja vaihtaa asentoa sateessa, lumessa, myrskyssä ja pakkasessa.</string>
-    <string name="saver_char">Nukkuva hahmo näytönsäästäjässä</string>
+    <string name="saver_char">Hahmo näytönsäästäjässä</string>
     <string name="credits_models">3D-hahmomallit</string>
     <string name="prop_candle">Kynttilä</string>
     <string name="prop_book">Kirja</string>

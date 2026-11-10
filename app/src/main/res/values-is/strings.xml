@@ -246,7 +246,7 @@
     <string name="sleep_night_d">Á nóttunni liggur persónan undir teppi.</string>
     <string name="weather_reacts">Veðurviðbrögð</string>
     <string name="weather_reacts_d">Heldur á regnhlíf og skiptir um stöðu í rigningu, snjó, stormi og kulda.</string>
-    <string name="saver_char">Sofandi persóna á skjáhvílu</string>
+    <string name="saver_char">Persóna í skjáhvílu</string>
     <string name="credits_models">3D persónulíkön</string>
     <string name="prop_candle">Kerti</string>
     <string name="prop_book">Bók</string>

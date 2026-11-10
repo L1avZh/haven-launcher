@@ -246,7 +246,7 @@
     <string name="sleep_night_d">W nocy postać leży pod kocem.</string>
     <string name="weather_reacts">Reakcje na pogodę</string>
     <string name="weather_reacts_d">Trzyma parasol i zmienia postawę podczas deszczu, śniegu, burzy i mrozu.</string>
-    <string name="saver_char">Śpiąca postać w wygaszaczu</string>
+    <string name="saver_char">Postać w wygaszaczu</string>
     <string name="credits_models">Modele postaci 3D</string>
     <string name="prop_candle">Świeca</string>
     <string name="prop_book">Książka</string>

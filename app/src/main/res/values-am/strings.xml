@@ -246,7 +246,7 @@
     <string name="sleep_night_d">በሌሊት ገጸ ባሕሪው ከብርድ ልብስ በታች ይተኛል።</string>
     <string name="weather_reacts">የአየር ሁኔታ ምላሾች</string>
     <string name="weather_reacts_d">በዝናብ፣ በበረዶ፣ በማዕበል እና በቅዝቃዜ ጃንጥላ ይይዛል አቋሙንም ይቀይራል።</string>
-    <string name="saver_char">በስክሪን ማቆያ ላይ የሚተኛ ገጸ ባሕሪ</string>
+    <string name="saver_char">ገጸ ባህሪ በማያ ማቆያ</string>
     <string name="credits_models">የ3D ገጸ ባህሪ ሞዴሎች</string>
     <string name="prop_candle">ሻማ</string>
     <string name="prop_book">መጽሐፍ</string>

@@ -22,6 +22,8 @@ class PhotoView(ctx: Context) : View(ctx) {
     private val paint = Paint(Paint.FILTER_BITMAP_FLAG)
     private val wash = Paint(); private val scrim = Paint()
     private var night = 1f
+    /** The screensaver look: darker and calmer, with the scrim on the text side and no header scrim. */
+    var saver = false
     private var anim: ValueAnimator? = null
     private var top = 0xFF070A12.toInt(); private var bottom = 0xFF141B33.toInt()
     private var washShader: LinearGradient? = null
@@ -71,9 +73,9 @@ class PhotoView(ctx: Context) : View(ctx) {
         src.set((b.width - sw) / 2, (b.height - sh) / 2, (b.width + sw) / 2, (b.height + sh) / 2); dst.set(0, 0, w, h)
         c.drawBitmap(b, src, dst, paint)
         // day keeps the photo bright and airy; night washes it down to the wallpaper colour
-        wash.shader = washShader; wash.alpha = (255 * (0.30f + 0.52f * night)).toInt(); c.drawRect(dst, wash)
+        wash.shader = washShader; wash.alpha = (255 * (if (saver) 0.55f + 0.33f * night else 0.30f + 0.52f * night)).toInt(); c.drawRect(dst, wash)
         val rtl = layoutDirection == LAYOUT_DIRECTION_RTL
-        scrim.shader = headShader; scrim.alpha = 255; c.drawRect(0f, 0f, w.toFloat(), h * 0.24f, scrim)
+        if (!saver) { scrim.shader = headShader; scrim.alpha = 255; c.drawRect(0f, 0f, w.toFloat(), h * 0.24f, scrim) }
         scrim.shader = shelfShader; scrim.alpha = (255 * (0.75f + 0.25f * night)).toInt(); c.drawRect(0f, h * 0.40f, w.toFloat(), h.toFloat(), scrim)
         c.save(); if (rtl) { c.translate(w.toFloat(), 0f); c.scale(-1f, 1f) }
         scrim.shader = sideShader; scrim.alpha = 255; c.drawRect(0f, 0f, w * 0.55f, h.toFloat(), scrim); c.restore()

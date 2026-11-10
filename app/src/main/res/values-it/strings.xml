@@ -246,7 +246,7 @@
     <string name="sleep_night_d">Di notte il personaggio si sdraia sotto una coperta.</string>
     <string name="weather_reacts">Reazioni al meteo</string>
     <string name="weather_reacts_d">Tiene un ombrello e cambia postura con pioggia, neve, temporale e freddo.</string>
-    <string name="saver_char">Personaggio che dorme nello screensaver</string>
+    <string name="saver_char">Personaggio nel salvaschermo</string>
     <string name="credits_models">Modelli di personaggi 3D</string>
     <string name="prop_candle">Candela</string>
     <string name="prop_book">Libro</string>

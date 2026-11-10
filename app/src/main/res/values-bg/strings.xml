@@ -246,7 +246,7 @@
     <string name="sleep_night_d">Нощем героят лежи под одеяло.</string>
     <string name="weather_reacts">Реакции към времето</string>
     <string name="weather_reacts_d">Държи чадър и сменя стойката при дъжд, сняг, буря и студ.</string>
-    <string name="saver_char">Спящ герой на скрийнсейвъра</string>
+    <string name="saver_char">Герой в скрийнсейвъра</string>
     <string name="credits_models">3D модели на герои</string>
     <string name="prop_candle">Свещ</string>
     <string name="prop_book">Книга</string>

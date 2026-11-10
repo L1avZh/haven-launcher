@@ -246,7 +246,7 @@
     <string name="sleep_night_d">밤에는 캐릭터가 담요를 덮고 눕습니다.</string>
     <string name="weather_reacts">날씨 반응</string>
     <string name="weather_reacts_d">비, 눈, 폭풍, 추위에 우산을 들고 자세를 바꿉니다.</string>
-    <string name="saver_char">화면 보호기에서 자는 캐릭터</string>
+    <string name="saver_char">화면 보호기의 캐릭터</string>
     <string name="credits_models">3D 캐릭터 모델</string>
     <string name="prop_candle">초</string>
     <string name="prop_book">책</string>

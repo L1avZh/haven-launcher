@@ -246,7 +246,7 @@
     <string name="sleep_night_d">La nuit, le personnage s\'allonge sous une couverture.</string>
     <string name="weather_reacts">Réactions à la météo</string>
     <string name="weather_reacts_d">Tient un parapluie et change de posture sous la pluie, la neige, l\'orage et le froid.</string>
-    <string name="saver_char">Personnage endormi sur l\'économiseur</string>
+    <string name="saver_char">Personnage dans l\'écran de veille</string>
     <string name="credits_models">Modèles de personnages 3D</string>
     <string name="prop_candle">Bougie</string>
     <string name="prop_book">Livre</string>

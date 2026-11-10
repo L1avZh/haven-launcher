@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Color
 import android.os.Handler
 import android.os.Looper
+import android.graphics.drawable.GradientDrawable
 import android.view.Gravity
 import android.view.View
 import android.widget.FrameLayout
@@ -13,29 +14,38 @@ import android.widget.TextView
 import kotlin.random.Random
 
 /**
- * Screensaver. A true-black base (kind to OLED panels) under a dim version of the live background, the day or night sky at
- * reduced strength, and one block that holds the clock, the date, a thin rule and the widgets. The whole block, including the
- * optional sleeping character that appears only at night, moves to a new place every 25 seconds so nothing stays lit in one spot.
- * Any key wakes it; the owner decides when it starts and stops.
+ * Screensaver. The home screen's bundled landscape under a darker, calmer wash, one block with the clock, the date, a thin rule and the
+ * widgets, and (when "Sleeping character on screensaver" is on) the selected character standing, or sleeping at night, on the other side.
+ * Nothing stays lit in one place: the text block hops to a new spot every 25 seconds, the photograph drifts very slowly, and the figure
+ * shifts a little each time. No dots, particles or cuts. Any key wakes it; the owner decides when it starts and stops.
  */
 class SaverView(ctx: Context, private val s: Scale, timePattern12: CharSequence?, timePattern24: CharSequence?, datePattern: CharSequence?, widgets: List<String>,
                 private val look: LookState?) : FrameLayout(ctx) {
-    private val live = LiveBackground(ctx)
-    private val sky = MoodView(ctx).apply { strength = 0.45f }
+    private val photo = PhotoView(ctx).apply { saver = true; scaleX = 1.12f; scaleY = 1.12f }
     private val box = LinearLayout(ctx).apply { orientation = LinearLayout.HORIZONTAL; gravity = Gravity.CENTER_VERTICAL }
     private val text = LinearLayout(ctx).apply { orientation = LinearLayout.VERTICAL }
     private val handler = Handler(Looper.getMainLooper())
-    private val hsv = floatArrayOf(210f, 0.55f, 0.80f)
-    private var sleeper: CharacterView? = null
-    private var night = false
+    private var figure: CharacterView? = null
+    private val figureBox = FrameLayout(ctx)
+    private val figW = s.px(640)
+    private var driftDir = 1
     private val hop = object : Runnable {
-        override fun run() { moveClock(); hue(); handler.postDelayed(this, 25_000) }
+        override fun run() { moveClock(); drift(); handler.postDelayed(this, 25_000) }
     }
 
     init {
         setBackgroundColor(Color.BLACK); isClickable = true; isFocusable = false
         contentDescription = ctx.getString(R.string.screensaver); importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_YES
-        live.setAccent(Color.HSVToColor(hsv)); live.alpha = 0.7f; addView(live, -1, -1); addView(sky, -1, -1)
+        addView(photo, -1, -1)
+        if (look != null) {
+            // a soft contact shadow, then the character, on the end side (right in LTR, left in RTL)
+            figureBox.addView(View(ctx).apply {
+                importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
+                background = GradientDrawable().apply { gradientType = GradientDrawable.RADIAL_GRADIENT; gradientRadius = s.px(300f).toFloat(); colors = intArrayOf(0xAA000000.toInt(), 0x55000000, 0x00000000) }
+                scaleY = 0.22f
+            }, LayoutParams(s.px(620), s.px(620), Gravity.CENTER_HORIZONTAL or Gravity.BOTTOM).apply { bottomMargin = -s.px(235) })
+            addView(figureBox, LayoutParams(figW, s.px(900), Gravity.BOTTOM or Gravity.END).apply { marginEnd = s.px(110); bottomMargin = s.px(40) })
+        }
         text.addView(TextClock(ctx).apply {
             if (timePattern12 != null) format12Hour = timePattern12
             if (timePattern24 != null) format24Hour = timePattern24
@@ -56,29 +66,50 @@ class SaverView(ctx: Context, private val s: Scale, timePattern12: CharSequence?
         alpha = 0f
     }
 
-    /** Day or night changed: update the sky and, at night, bring in a sleeping character beside the clock (or remove it). */
+    /** Day or night changed: update the photo's wash and the character (standing, or asleep at night when that is on). */
     fun setMood(isNight: Boolean, scene: SceneLook) {
-        night = isNight; sky.setNight(isNight, true)
-        val want = isNight && scene.sleeping && look != null
-        if (want && sleeper == null) {
-            sleeper = CharacterView(context).also {
-                it.setLook(look!!); it.motion = T.motion; it.frameGapMs = 66L           // a slow breath needs few frames
-                it.setScene(scene); it.setEnvironment(true, WeatherEffect.NONE); box.addView(it, 0, LinearLayout.LayoutParams(s.px(520), s.px(380)).apply { marginEnd = s.px(32) })
+        photo.setNight(isNight, true)
+        if (look == null) return
+        val f = figure
+        if (f == null) {
+            figure = CharacterView(context).also {
+                it.setLook(look); it.motion = T.motion; it.frameGapMs = 66L           // calm pose, few frames
+                it.setScene(scene); it.setEnvironment(isNight, WeatherEffect.NONE)      // no falling rain or snow here
+                figureBox.addView(it, figureParams(scene.sleeping))
                 it.start()
             }
-        } else if (!want) sleeper?.let { box.removeView(it); it.destroy(); sleeper = null }
+        } else {
+            f.setScene(scene); f.setEnvironment(isNight, WeatherEffect.NONE)
+            f.layoutParams = figureParams(scene.sleeping)
+        }
     }
 
-    private fun hue() { hsv[0] = (hsv[0] + 24f) % 360f; live.setAccent(Color.HSVToColor(hsv)); live.pulse() }
+    /** Standing needs a tall view; lying on the bed a short wide one, so the bed rests near the ground shadow instead of floating. */
+    private fun figureParams(sleeping: Boolean) = FrameLayout.LayoutParams(if (sleeping) s.px(700) else figW, if (sleeping) s.px(440) else s.px(900), Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL)
+
+    private val rtl get() = layoutDirection == LAYOUT_DIRECTION_RTL
 
     private fun moveClock() {
         val place = {
-            val mx = (width - box.width).coerceAtLeast(1); val my = (height - box.height).coerceAtLeast(1)
-            box.translationX = Random.nextInt(mx / 10, (mx - mx / 10).coerceAtLeast(mx / 10 + 1)).toFloat()
+            // With a figure on the end side the block keeps to the start side and mostly moves up and down.
+            val room = if (look != null) width - s.px(110 + 760) else width
+            val mx = (room - box.width).coerceAtLeast(1); val my = (height - box.height).coerceAtLeast(1)
+            val x = if (look != null) Random.nextInt(s.px(48), s.px(48) + mx.coerceIn(1, s.px(48))) else Random.nextInt(mx / 10, (mx - mx / 10).coerceAtLeast(mx / 10 + 1))
+            box.translationX = (if (rtl) -x else x).toFloat()
             box.translationY = Random.nextInt(my / 6, (my - my / 6).coerceAtLeast(my / 6 + 1)).toFloat()
             box.animate().alpha(1f).setDuration(T.d(T.SLOW * 2)).start()
         }
         if (box.alpha > 0f) box.animate().alpha(0f).setDuration(T.d(T.SLOW)).withEndAction(place).start() else place()
+    }
+
+    /** The photograph glides a few percent one way, then back the next time: slow enough to read as stillness, enough to keep no pixel fixed. */
+    private fun drift() {
+        val amp = width * (0.012f + 0.03f * T.motion)
+        driftDir = -driftDir
+        photo.animate().cancel()
+        photo.animate().translationX(driftDir * amp).translationY(-driftDir * amp * 0.4f).setDuration(25_000).setInterpolator(android.view.animation.LinearInterpolator()).start()
+        figureBox.animate().cancel()
+        figureBox.animate().translationY(-driftDir * s.px(18f) * (0.3f + 0.7f * T.motion)).setDuration(25_000).setInterpolator(android.view.animation.LinearInterpolator()).start()
     }
 
     override fun onAttachedToWindow() {
@@ -88,7 +119,8 @@ class SaverView(ctx: Context, private val s: Scale, timePattern12: CharSequence?
     }
 
     override fun onDetachedFromWindow() {
-        handler.removeCallbacks(hop); sleeper?.destroy(); sleeper = null
+        handler.removeCallbacks(hop); photo.animate().cancel(); figureBox.animate().cancel(); box.animate().cancel()
+        figure?.destroy(); figure = null
         super.onDetachedFromWindow()
     }
 }
